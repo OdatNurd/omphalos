@@ -1,28 +1,25 @@
-# Devember 2022 - Omphalos
+# Omphalos
 
-This repository represents my entry into [Devember](https://devember.org/) 2022
-and is a re-implementation/re-imagining  of [NodeCG](http://github.com/nodecg/nodecg),
-which is what was behind my [devember-2021](https://github.com/OdatNurd/devember-2021)
-project.
+Omphalos is a "Broadcast Graphics Framework and Application"; that description
+is taken directly from [NodeCG][1], which is the spiritual successor to this
+project. Spiritual in the sense that this is an entirely distinct code base
+that is meant to produce a similar application, but with varying features and
+in a different way.
 
-If you're viewing this in December of 2022, development work is ongoing live on
-my [Twitch channel](https://twitch.tv/odatnurd), which is serving as the daily
-devlog requirement of Devember. What better way to follow what the day's work
-was than to actually watch the day's work?
+The goal of Omphalos is to be your one stop stream control center for streaming
+broadcast graphics. While you **CAN** control your stream with it (with an
+appropriate extension `bundle`), and although it **CAN** replace a
+[StreamDeck][2], the intent is to give you full creative control over the
+**CONTENT** that you create.
 
-At the end of each day, the last commit made on that day (if any) is tagged,
-allowing for easy viewing of the progression of the project over the given time
-period.
+More information can be found in the [documentation][3], including what it can
+do, how it does it and (perhaps most importantly) what the name means.
 
-The project is code named Omphalos:
-> om-pha-los, [noun]
-> * a central point or hub
+This is still a work in progress and initially started life as my [Devember][4]
+project for [2022][5].
 
-Along with the primary connotation of this being a control panel or hub of
-creation, I would also point out that in software development "naming things is
-hard". ALSO, the tagline can be "Add some Oomph to your stream with omphalos",
-so it has that going for it.
-
-For more details on the meaning of the word and fun belly button connotations,
-plus a button that you can click to see how to pronounce it;
-    https://www.merriam-webster.com/dictionary/omphalos
+  [1]: https://www.nodecg.dev/
+  [2]: https://www.elgato.com/en/stream-deck-mk2
+  [3]: https://omphalos.ruinouspileofcrap.com
+  [4]: https://devember.org/
+  [5]: https://github.com/OdatNurd/devember-2021

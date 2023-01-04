@@ -37,7 +37,7 @@
     </div>
 
     <div class="tooltip tooltip-bottom" data-tip="Docs">
-      <a target="_blank" rel="nofollow noreferrer" href="https://devember-2022.ruinouspileofcrap.com" class="btn btn-circle" aria-label="Open Documentation Site">
+      <a target="_blank" rel="nofollow noreferrer" href="https://omphalos.ruinouspileofcrap.com" class="btn btn-circle" aria-label="Open Documentation Site">
         <Icon name={'book'} size="1.5rem" />
       </a>
     </div>

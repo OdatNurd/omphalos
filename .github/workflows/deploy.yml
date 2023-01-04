@@ -1,0 +1,54 @@
+name: Deploy Documentation
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - docs/**
+  push:
+    branches:
+      - master
+    paths:
+      - docs/**
+
+jobs:
+  test-deploy:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./docs
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 19
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Test build documentation
+        run: yarn build
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./docs
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 19
+          cache: yarn
+      - uses: webfactory/ssh-agent@v0.5.0
+        with:
+          ssh-private-key: ${{ secrets.GH_PAGES_DEPLOY }}
+      - name: Deploy documentation
+        env:
+          USE_SSH: true
+        run: |
+          git config --global user.email "odatnurd@gmail.com"
+          git config --global user.name "odatnurd"
+          yarn install --frozen-lockfile
+          yarn deploy
