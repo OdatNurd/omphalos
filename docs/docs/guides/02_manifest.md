@@ -148,6 +148,9 @@ If given, specifies the maximum size that the panel can be sized to.
 Specifies the workspace this panel belongs to; all panels in the same workspace
 are displayed together. Any number of workspaces is possible.
 
+If this key is missing, the panel is assumed to be in a workspace named
+`Workspace`.
+
 #### fullbleed
 
 * optional

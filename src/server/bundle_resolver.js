@@ -429,6 +429,16 @@ export function discoverBundles(appManifest) {
           }
         })
 
+        // If there are any panels, ensure that they all have a workspace field;
+        // there is a default workspace applied to everything that doesn't have
+        // an explicit workspace set.
+        const panels = manifest.omphalos.panels ?? [];
+        panels.forEach(panel => {
+          if (panel.workspace === undefined) {
+            panel.workspace = 'Workspace';
+          }
+        })
+
         // Save it now.
         bundles[manifest.name] = manifest;
       }
