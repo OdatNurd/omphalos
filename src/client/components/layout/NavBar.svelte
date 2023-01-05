@@ -13,8 +13,8 @@
   <div class="navbar-start">
     <Logo size={36} />
     <div class="tabs ml-4">
-      {#each workspaces as workspace (name)}
-        <a href="/dashboard/{workspace.slug}" use:link class="tab tab-lg tab-bordered tab-active">{workspace.name}</a>
+      {#each workspaces as workspace}
+        <a href="/dashboard/{workspace}" use:link class="tab tab-lg tab-bordered tab-active">{workspace}</a>
       {/each}
     </div>
   </div>

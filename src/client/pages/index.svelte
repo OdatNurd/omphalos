@@ -20,8 +20,8 @@
   //
   // This also catches the empty slug, which is not an error but just a shortcut
   // for the first workspace.
-  if (workspaces.map(e => e.slug).indexOf(slug) == -1) {
-    navigate(`/dashboard/${workspaces[0].slug}`);
+  if (workspaces.indexOf(slug) == -1) {
+    navigate(`/dashboard/${workspaces[0]}`);
   }
 
   $: if (slug !== '') console.log(`current workspace is ${slug}`);

@@ -14,14 +14,9 @@
   // relies on the fact that the payload is verified on the other end.
   omphalos.listenFor('toast', data => toast[data.level](data.toast, data.timeout));
 
-  // Pretend we did some sort of web request here as a part of the init, and we
-  // ended up with a list of workspaces.
-  const workspaces = [
-    {
-      "name": "WozSpace",
-      "slug": "woz",
-    }
-  ]
+  // The list of workspaces is well known; it comes from the list of panels that
+  // are in the manifest object that we got at startup.
+  const workspaces = [ "WozSpace" ];
 </script>
 
 <div class="flex flex-col h-screen">
