@@ -45,7 +45,7 @@
         <span class="text-xl">No loaded bundles contain graphics</span>
       </div>
     {:else}
-      {#each $graphics as bundle (name)}
+      {#each $graphics as bundle (bundle.name)}
         <!-- Per Bundle; this sets the name -->
         <div class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg border-neutral-focus border-1 p-1">
           <span class="text-xl">{bundle.name}</span>
@@ -59,13 +59,13 @@
         <!-- Per Bundle; This is the list of graphics. -->
         <div class="bg-neutral text-neutral-content p-0 m-0 mb-2 h-full w-full relative rounded-br-lg border-neutral-focus border-1">
 
-          {#each bundle.graphics as graphic (name)}
+          {#each bundle.graphics as graphic (graphic.name)}
 
             <!-- Per Graphic; Covers the entire shiboodle -->
             <div class="flex justify-between px-4 mt-2 py-2 bg-secondary text-secondary-content">
               <!-- Load count, link and size -->
               <div class="flex flex-grow items-center justify-between">
-                <div class="flex-none px-2">{graphic.count}</div>
+                <div class="flex-none px-2">{graphic.count === 0 ? '-' : graphic.count}</div>
                 <div class="font-bold underline flex-grow"><a target="_blank" rel="nofollow noreferrer" href="{graphicURL(bundle, graphic)}">{graphic.file}</a></div>
                 <h3 class="flex-none">{graphic.size.width}x{graphic.size.height}</h3>
               </div>
