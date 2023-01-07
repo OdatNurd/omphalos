@@ -4,6 +4,8 @@
   import { Router, Route } from 'svelte-navigator';
   import { toast } from '$lib/toast.js'
 
+  import { getWorkspaceList } from '$lib/workspace.js';
+
   import Index from '$pages/index.svelte';
   import Graphics from '$pages/graphics.svelte';
   import Mixer from '$pages/mixer.svelte';
@@ -14,9 +16,10 @@
   // relies on the fact that the payload is verified on the other end.
   omphalos.listenFor('toast', data => toast[data.level](data.toast, data.timeout));
 
-  // The list of workspaces is well known; it comes from the list of panels that
-  // are in the manifest object that we got at startup.
-  const workspaces = [ "WozSpace", "Workspace" ];
+  // Obtain the full list of workspaces, which we need to pass to the navbar to
+  // generate links and to the dashboard wrapper component so that it can tell
+  // what workspaces are actually valid.
+  const workspaces = getWorkspaceList();
 </script>
 
 <Router primary={false}>

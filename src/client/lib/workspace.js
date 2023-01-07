@@ -2,6 +2,27 @@
 // =============================================================================
 
 
+/* Gather and return the complete list of workspaces that exist across all
+ * panels in all bundles, and return the list back.
+ *
+ * The list of workspaces is sorted on return to ensure that the order is a
+ * known state. */
+export function getWorkspaceList() {
+  const result = new Set();
+
+  for (const [bundle, manifest] of Object.entries(omphalos.bundle.omphalos.deps)) {
+    const bundle_panels = (manifest.omphalos.panels ?? []).forEach(panel => {
+      result.add(panel.workspace)
+    });
+  }
+
+  return Array.from(result).sort();
+}
+
+
+// =============================================================================
+
+
 /* Given the gridstack object that tracks a workspace, fetch the state out of
  * it and persist it into local storage for later use.
  *
