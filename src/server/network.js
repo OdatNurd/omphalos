@@ -148,7 +148,7 @@ export function setupSocketIO(io) {
         log.debug(`JOIN: ${bundle}: [${client_info(socket)}]`);
         socket.join(bundle);
       } else {
-        log.warning(`JOIN: incoming request from unknown client (${socket.id}`);
+        log.warn(`JOIN: incoming request from unknown client (${socket.id}`);
       }
     });
 
@@ -157,7 +157,7 @@ export function setupSocketIO(io) {
         log.debug(`PART: ${bundle}: [${client_info(socket)}]`);
         socket.leave(bundle);
       } else {
-        log.warning(`PART: incoming request from unknown client (${socket.id}`);
+        log.warn(`PART: incoming request from unknown client (${socket.id}`);
       }
     });
 
@@ -189,7 +189,7 @@ export function setupSocketIO(io) {
     // user level); the data payload is optional.
     socket.on('message', msgData => {
       if (clients[socket.id] === undefined) {
-        log.warning(`MSG: incoming request from unknown client (${socket.id}`);
+        log.warn(`MSG: incoming request from unknown client (${socket.id}`);
         return;
       }
 
