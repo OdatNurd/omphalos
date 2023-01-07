@@ -1,7 +1,9 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { loadWorkspaceState, saveWorkspaceState } from '$lib/bundle.js';
+  import { makePanelStore } from '$stores/panels.js';
+
+  import { saveWorkspaceState } from '$lib/workspace.js';
   import DashboardPanel from './DashboardPanel.svelte';
 
   // The workspace that this dashboard component is currently displaying. This
@@ -15,7 +17,7 @@
   // Get the state of the workspace to display; this is a combination of any
   // stored layout data from a prior load and the current information from when
   // the dashboard loaded.
-  const panelList = loadWorkspaceState(omphalos.bundle, workspace);
+  const panels = makePanelStore(workspace);
 
   // The gridstack instance; this holds the panel and drives the schoolbus. It
   // doesn't get created until the component is mounted, since it needs the DOM
@@ -65,7 +67,7 @@
 
 <div class="grid-holder">
   <div class="grid-stack">
-    {#each panelList as panel (panel.name)}
+    {#each $panels as panel (panel.name)}
       <DashboardPanel on:update={saveLayout} {...panel} {blocked} {grid} />
     {/each}
   </div>

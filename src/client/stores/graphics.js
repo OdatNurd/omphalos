@@ -1,5 +1,5 @@
 import { readable, derived } from 'svelte/store';
-import {  connections  } from '$stores/connections.js'
+import { connections } from '$stores/connections.js'
 
 
 // =============================================================================
@@ -37,7 +37,7 @@ function createRawStore() {
 // =============================================================================
 
 
-/* Create a derived store which will provide the rawd data from the store above
+/* Create a derived store which will provide the raw data from the store above
  * and also combine it with live updates from the connection store. */
 export const graphics = derived([createRawStore(), connections], (stores) => {
   const [raw, update] = stores;

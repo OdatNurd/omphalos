@@ -15,6 +15,9 @@
   export let title = 'Untitled';
   export let content = 'missing.html';
 
+  // The number of active connections for panels of this particular type.
+  export let count = 0;
+
   // The bundle the panel is from and the name that it has within that bundle;
   // taken together these are used to construct a unique identifier for this
   // panel.
@@ -110,6 +113,12 @@
     grid.update(panel, { noResize, noMove });
     dispatch('update');
   }
+
+  // Return the primary or error color based on the current connection count;
+  // there is one for general state and one for button state, since they require
+  // different classes.
+  const state = (c) => (c > 0) ? 'bg-primary text-primary-content' : 'bg-error text-error-content';
+  const btnState = (c) => (c > 0) ? 'btn-primary' : 'btn-error';
 </script>
 
 
@@ -123,32 +132,32 @@
                              gs-no-move={noMove}
                              bind:this={panel}>
   <div class="grid-stack-item-content rounded-tl-lg rounded-br-lg border-neutral-focus border-4">
-    <div class:noMove class="grid-stack-item-title bg-primary text-primary-content rounded-tl-lg border-neutral-focus border-1 p-1">
+    <div class:noMove class="grid-stack-item-title {state(count)} rounded-tl-lg border-neutral-focus border-1 p-1">
       <span>{title}</span>
 
       <div class="flex">
         {#if window.omphalos.config.developerMode}
           <div class="tooltip tooltip-left" data-tip="Reload">
-            <button on:click={reload} class="btn btn-circle btn-xs btn-primary" aria-label="Reload Panel">
+            <button on:click={reload} class="btn btn-circle btn-xs {btnState(count)}" aria-label="Reload Panel">
               <Icon name={'rotate-right'} size="0.75rem" />
             </button>
           </div>
         {/if}
 
         <div class="tooltip tooltip-left" data-tip="Open">
-          <a target="_blank" rel="nofollow noreferrer" href={`/bundles/${bundle}/panels/${content}`} class="btn btn-xs btn-circle btn-primary" aria-label="Open In New Tab">
+          <a target="_blank" rel="nofollow noreferrer" href={`/bundles/${bundle}/panels/${content}`} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Open In New Tab">
             <Icon name={'up-right-from-square'} size="0.75rem" />
           </a>
         </div>
 
         <div class="tooltip tooltip-left" data-tip={locked ? 'Unpin' : 'Pin'}>
-          <button on:click={pin} class="btn btn-xs btn-circle btn-primary" aria-label="Pin/Unpin this panel">
+          <button on:click={pin} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
             <Icon name={locked ? 'circle' : 'thumbtack'} size="0.75rem" />
           </button>
         </div>
 
         <div class="tooltip tooltip-left" data-tip={noMove ? 'Unlock' : 'Lock'}>
-          <button on:click={lock} class="btn btn-xs btn-circle btn-primary" aria-label="Pin/Unpin this panel">
+          <button on:click={lock} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
             <Icon name={noMove ? 'lock' : 'lock-open'} size="0.75rem" />
           </button>
         </div>
