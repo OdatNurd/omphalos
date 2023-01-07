@@ -134,6 +134,7 @@ developer asks you to turn it on.
 
 With this turned on:
   * Dashboard panels have reload buttons to individually reload them.
+  * The docs button loads local documentation instead of the official site.
 
 :::warning
 

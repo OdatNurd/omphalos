@@ -6,6 +6,9 @@
   import Icon from '../Icon.svelte';
   import Logo from '../Logo.svelte';
 
+  const docUrl = (omphalos.config.developerMode)
+      ? 'http://localhost:4000'
+      : 'https://omphalos.ruinouspileofcrap.com'
   export let workspaces;
 </script>
 
@@ -37,7 +40,7 @@
       </Tab>
 
       <!-- No tab; this is an external link and not an internal one -->
-      <a target="_blank" rel="nofollow noreferrer" href="https://omphalos.ruinouspileofcrap.com" class="tab tab-lg" aria-label="Open Documentation Site">
+      <a target="_blank" rel="nofollow noreferrer" href={docUrl} class="tab tab-lg" aria-label="Open Documentation Site">
         <Icon name={'book'} size="1.5rem" />
       </a>
 
