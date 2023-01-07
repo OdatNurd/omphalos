@@ -28,4 +28,6 @@
   $: console.log(`current workspace is ${slug}`);
 </script>
 
-<Dashboard />
+{#key slug}
+  <Dashboard workspace={slug}/>
+{/key}

@@ -22,6 +22,7 @@ function getManifestPanels(sysBundle) {
         title: panel.title,
         content: panel.file,
         name: panel.name,
+        workspace: panel.workspace,
         locked: panel.locked ?? false,
 
         width: panel.size.width,
@@ -102,7 +103,9 @@ export function loadWorkspaceState(sysBundle, workspace) {
 
   // Get the panels from the system bundle and augment them with any saved data
   // for this workspace from local storage.
-  const panels = getManifestPanels(sysBundle).map(panel => {
+  const panels = getManifestPanels(sysBundle)
+      .filter(panel => panel.workspace === workspace)
+      .map(panel => {
     const savedInfo = savedDashboardInfo?.[panel.bundle]?.[panel.name] ?? {};
     return { ...panel, ...savedInfo }
   });

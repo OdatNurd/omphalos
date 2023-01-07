@@ -4,6 +4,10 @@
   import { loadWorkspaceState, saveWorkspaceState } from '$lib/bundle.js';
   import DashboardPanel from './DashboardPanel.svelte';
 
+  // The workspace that this dashboard component is currently displaying. This
+  // gets sent to us from navigation system as part of the component load.
+  export let workspace;
+
   // When this is true, all of the panel items are blocked from taking any
   // mouse interaction.
   let blocked = false;
@@ -11,7 +15,7 @@
   // Get the state of the workspace to display; this is a combination of any
   // stored layout data from a prior load and the current information from when
   // the dashboard loaded.
-  const panelList = loadWorkspaceState(omphalos.bundle, 'woz');
+  const panelList = loadWorkspaceState(omphalos.bundle, workspace);
 
   // The gridstack instance; this holds the panel and drives the schoolbus. It
   // doesn't get created until the component is mounted, since it needs the DOM
@@ -21,7 +25,7 @@
   // Whenever the state of any panels change, save the state into the local
   // storage for later. This includes when panels move, resize or tell us that
   // they have changed their own properties.
-  const saveLayout = () => saveWorkspaceState(grid, 'woz');
+  const saveLayout = () => saveWorkspaceState(grid, workspace);
 
   // Once the components are all laid out, trigger the gridstack code to turn
   // on the magic.
