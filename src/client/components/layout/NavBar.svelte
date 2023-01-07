@@ -1,22 +1,10 @@
 <script>
-  import { useLocation } from "svelte-navigator";
-
   import { toast } from '$lib/toast.js';
   import { link } from 'svelte-navigator';
 
+  import Tab from './Tab.svelte';
   import Icon from '../Icon.svelte';
   import Logo from '../Logo.svelte';
-
-  const location = useLocation();
-
-  // Change the active dashboard on location change
-  const isActive = (workspace, location) => {
-    if (`/dashboard/${workspace}` === location.pathname) {
-      return 'tab-active';
-    }
-
-    return '';
-  }
 
   export let workspaces;
 </script>
@@ -27,7 +15,9 @@
     <Logo size={36} />
     <div class="tabs ml-4">
       {#each workspaces as workspace}
-        <a href="/dashboard/{workspace}" use:link class="tab tab-lg tab-bordered {isActive(workspace, $location)}">{workspace}</a>
+        <Tab href="/dashboard/{workspace}" label="Switch to workspace {workspace}">
+          {workspace}
+        </Tab>
       {/each}
     </div>
   </div>
@@ -37,28 +27,23 @@
   </div>
 
   <div class="navbar-end">
-    <div class="tooltip tooltip-bottom" data-tip="Graphics">
-      <a  href="/graphics" use:link class="btn btn-circle" aria-label="Open Graphics Page">
+    <div class="tabs ml-4">
+      <Tab href="/graphics" label="Open Graphics Page">
         <Icon name={'layer-group'} size="1.5rem" />
-      </a>
-    </div>
+      </Tab>
 
-    <div class="tooltip tooltip-bottom" data-tip="Mixer">
-      <a href="/mixer" use:link class="btn btn-circle" aria-label="Open Mixer Page">
+      <Tab href="/mixer" label="Open Mixer Pag">
         <Icon name={'headphones-simple'} size="1.5rem" />
-      </a>
-    </div>
+      </Tab>
 
-    <div class="tooltip tooltip-bottom" data-tip="Docs">
-      <a target="_blank" rel="nofollow noreferrer" href="https://omphalos.ruinouspileofcrap.com" class="btn btn-circle" aria-label="Open Documentation Site">
+      <!-- No tab; this is an external link and not an internal one -->
+      <a target="_blank" rel="nofollow noreferrer" href="https://omphalos.ruinouspileofcrap.com" class="tab tab-lg" aria-label="Open Documentation Site">
         <Icon name={'book'} size="1.5rem" />
       </a>
-    </div>
 
-    <div class="tooltip tooltip-left" data-tip="Settings">
-      <a href="/settings" use:link class="btn btn-circle" aria-label="Open Settings Page">
+      <Tab href="/settings" label="Open Settings Pag">
         <Icon name={'gear'} size="1.5rem" />
-      </a>
+      </Tab>
     </div>
   </div>
 </div>
