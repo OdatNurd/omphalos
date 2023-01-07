@@ -16,24 +16,24 @@
 
   // The list of workspaces is well known; it comes from the list of panels that
   // are in the manifest object that we got at startup.
-  const workspaces = [ "WozSpace" ];
+  const workspaces = [ "WozSpace", "Workspace" ];
 </script>
 
-<div class="flex flex-col h-screen">
-  <Toaster />
-  <NavBar {workspaces} />
+<Router primary={false}>
+  <div class="flex flex-col h-screen">
+    <Toaster />
+    <NavBar {workspaces} />
 
-  <div class="flex flex-1 w-full overflow-hidden p-0 m-0">
-    <div class="bg-base-100 h-full w-full m-0 p-0">
-      <div class="w-full text-base-content m-0">
-        <Router primary={false}>
+    <div class="flex flex-1 w-full overflow-hidden p-0 m-0">
+      <div class="bg-base-100 h-full w-full m-0 p-0">
+        <div class="w-full text-base-content m-0">
           <Route path="dashboard/*slug" component={Index} {workspaces}/>
           <Route path="graphics"        component={Graphics} />
           <Route path="mixer"           component={Mixer} />
           <Route path="settings"        component={Settings} />
           <Route path="*"               component={Error404} />
-        </Router>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</Router>

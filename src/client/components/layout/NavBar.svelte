@@ -1,9 +1,22 @@
 <script>
+  import { useLocation } from "svelte-navigator";
+
   import { toast } from '$lib/toast.js';
   import { link } from 'svelte-navigator';
 
   import Icon from '../Icon.svelte';
   import Logo from '../Logo.svelte';
+
+  const location = useLocation();
+
+  // Change the active dashboard on location change
+  const isActive = (workspace, location) => {
+    if (`/dashboard/${workspace}` === location.pathname) {
+      return 'tab-active';
+    }
+
+    return '';
+  }
 
   export let workspaces;
 </script>
@@ -14,7 +27,7 @@
     <Logo size={36} />
     <div class="tabs ml-4">
       {#each workspaces as workspace}
-        <a href="/dashboard/{workspace}" use:link class="tab tab-lg tab-bordered tab-active">{workspace}</a>
+        <a href="/dashboard/{workspace}" use:link class="tab tab-lg tab-bordered {isActive(workspace, $location)}">{workspace}</a>
       {/each}
     </div>
   </div>
