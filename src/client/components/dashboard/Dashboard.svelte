@@ -33,7 +33,7 @@
   // on the magic.
   onMount(() => {
     grid = GridStack.init({
-      cellHeight: 'initial',
+      cellHeight: '32px',
       float: true,
       margin: 4,
       resizable: { handles: 'e,se,s,sw,w'},
