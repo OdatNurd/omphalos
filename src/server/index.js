@@ -113,7 +113,7 @@ function spaTemplate(dom, bundles, version) {
  * This fills out most of the API structure; some items are per bundle and
  * require a bundle to load, so they are stubbed out here as placeholders before
  * return as a reminder of the contract. */
-function makeTemplateAPIObject(io) {
+function makeTemplateAPIObject(app, io) {
   const exportSymbols = {};
   return {
     // The list of symbols that are exported by bundles; the keys are the names
@@ -122,6 +122,13 @@ function makeTemplateAPIObject(io) {
 
     // The global socket.io context.
     socketIO: io,
+
+    // Create and return a brand new router to allow the extension code to
+    // expose its own web routes.
+    createRouter: options => express.Router(options),
+
+    // Mount a router created by createRouter() into the application.
+    mount: router => app.use(router),
 
     // Build a require function that looks up symbols from the list of exported
     // symbols from other bundles that loaded before us.
@@ -248,7 +255,7 @@ async function launchServer() {
 
   // Get the template API object that we will pass to extension code; it will
   // get filled out by the module loader.
-  const omphalos = makeTemplateAPIObject(io);
+  const omphalos = makeTemplateAPIObject(app, io);
 
   // Discover and load all bundles; we get a list of routers that serve files
   // for any that have any; apply them all.
