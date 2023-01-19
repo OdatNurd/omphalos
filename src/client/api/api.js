@@ -126,12 +126,20 @@ export function __init_api(manifest, assetConfig, appConfig) {
   asset = assetConfig;
   config = appConfig;
 
+  let connectionCount = 0;
+
+  // Set up our log handling.
+  setupLogger(config.logging, asset.name);
+
   // Set up our back-channel communications socket; this will keep itself
   // connected permanently.
   socket = getClientSocket();
 
-  // Set up our log handling.
-  setupLogger(config.logging, asset.name);
+  // Queue up events on the socket to announce ourselves and join the channel
+  // that gives us events for our bundle.
+  // events from our bundle.
+  hello(socket, asset, bundle)
+  join(socket, bundle.name)
 
   // When our socket connects, we need to announce ourselves to the server to
   // join the communications channel that is associated with our bundle, so that
@@ -139,10 +147,13 @@ export function __init_api(manifest, assetConfig, appConfig) {
   socket.on('connect', () => {
     log.debug(`connection for ${asset.name}:${manifest.name} established on ${socket.id}`);
 
-    // As soon as we connect, tell the server who we are and ask to be given
-    // events from our bundle.
-    hello(socket, asset, bundle)
-    join(socket, bundle.name)
+    connectionCount++;
+    if (connectionCount > 1) {
+      // On reconnect, announce ourselves again since the server won't know who
+      // we are.
+      hello(socket, asset, bundle)
+      join(socket, bundle.name)
+    }
   });
 
   // Dispatch incoming messages. They should have a structure of:
