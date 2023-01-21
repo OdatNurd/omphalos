@@ -14,8 +14,20 @@ import { assert } from '#api/assert';
  *
  * The provided information is used as authorization headers to tell the remote
  * end who this socket represents. */
-export function getClientSocket(asset, bundle) {
-  return io({
+export function getClientSocket(log, asset, bundle, listens) {
+  // Create and return an authorization header for the socket that tells the
+  // server who we are and what rooms we should be implicitly joined to
+  // immediately on connection.
+  const getAuth = () => {
+    return {
+      bundle: bundle.name,
+      name:   asset.name,
+      type:   asset.type,
+      rooms: Array.from(new Set([bundle.name, ...Object.keys(listens)]))
+    }
+  }
+
+  const socket = io({
     // The amount of time a connection attempt will wait to establish before
     // failing.
     timeout: 20000,
@@ -39,12 +51,17 @@ export function getClientSocket(asset, bundle) {
 
     // Provide our information as credentials to the server end so it knows who
     // we are and will route messages.
-    auth: {
-      bundle: bundle.name,
-      name:   asset.name,
-      type:   asset.type,
-    },
+    auth: getAuth(),
   });
+
+  // When the socket disconnects, update the authorization headers to account
+  // for any bundles we should be joined with for messaging when we reconnect.
+  socket.on('disconnect', reason => {
+    log.debug(`connection for ${asset.name}:${bundle.name} lost: ${reason}`);
+    socket.auth = getAuth();
+  })
+
+  return socket;
 }
 
 

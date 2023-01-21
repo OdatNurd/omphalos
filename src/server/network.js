@@ -20,6 +20,7 @@ const validSocketAuth = joker.validator({
     "type": "string",
     "name": "string",
     "bundle": "string",
+    "rooms[]": "string"
   }
 });
 
@@ -158,6 +159,11 @@ export function setupSocketIO(io) {
     };
 
     log.debug(`HELO: [${client_info(socket)}]`);
+    log.debug(`JOIN: (${authInfo.rooms.join(', ')}): [${client_info(socket)}]`);
+
+    // Upon a connection, the socket is automatically joined to all rooms listed
+    // in the auth header.
+    authInfo.rooms.forEach(room => socket.join(room));
 
     // Schedule an update on a new list of connections
     sendConnectionUpdate(io);
