@@ -2,6 +2,7 @@ import { logger } from '#core/logger';
 
 import { assert } from '#api/assert';
 
+import joker from '@axel669/joker';
 import EventBridge from '@axel669/event-bridge';
 
 
@@ -11,12 +12,24 @@ import EventBridge from '@axel669/event-bridge';
 /* Get our subsystem logger. */
 const log = logger('network');
 
+/* This validates that the incoming auth object in the socket.io client connect
+ * handshake has the fields that we expect, and of the correct type. */
+const validSocketAuth = joker.validator({
+  itemName: 'auth',
+  root: {
+    "type": "string",
+    "name": "string",
+    "bundle": "string",
+  }
+});
+
+
 /* The global event object that we use to dispatch and listen for all of our
  * events. */
 const bridge = EventBridge();
 
 /* This tracks a list of incoming sockets and associates them with the info that
- * is provided in a "hello" introduction message.
+ * is provided in the auth object of the socket handshake.
  *
  * In the object the keys are socket ID's and the value is the information about
  * that particular client.
@@ -127,6 +140,28 @@ export function setupSocketIO(io) {
   io.on('connection', socket => {
     log.silly(`CONNECT: ${socket.id}`);
 
+    // Get the auth information from the handshake and verify that it has all of
+    // the fields in it that we expect it to have; if not we will do nothing
+    // with this connection because it's violating protocol.
+    const authInfo = socket.handshake.auth;
+    const validAuth = validSocketAuth(authInfo);
+    if (validAuth !== true) {
+      log.error(`invalid auth (socket.id=${socket.id}): ${validAuth.map(e => e.message).join(', ')}`)
+      return
+    }
+
+    // Register this client socket with information about who they are.
+    clients[socket.id] = {
+      type: authInfo.type,
+      name: authInfo.name,
+      bundle: authInfo.bundle
+    };
+
+    log.debug(`HELO: [${client_info(socket)}]`);
+
+    // Schedule an update on a new list of connections
+    sendConnectionUpdate(io);
+
     // Handle disconnects; for graphics this needs to update state that is used
     // in the UI so that the graphic display can indicate connection status.
     socket.on('disconnect', () => {
@@ -159,19 +194,6 @@ export function setupSocketIO(io) {
       } else {
         log.warn(`PART: incoming request from unknown client (${socket.id}`);
       }
-    });
-
-    socket.on("hello", data => {
-      clients[socket.id] = {
-        type: data.type,
-        name: data.name,
-        bundle: data.bundle
-      };
-
-      log.debug(`HELO: [${client_info(socket)}]`);
-
-      // Schedule an update on a new list of connections
-      sendConnectionUpdate(io);
     });
 
     // Handle an incoming message from the remote end; these are in a very

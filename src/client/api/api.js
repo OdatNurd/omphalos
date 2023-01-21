@@ -1,4 +1,4 @@
-import { getClientSocket, hello, join, part, message } from '#api/socket';
+import { getClientSocket, join, part, message } from '#api/socket';
 
 import { assert } from '#api/assert';
 import { format } from 'fecha';
@@ -133,12 +133,11 @@ export function __init_api(manifest, assetConfig, appConfig) {
 
   // Set up our back-channel communications socket; this will keep itself
   // connected permanently.
-  socket = getClientSocket();
+  socket = getClientSocket(asset, bundle);
 
   // Queue up events on the socket to announce ourselves and join the channel
   // that gives us events for our bundle.
   // events from our bundle.
-  hello(socket, asset, bundle)
   join(socket, bundle.name)
 
   // When our socket connects, we need to announce ourselves to the server to
@@ -151,7 +150,6 @@ export function __init_api(manifest, assetConfig, appConfig) {
     if (connectionCount > 1) {
       // On reconnect, announce ourselves again since the server won't know who
       // we are.
-      hello(socket, asset, bundle)
       join(socket, bundle.name)
     }
   });
