@@ -32,8 +32,12 @@
 
   // Copy the full URL for a graphic to the clipboard.
   const copyUrl = (bundle, graphic) => {
-    navigator.clipboard.writeText(graphicURL(bundle, graphic));
-    toast.success(`Copied URL for ${graphic.name} to the clipboard!`);
+    if (navigator.clipboard !== undefined) {
+      navigator.clipboard.writeText(graphicURL(bundle, graphic));
+      toast.success(`Copied URL for ${graphic.name} to the clipboard!`);
+    } else {
+      toast.error(`Cannot copy URL; not https url or not localhost`);
+    }
   }
 </script>
 
