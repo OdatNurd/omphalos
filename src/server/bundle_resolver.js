@@ -65,11 +65,12 @@ const validBundleManifest = joker.validator({
     "?extension": "string",
 
     // These items specify a path relative to the manifest file in the package
-    // that specify where any panels and graphics are expected to be found.
-    // If they are not provided, then a default of "panels" and "graphics"
-    // respectively will be used as the location.
+    // that specify where any panels, graphics and sounds are expected to be
+    // found. If they are not provided, then a default of "panels", "graphics"
+    // and "sounds" respectively will be used as the location.
     "?panelPath": "string",
     "?graphicPath": "string",
+    "?soundPath": "string",
 
     // A list of user interface panels that should be presented for this bundle.
     // Sizes are in columns and rows. If a panel is locked, it will not be
@@ -115,6 +116,14 @@ const validBundleManifest = joker.validator({
         "height": "int"
       },
       "?singleInstance": "bool"
+    },
+
+    // A list of sound drop files that are contained in this bundle. The names
+    // of each sound must be unique within a bundle, and the file is a file
+    // relative to the set "soundPath".
+    "?sounds[]": {
+      "file": "string",
+      "name": "string",
     }
   }
 });
@@ -419,6 +428,7 @@ export function discoverBundles(appManifest) {
         // they are not present.
         manifest.omphalos.panelPath ??= 'panels';
         manifest.omphalos.graphicPath ??= 'graphics';
+        manifest.omphalos.soundPath ??= 'sounds';
 
         // If there any graphics, ensure that they all have a name field; use
         // the file as a backup if there is not.

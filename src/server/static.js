@@ -55,3 +55,28 @@ export function sendStaticTemplate(req, res, file, errorTemplate, formatter, sta
 
 
 // =============================================================================
+
+/* Given an absolute path to a static file, serve that file out. If such a file
+ * does not exist, this will generate an error. */
+export function sendStaticFile(req, res, file) {
+  const options = {
+    dotfiles: 'deny',
+    headers: {
+      'x-timestamp': Date.now(),
+      'x-sent': true,
+      'x-item-filename': file
+    }
+  };
+
+  res.sendFile(file, options, err => {
+    if (err) {
+      log.error(`Error: ${err}`);
+      res.status(404).send('Error sending file');
+    } else {
+      log.info('Transmitted:', file);
+    }
+  });
+}
+
+
+// =============================================================================

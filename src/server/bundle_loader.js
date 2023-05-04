@@ -8,7 +8,7 @@ import { listenFor } from '#core/network';
 import { discoverBundles, getBundleLoadOrder } from '#core/bundle_resolver';
 import { resolve } from 'path';
 
-import { sendStaticTemplate } from '#core/static';
+import { sendStaticTemplate, sendStaticFile } from '#core/static';
 
 import express from 'express';
 import jetpack from 'fs-jetpack';
@@ -105,10 +105,37 @@ function assetTemplate(dom, manifest, asset, assetType) {
  * router given and none is needed, a new router if we were given null and we
  * needed a router, or the router passed in if it existed. */
 function setupAssetRoutes(manifest, bundleName, assetType, router) {
-  // Using the asset type, determine what key in the manifest has our asset
-  // list in it, and determine where they're stored.
-  const assetKey  = assetType === 'panel' ? 'panels' : 'graphics';
-  const assetPath = assetType === 'panel' ? manifest.omphalos.panelPath : manifest.omphalos.graphicPath;
+  // Create maps betweem the known asset types and the keys and paths associated
+  // with them from the manifest.
+  const assetTypes = {
+    panel: {
+      key: 'panels',
+      path: manifest.omphalos.panelPath,
+      useTemplate: true
+    },
+    graphic: {
+      key: 'graphics',
+      path: manifest.omphalos.graphicPath,
+      useTemplate: true
+    },
+    sound: {
+      key: 'sounds',
+      path: manifest.omphalos.soundPath,
+      useTemplate: false
+    },
+  }
+
+  // Look up the appropriate paths based on the asset type. This must be an
+  // asset type that we know about, or we will bomb (this is a programmer error,
+  // not a user error).
+  const assetInfo = assetTypes[assetType];
+  if (assetInfo === undefined) {
+    throw new BundleLoadError(`${assetType} is invalid for bundle ${bundleName}`);
+  }
+
+  // Alias the keys in the asset info for brevity.
+  const assetKey  = assetTypes[assetType].key;
+  const assetPath = assetTypes[assetType].path;
 
   // Alias the full path to the assets we're serving.
   const fullAssetPath = resolve(manifest.omphalos.location, assetPath);
@@ -165,12 +192,20 @@ function setupAssetRoutes(manifest, bundleName, assetType, router) {
       continue;
     }
 
-    // Set up template handlers for expanding out the page.
-    const error = () => assetError(manifest, staticFile, assetType);
-    const templ = (dom) => assetTemplate(dom, manifest, asset, assetType);
+    // Files that are supposed to use page templates need to have a special
+    // route handler so that their content can be modified to inject the API and
+    // default style information that we provide.
+    if (assetInfo.useTemplate === true) {
+      // Set up template handlers for expanding out the page.
+      const error = () => assetError(manifest, staticFile, assetType);
+      const templ = (dom) => assetTemplate(dom, manifest, asset, assetType);
 
-    // Add in a route for it to serve this specific static file.
-    router.get(staticUrl, (req, res) => sendStaticTemplate(req, res, staticFile, error, templ));
+      // Add in a route for it to serve this specific static file.
+      router.get(staticUrl, (req, res) => sendStaticTemplate(req, res, staticFile, error, templ));
+    } else {
+      // Add a route to the static file directly
+      router.get(staticUrl, (req, res) => sendStaticFile(req, res, staticFile))
+    }
   }
 
   // Now that we're done with the individual files, set up a route to serve the
@@ -319,11 +354,12 @@ async function loadBundle(omphalos, manifest) {
   // symbols this bundle exported, which might be empty/
   const symbols = await loadBundleExtension(omphalos, manifest, bundleName);
 
-  // Set up the panel and graphic routes as needed. These don't signal an error
-  // back because it's not as catastrophic if a panel or graphic is missing;
-  // this could be done on purpose as development of the bundle progresses.
+  // Set up the asset routes as needed. These don't signal an error back because
+  // it's not as catastrophic if an assetis missing; this could be done on
+  // purpose as development of the bundle progresses.
   router = setupAssetRoutes(manifest, bundleName, 'panel', router);
   router = setupAssetRoutes(manifest, bundleName, 'graphic', router);
+  router = setupAssetRoutes(manifest, bundleName, 'sound', router);
 
   // Return the router and exported symbols back to the caller; may be null.
   return { router, symbols };
