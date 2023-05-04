@@ -9,7 +9,7 @@
     "url": "https://odatnurd.net"
   },
   "engines": {
-    "node": "19.x",
+    "node": "18.x",
     "yarn": "1.x"
   },
   "scripts": {
