@@ -1,0 +1,23 @@
+{
+  "name": "omphalos-system",
+  "version": "1.0.0",
+  "type": "module",
+  "omphalos": {
+    "compatibleRange": "~0.0.1",
+    "graphics": [
+      {
+        "file": "sound_board.html",
+        "size": {
+          "width": 1920,
+          "height": 1080
+        }
+      }
+    ],
+    "sounds": [
+      {
+        "file": "omphalos.mp3",
+        "name": "omphalos"
+      }
+    ]
+  }
+}

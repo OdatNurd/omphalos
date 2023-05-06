@@ -14,6 +14,11 @@ import { resolve, isAbsolute } from 'path';
 /* Get our subsystem logger. */
 const log = logger('resolver');
 
+/* The name of the system bundle that we pack in and the name of the folder (
+ * relative to the base install directory); this is always loaded first and
+ * cannot be ignored. */
+const SYS_BUNDLE_NAME = 'omphalos-system';
+const SYS_BUNDLE_FOLDER = 'system-bundle';
 
 /* Include an extra validation type that knows how to validate a packge semver
  * and semver ranges. Includes also appropriate error messages for the
@@ -144,15 +149,17 @@ function getBundlePaths() {
 
   log.info('scanning all bundle folders for installed bundles');
 
+  const pathList = [resolve(baseDir, SYS_BUNDLE_FOLDER)];
+
   // Scan for all directories in the overall bundle directory and find all that
   // have a packqge.json in them; we don't need to validate it, just find it to
   // mark it as a candidate.
   //
   // All candidates are stored into an array as their absolute bundle path.
-  const pathList = jetpack.list(bundles).filter(dir => {
+  pathList.push(...jetpack.list(bundles).filter(dir => {
     return jetpack.exists(resolve(bundles, dir)) === 'dir' &&
            jetpack.exists(resolve(bundles, dir, 'package.json')) === 'file'
-  }).map(dir => resolve(bundles, dir));
+  }).map(dir => resolve(bundles, dir)));
 
   // In addition to the above, the configuration can specify extra folders that
   // contain bundles. Scan now over those taking the same steps as above to
@@ -174,7 +181,6 @@ function getBundlePaths() {
   );
 
   log.info(`found ${pathList.length} potential bundle(s)`)
-
   return pathList;
 }
 
@@ -344,7 +350,14 @@ export function discoverBundles(appManifest) {
   // Get the list of bundle names that we should skip over loading; this holds
   // the names of bundles as defined from the name property in their manifest,
   // NOT their folder names.
-  const ignoredBundles = config.get('bundles.ignore');
+  let ignoredBundles = config.get('bundles.ignore');
+
+  // If the system bundle appears in the list of bundles to ignore, remove it
+  // and generate a warning; the system bundle is required and can't be removed.
+  if (ignoredBundles.includes(SYS_BUNDLE_NAME)) {
+    log.warn(`attempt to ignore the system bundle '${SYS_BUNDLE_NAME}'; this bundle cannot be ignored`);
+    ignoredBundles = ignoredBundles.filter(item => item !== SYS_BUNDLE_NAME)
+  }
 
   // The list of loaded and validated bundle manifests; items in here are
   // valid in that their structure is good and their version requirements for
