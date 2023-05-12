@@ -17,12 +17,18 @@ export function main(omphalos) {
     // capture the omphalos object for logging.
     symbols["exported"] = () => omphalos.log.info('I am an exported function');
 
+    // Get the number of times the clack button was pressed.
+    let clicks = omphalos.bundleVars.get('clickCount', 69);
+
     // Listen for an incoming click message, and when one arrives, send out a
     // clack.
     omphalos.listenFor('click', () => {
         omphalos.log.debug('*** CLICK? CLACK! ***');
         omphalos.sendMessage('clack');
-        omphalos.toast('Server received a click message; sent clack', 'info', 3);
+
+        clicks++;
+        omphalos.bundleVars.set('clickCount', clicks);
+        omphalos.toast(`Server received a click message (${clicks} times); sent clack`, 'info', 3);
     });
 
     // Try to import a symbol from another omphalos bundle; this will give you

@@ -164,6 +164,14 @@ function makeTemplateAPIObject(app, io) {
     // current bundle, which is not known until the bundle actually loads.
     sendMessage: undefined,
 
+    // Manipulating bundle specific persistent sotrage requires that we know the
+    // current bundle, which is not known until the bundle actually loads.
+    bundleVars: {
+      set: undefined,
+      get: undefined,
+      delete: undefined,
+    },
+
     // Listen for incoming messages and trigger a handler. This is entirely
     // event based on the server side because there is no socket. This requires
     // a known bundle to infer arguments, so this is just a placeholder entry.

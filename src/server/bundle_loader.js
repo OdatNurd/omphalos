@@ -1,7 +1,11 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
+import constants from "#common/constants";
+
 import { assert } from '#api/assert';
+
+import { setValue, getValue, deleteValue } from '#core/storage';
 
 import { listenFor } from '#core/network';
 
@@ -277,6 +281,29 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
 
     // Directs a message to all listeners in the current bundle;
     sendMessage: (event, data) => omphalos.sendMessageToBundle(event, bundleName, data),
+
+    // Bundle persistent storage accessors.
+    bundleVars: {
+      // Store the value of the given key into the permanent storage of this
+      // bundle
+      set: (key, value) => {
+        setValue(bundleName, key, value);
+        omphalos.sendMessageToBundle(constants.MSG_STORAGE_UPDATE, bundleName,
+                                     { key, value,  });
+      },
+
+      // Retrive the value of a specific bundle's key/valye pair, which may
+      // return the entire object if no key is provided, and provide a default
+      // value for a key that does not exist.
+      get: (key, defaultValue) => getValue(bundleName, key, defaultValue),
+
+      // Delete the value of a key from the permanent storage.
+      delete: (key) => {
+        deleteValue(bundleName, key);
+        omphalos.sendMessageToBundle(constants.MSG_STORAGE_UPDATE, bundleName,
+                                     { key, value: undefined,  });
+      },
+    },
 
     // The exposed listenFor needs to do error checking and infer missing
     // bundles; the call into the network code assumes that this has been done
