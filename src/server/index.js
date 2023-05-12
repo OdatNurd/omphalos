@@ -7,6 +7,7 @@ import { assert } from '#api/assert';
 
 import { loadBundles } from '#core/bundle_loader';
 import { setupSocketIO, dispatchMessageEvent } from '#core/network';
+import { loadStorage } from '#core/storage';
 
 import { sendStaticTemplate } from '#core/static';
 
@@ -254,6 +255,10 @@ async function launchServer() {
 
   // Initialize all of the websocket related code.
   setupSocketIO(io);
+
+  // Initialize the storage system; this will load any file that may already
+  // exist and get it ready.
+  loadStorage();
 
   // Get the template API object that we will pass to extension code; it will
   // get filled out by the module loader.

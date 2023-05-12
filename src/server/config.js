@@ -16,6 +16,10 @@ const APP_NAME = 'omphalos';
 const CONFIG_FILE = 'omphalos.json';
 const CONFIG_FILE_TEMPLATE = 'omphalos.json.example';
 
+/* The file that stores persistent information for the storage system; this is
+ * stored in the configuration folder. */
+const STORAGE_FILE = 'storage.json';
+
 /* __dirname is not available in this module type, but we can create our own
  * value with the same name based on the URL of the current file. */
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -55,6 +59,14 @@ export const config = convict({
   // configuration folder.
   bundleDir: {
     doc: 'the folder that contains installed bundles; set at runtime',
+    format: '*',
+    default: ''
+  },
+
+  // The core system and bundles can both persist data into a key-value storage
+  // mechanism; this stores the name of the file used for that.
+  storageFile: {
+    doc: 'The full path to the file that is used for persistent object storage',
     format: '*',
     default: ''
   },
@@ -216,6 +228,7 @@ boostrapConfigFolder(baseDir, configDir);
 config.set('baseDir', baseDir);
 config.set('configDir', configDir)
 config.set('bundleDir', resolve(configDir, 'bundles'));
+config.set('storageFile', resolve(configDir, STORAGE_FILE));
 
 /* If the configuration file exists, load it. */
 if (existsSync(configFile) === true) {
