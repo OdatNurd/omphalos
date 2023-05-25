@@ -1,6 +1,7 @@
 import { logger } from '#core/logger';
 import constants from "#common/constants";
 
+import { setValue, getValue } from '#core/storage';
 import { assert } from '#api/assert';
 
 import joker from '@axel669/joker';
@@ -165,8 +166,17 @@ export function setupSocketIO(io) {
     // in the auth header.
     authInfo.rooms.forEach(room => socket.join(room));
 
-    // Schedule an update on a new list of connections
+    // Schedule an update on a new list of connections for the dashboard
+    // connections.
     sendConnectionUpdate(io);
+
+    // Send to the connected item the current state of its storage so that it
+    // can have a local copy for its API.
+    socket.emit('message', {
+      bundle: authInfo.bundle,
+      event: constants.MSG_STORAGE_REFRESH,
+      data: getValue(authInfo.bundle)
+    });
 
     // Handle disconnects; for graphics this needs to update state that is used
     // in the UI so that the graphic display can indicate connection status.
@@ -223,6 +233,23 @@ export function setupSocketIO(io) {
 
       log.silly(`MSG: ${JSON.stringify(msgData)}`);
 
+      // If this message is directed to the system, then perform special
+      // handling on it. The handler will do what is needed (if anything) and
+      // then return back a new address for the message, so that it can be
+      // reflected back out.
+      //
+      // Not all system messages need to be forwarded on; in this case, bundle
+      // will be undefined and we stop handling.
+      if (msgData.bundle === constants.SYSTEM_BUNDLE) {
+        msgData = handleSystemMessage(msgData);
+
+        if (msgData === undefined) {
+          return log.debug('event does not need to be forwarded')
+        } else {
+          log.debug(`transmitting out updated message: ${JSON.stringify(msgData)}`);
+        }
+      }
+
       const { bundle, event, data } = msgData;
 
       assert(bundle !== undefined, 'incoming message contains no bundle');
@@ -248,6 +275,41 @@ export function dispatchMessageEvent(bundle, event, data) {
 
   log.silly(`emit event: ${event}.${bundle}`)
   bridge.emit(`${event}.${bundle}`, data);
+}
+
+
+// =============================================================================
+
+
+/* This handles an incoming system message by taking whatever action may be
+ * required, followed by rewriting and returning the paramters to change what
+ * the message intention is.
+ *
+ * This is invoked by the message dispatcher, which may need to respond to any
+ * system messages by transmitting data out to a different bundle, via a
+ * different event, with different data, or any combination of the three.
+ *
+ * This will return all undefined values if whatever the system message was is
+ * wholly managed by this call, and does not require a transmission out. */
+function handleSystemMessage(msgData) {
+  log.debug(`Handling system message: ${JSON.stringify(msgData)}`);
+
+  const { bundle, key, value } = msgData.data;
+
+  if (msgData.event === constants.MSG_STORAGE_UPDATE) {
+    log.debug(`message is a storage update`);
+
+    // Persist the updated value into the storage
+    setValue(bundle, key, value);
+
+    // Send out a complete refresh of the storage; this will go to everyone but
+    // the client that did the update in the first place.
+    return {
+      bundle,
+      event: constants.MSG_STORAGE_UPDATE,
+      data: { key, value }
+    }
+  }
 }
 
 

@@ -33,6 +33,13 @@ export let socket = undefined;
  * before it. */
 const levels = ['error', 'warn', 'info', 'debug', 'silly'];
 
+/* This is our local persistent cache of the storage that our containing bundle
+ * currently has available. Whenever we connect or reconnect, the server gives
+ * us an update on this data.
+ *
+ * The value here is replaced with updates when they occur. */
+let storage = {};
+
 /* Our log object. We front load it with stubs for all levels, and when the API
  * is initialized the log initialize routine will replace some or all of the
  * stubs with a logger that uses the asset name, depending on level and
@@ -111,6 +118,60 @@ function reloadAsset(req) {
 // =============================================================================
 
 
+/* This responds to a server side message telling us that our bundle storage has
+ * been updated. This happens whenever we connect, but can also happen if the
+ * user interface is used to modify the file at runtime.
+ *
+ * This update always contains a complete set of keys and values, and will
+ * replace the entire storage as a whole. */
+function updateStorageCache(data) {
+  log.debug(`${asset.name}:${bundle.name} got storage refresh: ${JSON.stringify(data)}`);
+
+  storage = data;
+}
+
+
+// =============================================================================
+
+
+/* This responds to a server side message telling us that some other member of
+ * the bundle updated the storage for a particular key, either adding it,
+ * deleting it or updating it's value.
+ *
+ * The incoming object will contain the key, and optionally also a value; no
+ * value indicates a delete. */
+function performStorageUpdate(data) {
+  log.debug(`${asset.name}:${bundle.name} got storage update: ${JSON.stringify(data)}`);
+
+  const { key, value } = data;
+  if (value !== undefined) {
+    storage[key] = value;
+  } else {
+    delete storage[key]
+  }
+
+  log.debug(`${asset.name}:${bundle.name} storage is now: ${JSON.stringify(storage)}`);
+}
+
+
+// =============================================================================
+
+
+/* This handles sending an update to the server to tell our bundle mates that
+ * a value in our storage has been updated.
+ *
+ * The key is the storage key to update, and the value is the new value which
+ * may be undefined to indidate that the key should be deleted. */
+function sendStorageUpdate(key, value) {
+  log.debug(`${asset.name}:${bundle.name} sending storage update: '${key}'=>${JSON.stringify(value)}`);
+
+  sendMessageToBundle(constants.MSG_STORAGE_UPDATE, constants.SYSTEM_BUNDLE,
+                      { bundle: bundle.name, key, value,  });
+}
+
+// =============================================================================
+
+
 /* Initializes the Omphalos API by providing information on the given bundle,
  * asset and application configuration.
  *
@@ -162,9 +223,11 @@ export function __init_api(manifest, assetConfig, appConfig) {
   });
 
   // Assets that are panels and overlays should respond to a request to reload
-  // themselves when asked by the UI.
+  // themselves when asked by the UI and listen for storage resets.
   if (["panel", "graphic"].indexOf(asset.type) !== -1) {
     listenFor(constants.MSG_RELOAD, (data) => reloadAsset(data));
+    listenFor(constants.MSG_STORAGE_REFRESH, (data) => updateStorageCache(data));
+    listenFor(constants.MSG_STORAGE_UPDATE, (data) => performStorageUpdate(data));
   }
 }
 
@@ -295,3 +358,51 @@ export function toast(msg, level, timeout_secs) {
 
 
 // =============================================================================
+
+
+/* Set up the bundle variables API, which allows for manipulating a set of
+ * key/value pairs that are specific to our bundle. We get told about all of the
+ * current storage keys at load time, and can manipulate that as we see fit.
+ *
+ * The information here is synced with the server on changes, so that those
+ * updates can be sent to other membmers of the bundle, allowing them to update
+ * themselves. */
+export const bundleVars = {
+  // Store the value of the given key into the bundle; the value can be anything
+  // but cannot be undefined.
+  set: (key, value) => {
+    log.silly(`bundleVars.set(${key}, ${value}`);
+
+    assert(key !== undefined, 'a key name must be provided')
+    assert(value !== undefined, `no value provided for key ${key}`);
+
+    // Store the key locally, then let everyone else know that the update
+    // happened.
+    storage[key] = value;
+    sendStorageUpdate(key, value);
+  },
+
+  // Retrive the value of the given key/valye pair, which may return the entire
+  // object if no key is provided, and provide a default value for a key that
+  // does not exist.
+  get: (key, defaultValue) => {
+    log.silly(`bundleVars.get(${key}, ${defaultValue}`);
+
+    assert(bundle !== undefined, 'cannot delete a key without a bundle');
+
+    // If there is no key, return the object or, return the value of the key.
+    return (key === undefined) ? storage : (storage[key] ?? defaultValue);
+  },
+
+  // Delete the value of a key from the permanent storage.
+  delete: (key) => {
+    log.silly(`bundleVars.delete(${key}`);
+
+    assert(key !== undefined, 'a key name must be provided')
+
+    // Delete the key from our storage, then let everyone else know that it
+    // happened.
+    delete storage[key]
+    sendStorageUpdate(key);
+  }
+}

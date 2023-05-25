@@ -21,6 +21,8 @@ load this file into mine.
 <button id="show-msg">Show Message</button>
 <button id="hide-msg">Hide Message</button>
 <hr />
+<button id="alter-setting">Alter settings value</button>
+<hr />
 
 
 <script>
@@ -36,6 +38,11 @@ load this file into mine.
       const element = document.querySelector(`#${test}`);
       element.addEventListener('click', () => omphalos.sendMessage(test));
     });
+
+    document.querySelector('#alter-setting').addEventListener('click', () => {
+      omphalos.bundleVars.set('sample', omphalos.bundleVars.get('sample', 0) + 1);
+    })
+
 </script>
 </body>
 </html>
