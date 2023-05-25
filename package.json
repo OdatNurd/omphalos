@@ -22,7 +22,8 @@
   "type": "module",
   "imports": {
     "#core/*": "./src/server/*.js",
-    "#api/*": "./src/client/api/*.js"
+    "#api/*": "./src/client/api/*.js",
+    "#common/*": "./src/common/*.js"
   },
   "dependencies": {
     "@axel669/event-bridge": "^1.0.2",

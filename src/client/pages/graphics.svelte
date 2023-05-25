@@ -1,5 +1,6 @@
 <script>
   import { Content, Icon } from '$components';
+  import constants from "$common/constants.js";
 
   import { graphics } from '$stores/graphics.js';
 
@@ -24,7 +25,7 @@
     }
 
     // Ship off an event to trigger the reload.
-    omphalos.sendMessageToBundle('__sys_reload', bundle, {
+    omphalos.sendMessageToBundle(constants.MSG_RELOAD, bundle, {
       "type": ["graphic"],
       "name": graphic
     });

@@ -23,6 +23,7 @@ export default [
           $pages: "src/client/pages",
           $stores: "src/client/stores",
           $lib: "src/client/lib",
+          $common: "src/common"
         },
         extensions: [".js", ".mjs", ".svelte", ".jsx"]
       }),

@@ -1,4 +1,5 @@
 import { logger } from '#core/logger';
+import constants from "#common/constants";
 
 import { assert } from '#api/assert';
 
@@ -91,10 +92,9 @@ function sendConnectionUpdate(io) {
 
     // Send an update message to tell the other end about what is currently
     // connected to us.
-    // Send the crap
-    io.to('__omphalos_system__').emit('message', {
-      bundle: '__omphalos_system__',
-      event: '__sys_socket_upd',
+    io.to(constants.SYSTEM_BUNDLE).emit('message', {
+      bundle: constants.SYSTEM_BUNDLE,
+      event: constants.MSG_CONNECTIONS_UPDATE,
       data: result
     });
   };
@@ -232,11 +232,6 @@ export function setupSocketIO(io) {
       dispatchMessageEvent(bundle, event, data);
     })
   });
-
-  // The system has a set of predefined messages that are always in effect and
-  // which are used by the dashboard; listen for the ones that the client side
-  // can send us so that we can handle them.
-  listenFor('__sys_send_socket_upd', '__omphalos_system__', () => sendConnectionUpdate(io));
 }
 
 

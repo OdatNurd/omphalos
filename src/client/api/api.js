@@ -1,3 +1,5 @@
+import constants from "#common/constants";
+
 import { getClientSocket, join, part, message } from '#api/socket';
 
 import { assert } from '#api/assert';
@@ -162,7 +164,7 @@ export function __init_api(manifest, assetConfig, appConfig) {
   // Assets that are panels and overlays should respond to a request to reload
   // themselves when asked by the UI.
   if (["panel", "graphic"].indexOf(asset.type) !== -1) {
-    listenFor('__sys_reload', (data) => reloadAsset(data));
+    listenFor(constants.MSG_RELOAD, (data) => reloadAsset(data));
   }
 }
 
@@ -288,7 +290,7 @@ export function toast(msg, level, timeout_secs) {
     return
   }
 
-  sendMessageToBundle('toast', '__omphalos_system__', { toast: msg, level, timeout: timeout_secs });
+  sendMessageToBundle('toast', constants.SYSTEM_BUNDLE, { toast: msg, level, timeout: timeout_secs });
 }
 
 

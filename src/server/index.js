@@ -1,6 +1,8 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
+import constants from "#common/constants";
+
 import { assert } from '#api/assert';
 
 import { loadBundles } from '#core/bundle_loader';
@@ -71,7 +73,7 @@ function spaTemplate(dom, bundles, version) {
   // part of this that is needed by the top level code is a faked up bundle
   // name that identifies us as the system bundle.
   const manifest = {
-    name: "__omphalos_system__",
+    name: constants.SYSTEM_BUNDLE,
     version,
     "omphalos": {
       "compatibleRange": `~${version}`,
@@ -178,8 +180,8 @@ function makeTemplateAPIObject(app, io) {
       // Direct the message to the front end; we don't need to use the full
       // sender here since nothing on the server side can do anything about a
       // toast anyway.
-      io.to('__omphalos_system__').emit('message', {
-        bundle: '__omphalos_system__',
+      io.to(constants.SYSTEM_BUNDLE).emit('message', {
+        bundle: constants.SYSTEM_BUNDLE,
         event: 'toast', data:
         { toast: msg, level, timeout: timeout_secs * 1000 }
       });

@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import constants from "$common/constants.js";
 
   import Icon from '../Icon.svelte';
 
@@ -81,7 +82,7 @@
 
   // Trigger an event to reload this panel.
   const reload = () => {
-    omphalos.sendMessageToBundle('__sys_reload', bundle, {
+    omphalos.sendMessageToBundle(constants.MSG_RELOAD, bundle, {
       "type": ["panel"],
       "name": [name]
     });
