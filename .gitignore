@@ -1,8 +1,8 @@
 .env
+.env.skipped
 node_modules
 build
 *.sublime-*
-yarn-error.log
 cache
 www
 

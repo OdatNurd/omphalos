@@ -4,7 +4,7 @@ import constants from "#common/constants";
 import { setValue, getValue } from '#core/storage';
 import { assert } from '#api/assert';
 
-import joker from '@axel669/joker';
+import * as joker from '@axel669/joker';
 import EventBridge from '@axel669/event-bridge';
 
 

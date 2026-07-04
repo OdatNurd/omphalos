@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import joker from '@axel669/joker';
+import * as joker from '@axel669/joker';
 import jetpack from 'fs-jetpack';
 import semver from 'semver';
 
