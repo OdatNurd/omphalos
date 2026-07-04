@@ -14,10 +14,19 @@ const config = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/omphalos.png',
 
+  // This was commented out on June 24/2026 so that we don't accidentally try
+  // to deploy this way. We now host on cloudflare instead using a worker with
+  // assets.
+  //
+  // As such, we need this (if we keep using it) to generate output to a folder
+  // that we can ship up. Not sure how easy that is, but that is why the CNAME
+  // and .nojekyll files were nuked; they are only needed for the GitHub pages
+  // setup.
+  //
   // GitHub pages deployment config.
-  organizationName: 'odatnurd',
-  projectName: 'omphalos-docs',
-  deploymentBranch: 'master',
+  // organizationName: 'odatnurd',
+  // projectName: 'omphalos-docs',
+  // deploymentBranch: 'master',
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
