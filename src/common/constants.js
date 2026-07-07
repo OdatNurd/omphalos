@@ -29,6 +29,12 @@ const constants = {
    * Client code sends this to the system bundle, which handles the update and
    * propagates it out to everyone else in the bundle. */
   MSG_STORAGE_UPDATE: '__sys_storage_update',
+
+  /* Messages that have this as their event are requests to generate a toast
+   * message to the dashboard; messages of this type should be directed to the
+   * SYSTEM_BUNDLE, which will redirect them to the front end code that will
+   * actually display the toast. */
+  MSG_EVENT_TOAST: 'toast',
 }
 
 export default constants;

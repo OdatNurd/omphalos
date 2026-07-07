@@ -294,10 +294,12 @@ export function dispatchMessageEvent(bundle, event, data) {
 function handleSystemMessage(msgData) {
   log.debug(`Handling system message: ${JSON.stringify(msgData)}`);
 
-  const { bundle, key, value } = msgData.data;
-
+  // If this is a system message that tells us to update storage, we save the
+  // value and then send out a storage update to the other members of the bundle
+  // so that they will know about it.
   if (msgData.event === constants.MSG_STORAGE_UPDATE) {
-    log.debug(`message is a storage update`);
+    const { bundle, key, value } = msgData.data;
+    log.debug('message is a storage update');
 
     // Persist the updated value into the storage
     setValue(bundle, key, value);
@@ -309,6 +311,18 @@ function handleSystemMessage(msgData) {
       event: constants.MSG_STORAGE_UPDATE,
       data: { key, value }
     }
+  }
+
+  // Messages requesting a toast are dispatched to us from panels or from other
+  // locations, are directed to the system bundle, which will then handle
+  // dispatching directly to the UI.
+  if (msgData.event === constants.MSG_EVENT_TOAST) {
+    const { bundle, event, data } = msgData
+    log.debug('message is a toast')
+
+    // Ship the message directly to the appropriate bundle; the event and
+    // payload remain the same.
+    return { bundle, event, data };
   }
 }
 
