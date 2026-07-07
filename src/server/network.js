@@ -26,7 +26,6 @@ const validSocketAuth = joker.validator({
   }
 });
 
-
 /* The global event object that we use to dispatch and listen for all of our
  * events. */
 const bridge = EventBridge();
@@ -354,3 +353,6 @@ export function listenFor(event, bundle, listener) {
     unlistened = true;
   }
 }
+
+
+// =============================================================================

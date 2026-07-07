@@ -103,10 +103,10 @@ export const config = convict({
   // to a file, or both, and what the timestamps look like.
   logging: {
     level: {
-        doc: 'Sets the logging level that rhe server uses',
-        format: ['error', 'warn', 'info', 'debug', 'silly'],
-        default: 'info',
-        env: 'LOG_LEVEL'
+      doc: 'Sets the logging level that rhe server uses',
+      format: ['error', 'warn', 'info', 'debug', 'silly'],
+      default: 'info',
+      env: 'LOG_LEVEL'
     },
     console: {
       doc: 'Controls wether logs go to the console or not',
@@ -238,3 +238,6 @@ if (existsSync(configFile) === true) {
 /* Validate that everything in the configuration file is valid. */
 config.validate();
 // console.log(`configuration is: \n${config.toString()}`);
+
+
+// =============================================================================

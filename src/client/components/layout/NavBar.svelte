@@ -1,6 +1,5 @@
 <script>
   import { toast } from '$lib/toast.js';
-  import { link } from 'svelte-navigator';
 
   import Tab from './Tab.svelte';
   import Icon from '../Icon.svelte';

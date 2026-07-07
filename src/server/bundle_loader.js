@@ -223,6 +223,7 @@ function setupAssetRoutes(manifest, bundleName, assetType, router) {
 
 // =============================================================================
 
+
 /* Check the bundle manfest given to see if it contains any extension code or
  * not. If it does, then the file will be loaded, its internal extension point
  * will be gathered, and then executed.

@@ -1,3 +1,6 @@
+// =============================================================================
+
+
 const constants = {
   /* The predefined name of the system bundle; this is used by various internals
    * that are used to transmit messages along the same communications lines as
@@ -38,3 +41,6 @@ const constants = {
 }
 
 export default constants;
+
+
+// =============================================================================

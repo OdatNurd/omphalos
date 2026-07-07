@@ -20,12 +20,6 @@ import compression from 'compression';
 import http from 'http';
 
 
-// - Package this up as a zip that someone could run, on any platform
-//   - as a "console" application that just runs in the background
-//       https://github.com/vercel/pkg
-// - Package this up as an electron application
-//   - this has to work in combination with the above
-
 // =============================================================================
 
 
@@ -309,3 +303,6 @@ async function launchServer() {
 
 // Boom goes the proverbial dynamite.
 launchServer();
+
+
+// =============================================================================
