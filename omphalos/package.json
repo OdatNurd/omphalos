@@ -1,0 +1,62 @@
+{
+  "name": "omphalos-app",
+  "version": "0.0.1",
+  "description": "A sample reimplementation of NodeCG, a web based stream control center",
+  "repository": "https://github.com/OdatNurd/omphalos",
+  "author": {
+    "name": "OdatNurd",
+    "email": "odatnurd@gmail.com",
+    "url": "https://odatnurd.net"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "scripts": {
+    "start:srv": "node src/server",
+    "build:dev": "rollup -c -w",
+    "build:prod": "rollup -c",
+    "dev": "concurrently --kill-others --names \"client,server\" \"pnpm build:dev\" \"pnpm start:srv\""
+  },
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#core/*": "./src/server/*.js",
+    "#api/*": "./src/client/api/*.js",
+    "#common/*": "./src/common/*.js"
+  },
+  "dependencies": {
+    "@axel669/event-bridge": "^1.0.2",
+    "@axel669/joker": "^0.3.2",
+    "compression": "^1.8.1",
+    "convict": "^6.2.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "fecha": "^4.2.3",
+    "fs-jetpack": "^5.1.0",
+    "jsdom": "^21.1.0",
+    "json5": "^2.2.3",
+    "semver": "^7.3.8",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "svelte": "^3.59.2",
+    "svelte-navigator": "^3.2.2",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^4.7.1"
+  },
+  "devDependencies": {
+    "@axel669/rollup-copy-static": "^0.2.0",
+    "@axel669/rollup-dollar-path": "^0.1.0",
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "autoprefixer": "^10.5.2",
+    "concurrently": "^10.0.3",
+    "daisyui": "^2.52.0",
+    "postcss": "^8.5.16",
+    "rollup": "^4.62.2",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-svelte": "^7.2.3",
+    "tailwindcss": "^3.4.19"
+  }
+}
