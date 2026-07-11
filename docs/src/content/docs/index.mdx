@@ -1,0 +1,47 @@
+---
+title: Omphalos
+description: Put some Oomph into your Live Streams
+template: splash 
+hero:
+  tagline: Put some Oomph into your Live Streams
+  image:
+    file: ../../assets/omphalos.svg
+  actions:
+    - text: Get Rocking
+      link: /intro
+      icon: right-arrow
+---
+
+import { Image } from 'astro:assets';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+import mountain from '../../assets/undraw_docusaurus_mountain.svg';
+import react from '../../assets/undraw_docusaurus_react.svg';
+import tree from '../../assets/undraw_docusaurus_tree.svg';
+
+<CardGrid stagger>
+  <Card title="Create Broadcast Graphics">
+    <div style={{display: 'flex', justifyContent: 'center' }}>
+      <Image src={mountain} alt="the alt text" loading="eager" width="200" height="200" />
+    </div>
+
+    Create rich, interactive broadcast graphics for your streams using the full
+    power of the web. If you can design it, you can stream it.
+  </Card>
+  <Card title="Control Your Stream">
+    <div style={{display: 'flex', justifyContent: 'center' }}>    
+      <Image src={tree} alt="the alt text" loading="eager" width="200" height="200" />
+    </div>
+
+    Gain full control of your live stream. Overlay changes, scene swaps and
+    more are at your fingertips with Omphalos.
+  </Card>
+  <Card title="Unleash Your Potential">
+    <div style={{display: 'flex', justifyContent: 'center' }}>
+      <Image src={react} alt="the alt text" loading="lazy" width="200" height="200" />
+    </div>
+
+    Take your viewers' experience to the next level with Omphalos. Create a
+    truly unique streaming experience limited only by your imagination.
+  </Card>
+</CardGrid>

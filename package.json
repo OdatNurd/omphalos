@@ -5,7 +5,11 @@
   "description": "The monorepo for the Omphalos project",
   "private": true,
   "scripts": {
-    "app:dev": "pnpm --filter omphalos-app run dev"
+    "app:dev": "pnpm --filter omphalos-app run dev",
+    "docs:dev": "pnpm --filter omphalos-docs run dev",
+    "docs:build": "pnpm --filter omphalos-docs run build",
+    "docs:preview": "pnpm --filter omphalos-docs run preview",
+    "docs:deploy": "pnpm --filter omphalos-docs run deploy"
   },
   "devEngines": {
     "packageManager": {

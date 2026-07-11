@@ -1,6 +1,0 @@
-position: 4
-label: 'API Reference'
-collapsed: true
-link:
-  type: generated-index
-  description: A reference to the API available to bundle extensions and assets

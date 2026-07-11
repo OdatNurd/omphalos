@@ -1,0 +1,28 @@
+{
+  "name": "omphalos-docs",
+  "compatibility_date": "2026-06-24",
+
+  /* No preview deployments, only the real deal. */
+  "workers_dev": false,
+  "preview_urls": false,
+
+  /* The folder that holds our deployed assets. */
+  "assets": {
+    "directory": "./dist/",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+
+  /* Building the site prior to deploying. */
+  "build": {
+    "command": "pnpm run build",
+  },
+
+  /* The domain to publish to. */
+  "routes": [
+    {
+      "pattern": "omphalos.ruinouspileofcrap.com",
+      "custom_domain": true,
+    },
+  ]
+}
