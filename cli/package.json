@@ -1,0 +1,26 @@
+{
+  "name": "@odatnurd/omph",
+  "version": "0.1.1",
+  "type": "module",
+  "description": "Command line tool for working with Omphalos bundles",
+  "repository": "https://github.com/OdatNurd/omphalos",
+  "author": {
+    "name": "OdatNurd",
+    "email": "odatnurd@gmail.com",
+    "url": "https://odatnurd.net"
+  },
+  "bin": {
+    "omph": "./cli.js"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "@axel669/joker": "^0.3.2",
+    "fs-jetpack": "^5.1.0",
+    "semver": "^7.3.8"
+  }
+}

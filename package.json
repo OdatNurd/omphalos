@@ -17,5 +17,8 @@
       "version": "^11.10.0",
       "onFail": "download"
     }
+  },
+  "devDependencies": {
+    "@odatnurd/omph": "workspace:*"
   }
 }
