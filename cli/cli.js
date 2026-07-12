@@ -363,10 +363,12 @@ async function main() {
 // =============================================================================
 
 
-main().catch((err) => {
-  console.error("Fatal Error:", err);
+try {
+  await main();
+} catch (error) {
+  console.error(error);
   process.exit(1);
-});
+}
 
 
 // =============================================================================
