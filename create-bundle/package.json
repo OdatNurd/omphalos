@@ -1,0 +1,12 @@
+{
+  "name": "@odatnurd/create-omphalos-bundle",
+  "version": "0.1.0",
+  "description": "Scaffolding tool for Omohalos bundles",
+  "type": "module",
+  "bin": {
+    "create-omphalos-bundle": "./index.js"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2"
+  }
+}

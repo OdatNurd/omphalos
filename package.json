@@ -9,7 +9,8 @@
     "docs:dev": "pnpm --filter omphalos-docs run dev",
     "docs:build": "pnpm --filter omphalos-docs run build",
     "docs:preview": "pnpm --filter omphalos-docs run preview",
-    "docs:deploy": "pnpm --filter omphalos-docs run deploy"
+    "docs:deploy": "pnpm --filter omphalos-docs run deploy",
+    "create-bundle": "create-omphalos-bundle --workspace"
   },
   "devEngines": {
     "packageManager": {
@@ -19,6 +20,7 @@
     }
   },
   "devDependencies": {
-    "@odatnurd/omph": "workspace:*"
+    "@odatnurd/omph": "workspace:*",
+    "@odatnurd/create-omphalos-bundle": "workspace:*"
   }
 }

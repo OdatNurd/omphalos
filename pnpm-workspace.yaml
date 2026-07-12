@@ -1,7 +1,8 @@
 packages:
-  - omphalos
   - cli
+  - create-bundle
   - docs
+  - omphalos
   - sample-bundle
 
 allowBuilds:
