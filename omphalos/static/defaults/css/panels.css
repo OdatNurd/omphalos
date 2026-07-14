@@ -1,5 +1,174 @@
-body {
-    background: #23282F;
-    color: #C8D2E0;
-    font-size: 18px;
+/* ==========================================================================
+   Omphalos Base Panel Styles (Zero Specificity)
+   ========================================================================== */
+
+/* Mount variables using :where so even the variables have zero specificity.
+ * Users can override these globally just by declaring them in a standard
+ * :root block. */
+:where(:root) {
+  --omph-bg: #23282F;
+  --omph-bg-mute: #1A1E24;
+  --omph-bg-hover: #2F3640;
+
+  --omph-fg: #C8D2E0;
+  --omph-fg-mute: #8E9BAE;
+
+  --omph-border: #3A424D;
+  --omph-border-focus: #5A6A80;
+
+  /* Button Variants */
+  --omph-primary: #3B82F6;
+  --omph-primary-hover: #2563EB;
+  --omph-success: #10B981;
+  --omph-warning: #F59E0B;
+  --omph-error: #EF4444;
+
+  --omph-radius: 6px;
+  --omph-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- Document & Typography --- */
+:where(body) {
+  background: var(--omph-bg);
+  color: var(--omph-fg);
+  font-family: var(--omph-font);
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0.5rem;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  color: #FFFFFF;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+:where(p) {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+:where(hr) {
+  border: none;
+  border-top: 1px solid var(--omph-border);
+  margin: 1rem 0;
+}
+
+/* --- Control Groups --- */
+:where(.control-group) {
+  background: var(--omph-bg-mute);
+  border: 1px solid var(--omph-border);
+  border-radius: var(--omph-radius);
+  padding: 0.75rem 0.75rem 0.25rem 0.75rem;
+  /* Bottom padding reduced slightly to account for button margins */
+  margin-bottom: 0.75rem;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+:where(.control-group-title) {
+  display: block;
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--omph-border);
+}
+
+/* --- Form Controls --- */
+:where(input, select, textarea) {
+  background: var(--omph-bg-mute);
+  color: var(--omph-fg);
+  border: 1px solid var(--omph-border);
+  border-radius: var(--omph-radius);
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+:where(input:focus, select:focus, textarea:focus) {
+  outline: none;
+  border-color: var(--omph-border-focus);
+  box-shadow: 0 0 0 3px rgba(90, 106, 128, 0.3);
+}
+
+/* --- Buttons --- */
+
+/* Default Button */
+:where(button) {
+  background: var(--omph-bg-mute);
+  color: var(--omph-fg);
+  border: 1px solid var(--omph-border);
+  border-radius: var(--omph-radius);
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+:where(button:hover) {
+  background: var(--omph-bg-hover);
+}
+
+:where(button:focus-visible) {
+  outline: none;
+  border-color: var(--omph-border-focus);
+  box-shadow: 0 0 0 3px rgba(90, 106, 128, 0.3);
+}
+
+:where(button:active) {
+  transform: translateY(1px);
+}
+
+/* --- Button Variants --- */
+
+/* These rely on a class attribute, but because they are still inside the
+ * :where() wrapper, a user can override them with a single class
+ * declaration. */
+:where(button.primary) {
+  background: var(--omph-primary);
+  border-color: var(--omph-primary);
+  color: #FFFFFF;
+}
+
+:where(button.primary:hover) {
+  background: var(--omph-primary-hover);
+  border-color: var(--omph-primary-hover);
+}
+
+:where(button.info) {
+  background: var(--omph-primary);
+  border-color: var(--omph-primary);
+  color: #FFF;
+}
+
+:where(button.success) {
+  background: var(--omph-success);
+  border-color: var(--omph-success);
+  color: #FFF;
+}
+
+:where(button.warning) {
+  background: var(--omph-warning);
+  border-color: var(--omph-warning);
+  color: #FFF;
+}
+
+:where(button.error) {
+  background: var(--omph-error);
+  border-color: var(--omph-error);
+  color: #FFF;
 }

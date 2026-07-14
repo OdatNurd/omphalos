@@ -4,26 +4,49 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Panel</title>
+  <style>
+    /* Because the base button styles have zero specificity, this simple
+     * class cleanly overrides the width without needing !important. */
+    .toast-btn {
+      width: 100px;
+    }
+
+    input {
+      width: 150px;
+    }
+  </style>
 </head>
 <body>
-Of all of the panels in all of the dashboards in all of the apps, you had to
-load this file into mine.
 
-<button id="clicker">Click Me</button>
+<p>
+  Of all of the panels in all of the dashboards in all of the apps, you had to
+  load this file into mine.
+</p>
 
-<hr />
-  <button id="message">Message Toast</button>
-  <button id="info">Info Toast</button>
-  <button id="warning">Warning Toast</button>
-  <button id="success">Success Toast</button>
-  <button id="error">Error Toast</button>
-<hr />
+<div class="control-group">
+  <button id="clicker" class="primary">Click Me</button>
+</div>
+
+<div class="control-group">
+  <span class="control-group-title">Toasts</span>
+  <button id="message" class="toast-btn">Message</button>
+  <button id="info" class="toast-btn info">Info</button>
+  <button id="warning" class="toast-btn warning">Warning</button>
+  <button id="success" class="toast-btn success">Success</button>
+  <button id="error" class="toast-btn error">Error</button>
+</div>
+
+<div class="control-group">
+  <span class="control-group-title">Overlay Control</span>
   <button id="show-msg">Show Message</button>
   <button id="hide-msg">Hide Message</button>
-<hr />
-  <button id="alter-setting">Alter settings value</button>
-<hr />
+</div>
 
+<div class="control-group">
+  <span class="control-group-title">Settings Configuration</span>
+  <input type="text" placeholder="Dummy setting input..." />
+  <button id="alter-setting">Alter settings value</button>
+</div>
 
 <script>
   const btn = document.querySelector("#clicker")
