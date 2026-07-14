@@ -4,7 +4,7 @@ import { logger } from '#core/logger';
 import jetpack from 'fs-jetpack';
 
 import { readFileSync } from 'fs';
-import { JSDOM } from 'jsdom';
+import { parseHTML } from 'linkedom';
 
 import { resolve, basename } from 'path';
 
@@ -41,16 +41,16 @@ export function sendStaticTemplate(req, res, file, errorTemplate, formatter, sta
     return res.status(404).send(errorTemplate());
   }
 
-  // Get the file from disk and parse it into a DOM objec.t
+  // Get the file from disk and parse it into a DOM object.
   const assetContent = readFileSync(file, 'utf-8');
-  const dom = new JSDOM(assetContent);
+  const dom = parseHTML(assetContent);
 
   // Run the dom object through the user provided formatter to mark up the
   // template.
   formatter(dom);
 
   // Send the result back.
-  res.status(status).send(dom.serialize());
+  res.status(status).send(dom.document.toString());
 }
 
 
