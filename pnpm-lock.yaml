@@ -257,7 +257,7 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       '@axel669/joker':
-        specifier: ^0.3.2
+        specifier: ^0.3.6
         version: 0.3.6
       compression:
         specifier: ^1.8.1

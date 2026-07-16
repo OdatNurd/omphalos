@@ -20,17 +20,20 @@ const log = logger('resolver');
 const SYS_BUNDLE_NAME = 'omphalos-system';
 const SYS_BUNDLE_FOLDER = 'system-bundle';
 
-/* Include an extra validation type that knows how to validate a packge semver
- * and semver ranges. Includes also appropriate error messages for the
- * validations. */
+/* Include extra validation types that know how to validate a packge semver and
+ * semver ranges and to determine if the type of a package is a module or not.
+ *
+ * Includes also appropriate error messages for the new validations. */
 joker.extendTypes({
   "semver.$":   (item) => semver.valid(item) === null,
   "semrange.$": (item) => semver.validRange(item) === null,
+  "module.$":   (item) => item !== "module",
 })
 
 joker.extendErrors({
     "semver.$":   (item) => `${item} is not a valid semantic version number`,
-    "semrange.$": (item) => `${item} is not a valid semantic version range`
+    "semrange.$": (item) => `${item} is not a valid semantic version range`,
+    "module.$":   (item) => `${item} is not a valid bundle type; must be "module"`,
 })
 
 
@@ -40,10 +43,16 @@ joker.extendErrors({
 /* This validates that an object is a valid general package manifest as far as
  * the properties that we need out of it are concerned. */
 const validPackageManifest = joker.validator({
-  itemName: 'root',
+  itemName: 'package.json',
   root: {
     "name": "string",
-    "version": "semver"
+    "version": "semver",
+
+    // All bundles need to be of type module, because I am a draconian bastard.
+    // Specificaly, they need to be of this type for server side extensions, and
+    // so it is easier to just always enforce its presence even if it's not
+    // needed.
+    "type": "module",
   }
 });
 

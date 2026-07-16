@@ -124,6 +124,7 @@ async function main() {
     name: bundleName,
     version: "0.1.0",
     private: true,
+    type: "module",
     scripts: {
       "bundle": "omph .",
       "bundle:wrap": "omph . --wrap",
