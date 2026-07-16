@@ -62,9 +62,11 @@
   border: 1px solid var(--omph-border);
   border-radius: var(--omph-radius);
   padding: 0.75rem 0.75rem 0.25rem 0.75rem;
-  /* Bottom padding reduced slightly to account for button margins */
+
   margin-bottom: 0.75rem;
   box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.15);
+
+  display: flow-root;
 }
 
 :where(.control-group-title) {
@@ -76,6 +78,40 @@
   margin-bottom: 0.75rem;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--omph-border);
+}
+
+/* --- Control Layout Utilities --- */
+:where(.control-cluster) {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+:where(.control-cluster.spread) {
+  justify-content: space-between;
+}
+
+:where(.control-cluster.evenly) {
+  justify-content: space-evenly;
+}
+
+:where(.control-cluster.right) {
+  width: fit-content;
+  float: right;
+}
+
+:where(.control-text) {
+  color: var(--omph-fg-mute);
+  font-size: 0.90rem;
+
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+:where(.full-width) {
+  width: 100%;
+  display: block;
 }
 
 /* --- Form Controls --- */

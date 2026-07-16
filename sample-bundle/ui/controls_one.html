@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Panel</title>
+  <style>
+    /* Because the base button styles have zero specificity, this simple
+     * class cleanly overrides the width without needing !important. */
+    .toast-btn {
+      width: 100px;
+    }
+
+    input {
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    Omphalos Control Panel Showcase: This layout demonstrates all available
+    minimal design system utilities working natively to create clean,
+    predictable UI patterns.
+  </p>
+
+  <div class="control-group">
+    <div class="control-cluster spread">
+      <span class="control-text">
+        Send a test message to the server; response displays in a toast.
+      </span>
+      <button id="clicker" class="primary">Click Me</button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Toasts</span>
+    <div class="control-cluster spread">
+      <span class="control-text full-width">
+        Generate sample toast messages to test UI alert colors.
+      </span>
+      <button id="message" class="toast-btn">Message</button>
+      <button id="info" class="toast-btn info">Info</button>
+      <button id="warning" class="toast-btn warning">Warning</button>
+      <button id="success" class="toast-btn success">Success</button>
+      <button id="error" class="toast-btn error">Error</button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Overlay Control</span>
+    <span class="control-text full-width">
+      Show or hide the message in the bundled overlay.
+    </span>
+    <div class="control-cluster evenly">
+      <button id="show-msg">Show Message</button>
+      <button id="hide-msg">Hide Message</button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Settings Configuration</span>
+    <span class="control-text full-width">
+      Input a custom string below. The save button floats cleanly to the right edge.
+    </span>
+
+    <input type="text" placeholder="Dummy setting input..." />
+
+    <div class="control-cluster right">
+      <button id="cancel-setting">Cancel</button>
+      <button id="alter-setting" class="primary">Save Value</button>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.querySelector("#clicker")
+    btn.addEventListener('click', () => omphalos.sendMessage('click'));
+
+    ['message', 'info', 'warning', 'success', 'error'].forEach(level => {
+      const element = document.querySelector(`#${level}`);
+      element.addEventListener('click', () => omphalos.toast(`This toast is of level: '${level}'`, level, 1.5));
+    });
+
+    ['show-msg', 'hide-msg'].forEach(test => {
+      const element = document.querySelector(`#${test}`);
+      element.addEventListener('click', () => omphalos.sendMessage(test));
+    });
+
+    document.querySelector('#alter-setting').addEventListener('click', () => {
+      omphalos.bundleVars.set('sample', omphalos.bundleVars.get('sample', 0) + 1);
+      omphalos.toast(`Setting value is now: ${omphalos.bundleVars.get('sample')}`)
+    });
+  </script>
+</body>
+</html>

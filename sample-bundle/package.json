@@ -8,50 +8,64 @@
     "panelPath": "ui",
     "panels": [
       {
-        "file": "panel_one.html",
-        "name": "panel-one",
-        "title": "Fat Man",
-        "workspace": "Sample",
+        "file": "controls_one.html",
+        "name": "controls-one",
+        "title": "Control Panel One",
+        "workspace": "Controls",
         "locked": true,
         "size": {
-          "width": 4,
-          "height": 3
+          "width": 6,
+          "height": 19
         },
         "minSize": {
           "width": 4,
-          "height": 3
+          "height": 12
         }
       },
       {
-        "file": "other/panel_two.html",
-        "name": "panel-two",
-        "title": "Skinny Boy",
-        "workspace": "Sample",
+        "file": "controls_two.html",
+        "name": "controls-two",
+        "title": "Control Panel Two",
+        "workspace": "Controls",
         "size": {
-          "width": 2,
-          "height": 4
-        },
-        "maxSize": {
-          "width": 2,
-          "height": 4
+          "width": 4,
+          "height": 7
         }
       },
       {
-        "file": "other/panel_three.html",
-        "name": "panel-three",
-        "title": "Total Square",
-        "workspace": "Sample",
+        "file": "sizing/sizing_one.html",
+        "name": "sizing-one",
+        "title": "Vertical Change Only",
+        "workspace": "Sizing",
         "size": {
-          "width": 3,
-          "height": 3
+          "width": 6,
+          "height": 6
         },
         "minSize": {
-          "width": 3,
-          "height": 3
+          "width": 6,
+          "height": 6
         },
         "maxSize": {
-          "width": 3,
-          "height": 3
+          "width": 6,
+          "height": 24
+        }
+      },
+      {
+        "file": "sizing/sizing_two.html",
+        "name": "sizing-two",
+        "title": "Fixed Size",
+        "workspace": "Sizing",
+        "size": {
+          "width": 4,
+          "height": 6
+        },
+        "minSize": {
+          "width": 4,
+          "height": 6
+        },
+        "maxSize": {
+          "width": 4,
+          "height": 6
         }
       }
     ],
@@ -60,8 +74,8 @@
       {
         "file": "the_overlay.html",
         "size": {
-          "width": 1920,
-          "height": 1080
+          "width": 960,
+          "height": 540
         }
       }
     ]

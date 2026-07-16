@@ -15,31 +15,29 @@
 </head>
 <body>
 
-<p id='msg-text' class='hidden'>
-  There are many overlays; and I mean a lot, because apparently all OdatNurd
-  does is think of new ways to get overlays to load into OBS. This is one of
-  those.
-</p>
+  <p id='msg-text' class='hidden'>
+    The display of this text is controlled by the first controls panel.
+  </p>
 
-<script>
-  const msg = document.querySelector('#msg-text');
+  <script>
+    const msg = document.querySelector('#msg-text');
 
-  omphalos.listenFor('show-msg', () => {
-    if (msg.classList.contains('hidden')) {
-      msg.classList.remove('hidden')
-      omphalos.toast('Displayed the message in the overlay');
-    } else {
-      omphalos.toast('The message is already visible', 'warning');
-    }
-  });
-  omphalos.listenFor('hide-msg', () => {
-    if (msg.classList.contains('hidden') === false) {
-      msg.classList.add('hidden')
-      omphalos.toast('Hid the message in the overlay');
-    } else {
-      omphalos.toast('The message is already hidden', 'warning');
-    }
-  });
-</script>
+    omphalos.listenFor('show-msg', () => {
+      if (msg.classList.contains('hidden')) {
+        msg.classList.remove('hidden')
+        omphalos.toast('Displayed the message in the overlay');
+      } else {
+        omphalos.toast('The message is already visible', 'warning');
+      }
+    });
+    omphalos.listenFor('hide-msg', () => {
+      if (msg.classList.contains('hidden') === false) {
+        msg.classList.add('hidden')
+        omphalos.toast('Hid the message in the overlay');
+      } else {
+        omphalos.toast('The message is already hidden', 'warning');
+      }
+    });
+  </script>
 </body>
 </html>

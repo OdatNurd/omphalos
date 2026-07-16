@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Panel</title>
+</head>
+<body>
+  <p>
+    This sample panel listens for the message broadcast by the other panel when
+    you click the <strong>Click Me</strong> button.
+  </p>
+
+  <div id="clacker"></div>
+  <script>
+    const output = document.querySelector('#clacker');
+    let clackCount = 0;
+    omphalos.listenFor('clack', () => {
+      clackCount++;
+      output.innerHTML = `Button clicked ${clackCount} times since panel reload`;
+      output.style = 'border-top: 1px solid';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Panel</title>
+  <style>
+    pre {
+      font-size: 0.80rem;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    This panel can be resized. but only in the vertical dimension. It's bundle
+    configuration looks like:
+  </p>
+  <pre>
+    {
+      "file": "sizing/sizing_one.html",
+      "name": "sizing-one",
+      "title": "Vertical Change Only",
+      "workspace": "Sizing",
+      "size": {
+        "width": 6,
+        "height": 6
+      },
+      "minSize": {
+        "width": 6,
+        "height": 6
+      },
+      "maxSize": {
+        "width": 6,
+        "height": 24
+      }
+    },
+  </pre>
+  <p>
+    The <em>minSize</em> and <em>maxSize</em> having the same width means that
+    the panel can only resize in one dimension, between the extremes listed.
+  </p>
+</body>
+</html>
