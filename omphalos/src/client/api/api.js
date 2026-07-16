@@ -229,6 +229,17 @@ export function __init_api(manifest, assetConfig, appConfig) {
     listenFor(constants.MSG_STORAGE_REFRESH, (data) => updateStorageCache(data));
     listenFor(constants.MSG_STORAGE_UPDATE, (data) => performStorageUpdate(data));
   }
+
+  // If this is a graphic and the URL explicitly requests a preview, apply the
+  // preview styling and dimension variables.
+  if (asset.type === 'graphic' && new URLSearchParams(window.location.search).has('preview')) {
+    document.documentElement.classList.add('omph-preview');
+
+    if (asset.size) {
+      document.documentElement.style.setProperty('--omph-graphic-w', `${asset.size.width}px`);
+      document.documentElement.style.setProperty('--omph-graphic-h', `${asset.size.height}px`);
+    }
+  }
 }
 
 

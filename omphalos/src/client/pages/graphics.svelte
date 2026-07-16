@@ -71,7 +71,7 @@
               <!-- Load count, link and size -->
               <div class="flex flex-grow items-center justify-between">
                 <div class="flex-none px-2">{graphic.count === 0 ? '-' : graphic.count}</div>
-                <div class="font-bold underline flex-grow"><a target="_blank" rel="nofollow noreferrer" href="{graphicURL(bundle, graphic)}">{graphic.file}</a></div>
+                <div class="font-bold underline flex-grow"><a target="_blank" rel="nofollow noreferrer" href="{graphicURL(bundle, graphic)}?preview">{graphic.file}</a></div>
                 <h3 class="flex-none">{graphic.size.width}x{graphic.size.height}</h3>
               </div>
 

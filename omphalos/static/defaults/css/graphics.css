@@ -1,5 +1,47 @@
-body {
-  background: darkorchid;
-  color: white;
-  font-size: 32px;
+/* ==========================================================================
+   Omphalos Base Graphic Styles (Zero Specificity)
+   ========================================================================== */
+
+/* The baseline for the actual stream and normal browser tabs */
+:where(body) {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  /* Standard resting state for quick browser tab checks */
+  background-color: #23282F;
+  color: #FFFFFF;
+}
+
+/* --- Preview Mode --- */
+/* Applied dynamically to the <html> tag by the Omphalos API */
+:where(html.omph-preview) {
+  /* Very dark backdrop for the "out of bounds" area of the monitor */
+  background-color: #0D1117;
+}
+
+:where(html.omph-preview body) {
+  /* Physically constrain the body to the exact asset dimensions
+     so text wraps and flexbox layouts behave exactly like OBS */
+  width: 100vw;
+  height: 100vh;
+  max-width: var(--omph-graphic-w, 1920px);
+  max-height: var(--omph-graphic-h, 1080px);
+  position: relative;
+
+  /* Dark magics. */
+  display: flow-root;
+
+  /* Dark Checkerboard using Omphalos system colors */
+  background-color: #1A1E24;
+  background-image:
+    linear-gradient(45deg, #23282F 25%, transparent 25%),
+    linear-gradient(-45deg, #23282F 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #23282F 75%),
+    linear-gradient(-45deg, transparent 75%, #23282F 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+
+  /* Crisp red boundary line */
+  box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.8);
 }
