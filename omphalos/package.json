@@ -1,13 +1,16 @@
 {
   "name": "omphalos-app",
-  "version": "0.0.1",
-  "description": "A sample reimplementation of NodeCG, a web based stream control center",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A web based stream control center similar to NodeCG",
+  "license": "MIT",
   "repository": "https://github.com/OdatNurd/omphalos",
   "author": {
     "name": "OdatNurd",
     "email": "odatnurd@gmail.com",
     "url": "https://odatnurd.net"
   },
+  "private": true,
   "engines": {
     "node": ">=20.x"
   },
@@ -17,9 +20,6 @@
     "build:prod": "rollup -c",
     "dev": "concurrently --kill-others --names \"client,server\" \"pnpm build:dev\" \"pnpm start:srv\""
   },
-  "license": "MIT",
-  "private": true,
-  "type": "module",
   "imports": {
     "#core/*": "./src/server/*.js",
     "#api/*": "./src/client/api/*.js",
@@ -47,6 +47,7 @@
   "devDependencies": {
     "@axel669/rollup-copy-static": "^0.2.0",
     "@axel669/rollup-dollar-path": "^0.1.0",
+    "@odatnurd/omphalos-common": "workspace:*",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^15.3.1",
     "@tailwindcss/typography": "^0.5.20",

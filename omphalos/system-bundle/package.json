@@ -1,9 +1,9 @@
 {
   "name": "omphalos-system",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "omphalos": {
-    "compatibleRange": "~0.0.1",
+    "compatibleRange": "~0.1.0",
     "graphics": [
       {
         "file": "sound_board.html",

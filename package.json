@@ -3,7 +3,17 @@
   "version": "0.1.0",
   "type": "module",
   "description": "The monorepo for the Omphalos project",
+  "license": "MIT",
+  "repository": "https://github.com/OdatNurd/omphalos",
+  "author": {
+    "name": "OdatNurd",
+    "email": "odatnurd@gmail.com",
+    "url": "https://odatnurd.net"
+  },
   "private": true,
+  "engines": {
+    "node": ">=20.x"
+  },
   "scripts": {
     "app:dev": "pnpm --filter omphalos-app run dev",
     "docs:dev": "pnpm --filter omphalos-docs run dev",

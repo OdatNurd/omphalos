@@ -1,8 +1,8 @@
 {
-  "name": "@odatnurd/omph",
+  "name": "@odatnurd/omphalos-common",
   "version": "0.1.0",
   "type": "module",
-  "description": "Omphalos command line tool for bundle management",
+  "description": "Omphalos common code library",
   "license": "MIT",
   "repository": "https://github.com/OdatNurd/omphalos",
   "author": {
@@ -10,20 +10,13 @@
     "email": "odatnurd@gmail.com",
     "url": "https://odatnurd.net"
   },
-  "private": false,
+  "private": true,
   "engines": {
     "node": ">=20.x"
   },
-  "bin": {
-    "omph": "./cli.js"
-  },
-  "dependencies": {
+  "devDependencies": {
     "@axel669/joker": "^0.3.2",
-    "archiver": "^8.0.0",
     "fs-jetpack": "^5.1.0",
     "semver": "^7.3.8"
-  },
-  "devDependencies": {
-    "@odatnurd/omphalos-common": "workspace:*"
   }
 }
