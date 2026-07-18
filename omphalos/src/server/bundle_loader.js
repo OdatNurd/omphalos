@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import constants from "#common/constants";
+import { MSG_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -289,7 +289,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       // bundle
       set: (key, value) => {
         setValue(bundleName, key, value);
-        omphalos.sendMessageToBundle(constants.MSG_STORAGE_UPDATE, bundleName,
+        omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
                                      { key, value,  });
       },
 
@@ -301,7 +301,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       // Delete the value of a key from the permanent storage.
       delete: (key) => {
         deleteValue(bundleName, key);
-        omphalos.sendMessageToBundle(constants.MSG_STORAGE_UPDATE, bundleName,
+        omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
                                      { key, value: undefined,  });
       },
     },

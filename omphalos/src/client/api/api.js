@@ -1,4 +1,4 @@
-import constants from "#common/constants";
+import * as constants from "@odatnurd/omphalos-common/constants";
 
 import { getClientSocket, join, part, message } from '#api/socket';
 

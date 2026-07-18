@@ -1,5 +1,4 @@
-import constants from "$common/constants.js";
-
+import { MSG_CONNECTIONS_UPDATE } from '@odatnurd/omphalos-common/constants';
 import { readable } from 'svelte/store';
 
 
@@ -32,7 +31,7 @@ import { readable } from 'svelte/store';
  *
  * The callback gets a set function that it can use to update the data. */
 export const connections = readable({}, (set) => {
-  return omphalos.listenFor(constants.MSG_CONNECTIONS_UPDATE, data => set(data));
+  return omphalos.listenFor(MSG_CONNECTIONS_UPDATE, data => set(data));
 });
 
 

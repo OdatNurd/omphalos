@@ -1,5 +1,5 @@
 import { logger } from '#core/logger';
-import constants from "#common/constants";
+import * as constants from '@odatnurd/omphalos-common/constants';
 
 import { setValue, getValue } from '#core/storage';
 import { assert } from '#api/assert';
