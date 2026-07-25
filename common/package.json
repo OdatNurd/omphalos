@@ -16,7 +16,8 @@
   },
   "exports": {
     "./constants": "./src/constants.js",
-    "./logger": "./src/logger.js"
+    "./logger": "./src/logger.js",
+    "./schema": "./src/schema.js"
   },
   "devDependencies": {
     "@axel669/joker": "^0.3.2",

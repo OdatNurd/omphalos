@@ -1,9 +1,30 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import path from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import prompts from 'prompts';
+import semver from 'semver';
+
+import { defaultBundleManifest } from '@odatnurd/omphalos-common/schema';
+
+
+// =============================================================================
+
+
+/* Get the version specififer for the target Omphalos version in bundles that we
+ * create.
+ *
+ * Since our version number is synced with the version number of released
+ * Omphalos versions, if we gather our version from our own package file, we end
+ * up with a decent version. */
+function getTargetOmphalosVersion() {
+  const manifest = join(dirname(fileURLToPath(import.meta.url)), 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+
+  return `~${packageJson.version ?? '0.1.0'}`;
+}
 
 
 // =============================================================================
@@ -64,6 +85,30 @@ async function getConfiguration() {
       }
     },
     {
+      type: 'text',
+      name: 'version',
+      message: 'Bundle Version:',
+      initial: '1.0.0',
+      validate: (value) => {
+        if (semver.valid(value) === null) {
+          return 'A valid semantic version is required.';
+        }
+        return true;
+      }
+    },
+    {
+      type: 'text',
+      name: 'omphalosVersion',
+      message: 'Target Omphalos Version:',
+      initial: getTargetOmphalosVersion(),
+      validate: (value) => {
+        if (semver.validRange(value) === null) {
+          return 'A valid semantic version range is required.';
+        }
+        return true;
+      }
+    },
+    {
       type: 'confirm',
       name: 'initGit',
       message: 'Initialize a new git repository?',
@@ -93,7 +138,7 @@ async function getConfiguration() {
 
 
 async function main() {
-  // CHeck to see if we are running from the development monorepo; if so, our
+  // Check to see if we are running from the development monorepo; if so, our
   // templates need to use a different version of the script.
   const isWorkspaceDev = process.argv.includes('--workspace');
   const cliVersion = isWorkspaceDev ? "workspace:*" : "latest";
@@ -110,33 +155,17 @@ async function main() {
   //
   //  The configuration function validates that this does not already  exist
   const bundleName = config.bundleName.trim();
-  const targetDir = path.join(process.cwd(), bundleName);
+  const targetDir = join(process.cwd(), bundleName);
 
   fs.mkdirSync(targetDir, { recursive: true });
 
   // Set up the package.json file content.
-  //
-  // This should include the omphalos key, but this is just the early PoC
-  // version of the tool, so. Among other things, the questions should ask for
-  // the target omphalos version for the specifier and ask for the subfolder
-  // that has the panel, graphics and sounds.
-  const packageJson = {
-    name: bundleName,
-    version: "0.1.0",
-    private: true,
-    type: "module",
-    scripts: {
-      "bundle": "omph .",
-      "bundle:wrap": "omph . --wrap",
-    },
-    devDependencies: {
-      "@odatnurd/omph": cliVersion,
-    }
-  };
+  const packageJson = defaultBundleManifest(bundleName, config.version,
+                                            config.omphalosVersion, cliVersion);
 
   // Write the package.json out to disk.
   fs.writeFileSync(
-    path.join(targetDir, 'package.json'),
+    join(targetDir, 'package.json'),
     JSON.stringify(packageJson, null, 2) + '\n'
   );
 

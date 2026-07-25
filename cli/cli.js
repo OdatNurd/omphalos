@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { logger, setLogHandler } from '@odatnurd/omphalos-common/logger';
+import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
 
 import fs from 'fs';
 import { resolve, basename, join } from 'path';
@@ -9,8 +10,6 @@ import { promisify } from 'util';
 import os from 'os';
 import { ZipArchive } from 'archiver';
 import jetpack from 'fs-jetpack';
-import * as joker from '@axel669/joker';
-import semver from 'semver';
 
 const execAsync = promisify(exec);
 
@@ -30,128 +29,6 @@ setLogHandler((level, subsystem, message) => {
   level = (level === 'silly' ? 'info' : level);
   console[level](message);
 });
-
-
-// =============================================================================
-// --- BEGIN VERBATIM COPY FROM src/server/bundle_resolver.js ---
-// =============================================================================
-
-/* Include an extra validation type that knows how to validate a packge semver
- * and semver ranges. Includes also appropriate error messages for the
- * validations. */
-joker.extendTypes({
-  "semver.$":   (item) => semver.valid(item) === null,
-  "semrange.$": (item) => semver.validRange(item) === null,
-})
-
-joker.extendErrors({
-  "semver.$":   (item) => `${item} is not a valid semantic version number`,
-  "semrange.$": (item) => `${item} is not a valid semantic version range`
-})
-
-
-// =============================================================================
-
-
-/* This validates that an object is a valid general package manifest as far as
- * the properties that we need out of it are concerned. */
-const validPackageManifest = joker.validator({
-  itemName: 'root',
-  root: {
-    "name": "string",
-    "version": "semver"
-  }
-});
-
-
-/* For any folder that might contain a bundle it must have a package.json with
- * a manifest that includes an omphalos key with the following structure; if
- * not it will not be considered as a valid bundle and will not be loaded. */
-const validBundleManifest = joker.validator({
-  itemName: 'omphalos',
-  root: {
-    // What versions of omphalos are compatible with this bundle? If the version
-    // of omphalos is not compatible, this bundle won't load.
-    "compatibleRange": "semrange",
-
-    // Bundles that must exist and be loaded in order for this bundle to load.
-    // If present, a bundle with the given name and compatible version will be
-    // loaded prior to this bundle loading; if any dependencies fail to load,
-    // this bundle will also not load.
-    "?deps{}": "semrange",
-
-    // manifest relative path to an optional server side extension js file; if
-    // this is set, the file must export the appropriate function which will be
-    // called when the bundle is mounted.
-    "?extension": "string",
-
-    // These items specify a path relative to the manifest file in the package
-    // that specify where any panels, graphics and sounds are expected to be
-    // found. If they are not provided, then a default of "panels", "graphics"
-    // and "sounds" respectively will be used as the location.
-    "?panelPath": "string",
-    "?graphicPath": "string",
-    "?soundPath": "string",
-
-    // A list of user interface panels that should be presented for this bundle.
-    // Sizes are in columns and rows. If a panel is locked, it will not be
-    // automatically moved, though it can still be moved manually. All panels
-    // in the same workspace are grouped together; there is a default workspace.
-    // If a panel is fullbleed, it consumes its entire workspace. In that case
-    // it is the only item that will exist in that workspace; a new workspace
-    // will be created as needed to enforce this.
-    //
-    // The name of the file in the panel is relative to the panelPath.
-    "?panels[]": {
-      "file": "string",
-      "name": "string",
-      "title": "string",
-      "?locked": "bool",
-      "size": {
-        "width": "int",
-        "height": "int"
-      },
-      "?minSize": {
-        "width": "int",
-        "height": "int"
-      },
-      "?maxSize": {
-        "width": "int",
-        "height": "int"
-      },
-      "?workspace": "string",
-      "?fullbleed": "bool"
-    },
-
-    // A list of stream graphic files that are contained in thus bundle. The
-    // sizes are in pixels and are informational only. A graphic that is single
-    // instance will only be served to a single client, after which all other
-    // attempts to serve that graphic will fail unless the connection is broken.
-    //
-    // The name of the file in the graphic is relative to the panelPath.
-    "?graphics[]": {
-      "file": "string",
-      "?name": "string",
-      "size": {
-        "width": "int",
-        "height": "int"
-      },
-      "?singleInstance": "bool"
-    },
-
-    // A list of sound drop files that are contained in this bundle. The names
-    // of each sound must be unique within a bundle, and the file is a file
-    // relative to the set "soundPath".
-    "?sounds[]": {
-      "file": "string",
-      "name": "string",
-    }
-  }
-});
-
-// =============================================================================
-// --- END VERBATIM COPY ---
-// =============================================================================
 
 
 /* This code I stole from somewhere online that takes a value and turns it
@@ -206,7 +83,7 @@ async function main() {
 
   // Load and validate manifest; this does just the main package.json part
   const manifest = jetpack.read(packageJsonPath, 'json');
-  const validPkg = validPackageManifest(manifest);
+  const validPkg = isValidPackageManifest(manifest);
   if (validPkg !== true) {
     log.error(`Error: Invalid package manifest in ${bundleDirName}:`);
     log.error(validPkg.map(e => `  - ${e.message}`).join('\n'));
@@ -220,7 +97,7 @@ async function main() {
   }
 
   // Verify that the bundle looks correct.
-  const validBundle = validBundleManifest(manifest.omphalos);
+  const validBundle = isValidBundleManifest(manifest.omphalos);
   if (validBundle !== true) {
     log.error(`Error: Invalid omphalos manifest in ${bundleDirName}:`);
     log.error(validBundle.map(e => `  - ${e.message}`).join('\n'));

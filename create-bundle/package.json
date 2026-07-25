@@ -18,7 +18,8 @@
     "create-omphalos-bundle": "./index.js"
   },
   "dependencies": {
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "semver": "^7.3.8"
   },
   "devDependencies": {
     "@odatnurd/omphalos-common": "workspace:*"
