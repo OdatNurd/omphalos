@@ -1,5 +1,8 @@
 import { config } from '#core/config';
 
+import { setLogHandler } from '@odatnurd/omphalos-common/logger';
+export { logger } from '@odatnurd/omphalos-common/logger';
+
 import { createLogger, format, transports } from 'winston';
 import { resolve } from 'path';
 
@@ -109,7 +112,7 @@ function createAppLogger() {
 /* Obtain the logger handle for the logger that is for logs from the provided
  * subsystem. This will lazily instantiate either the parent logger or the
  * required child logger for the subsystem as needed. */
-export function logger(subsystem) {
+function getWinstonLogger(subsystem) {
   if (globalLogger === undefined) {
     globalLogger = createAppLogger();
   }
@@ -120,6 +123,18 @@ export function logger(subsystem) {
 
   return loggers[subsystem];
 }
+
+
+// =============================================================================
+
+
+/* Set a log handler using the common log system that redirects the log to the
+ * appropriate Winston handler for this subsystem, passing through the message
+ * and meta for Winston to handle. */
+setLogHandler((level, subsystem, message, meta) => {
+  const childLogger = getWinstonLogger(subsystem);
+  childLogger[level](message, meta);
+});
 
 
 // =============================================================================

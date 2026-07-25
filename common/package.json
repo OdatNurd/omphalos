@@ -15,7 +15,8 @@
     "node": ">=20.x"
   },
   "exports": {
-    "./constants": "./src/constants.js"
+    "./constants": "./src/constants.js",
+    "./logger": "./src/logger.js"
   },
   "devDependencies": {
     "@axel669/joker": "^0.3.2",

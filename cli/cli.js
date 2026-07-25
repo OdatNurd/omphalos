@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { logger, setLogHandler } from '@odatnurd/omphalos-common/logger';
+
 import fs from 'fs';
 import { resolve, basename, join } from 'path';
 import { exec } from 'child_process';
@@ -11,6 +13,24 @@ import * as joker from '@axel669/joker';
 import semver from 'semver';
 
 const execAsync = promisify(exec);
+
+
+
+// =============================================================================
+
+
+/* Set up a simple log handler that dumps everything to the console; here we
+ * purposely ignore things like the log module, since for a CLI that makes
+ * less sense.
+ *
+ * This presumes that all of the log levels that the API says it supports are
+ * actually console log methods, which is currently true. */
+const log = logger('omph-cli');
+setLogHandler((level, subsystem, message) => {
+  level = (level === 'silly' ? 'info' : level);
+  console[level](message);
+});
+
 
 // =============================================================================
 // --- BEGIN VERBATIM COPY FROM src/server/bundle_resolver.js ---
@@ -157,8 +177,8 @@ async function main() {
   // telling us to wrap the content in a separate folder.
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error("Error: Missing bundle path.");
-    console.log("Usage: node tools/create_bundle.js <path-to-bundle> [--wrap]");
+    log.error("Error: Missing bundle path.");
+    log.info("Usage: node tools/create_bundle.js <path-to-bundle> [--wrap]");
     process.exit(1);
   }
 
@@ -173,14 +193,14 @@ async function main() {
 
   // The folder has to exist and be a folder or we are mad.
   if (jetpack.exists(absoluteBundlePath) !== 'dir') {
-    console.error(`Error: The path '${absoluteBundlePath}' does not exist or is not a directory.`);
+    log.error(`Error: The path '${absoluteBundlePath}' does not exist or is not a directory.`);
     process.exit(1);
   }
 
   // The folder has to contain a package.json file or we are mad.
   const packageJsonPath = join(absoluteBundlePath, 'package.json');
   if (jetpack.exists(packageJsonPath) !== 'file') {
-    console.error(`Error: No package.json found in '${absoluteBundlePath}'.`);
+    log.error(`Error: No package.json found in '${absoluteBundlePath}'.`);
     process.exit(1);
   }
 
@@ -188,26 +208,26 @@ async function main() {
   const manifest = jetpack.read(packageJsonPath, 'json');
   const validPkg = validPackageManifest(manifest);
   if (validPkg !== true) {
-    console.error(`Error: Invalid package manifest in ${bundleDirName}:`);
-    console.error(validPkg.map(e => `  - ${e.message}`).join('\n'));
+    log.error(`Error: Invalid package manifest in ${bundleDirName}:`);
+    log.error(validPkg.map(e => `  - ${e.message}`).join('\n'));
     process.exit(1);
   }
 
   // If the manifest doesn't have an omphalos object, this is not a bundle.
   if (manifest.omphalos === undefined) {
-    console.error(`Error: package.json in ${bundleDirName} is missing the 'omphalos' configuration key.`);
+    log.error(`Error: package.json in ${bundleDirName} is missing the 'omphalos' configuration key.`);
     process.exit(1);
   }
 
   // Verify that the bundle looks correct.
   const validBundle = validBundleManifest(manifest.omphalos);
   if (validBundle !== true) {
-    console.error(`Error: Invalid omphalos manifest in ${bundleDirName}:`);
-    console.error(validBundle.map(e => `  - ${e.message}`).join('\n'));
+    log.error(`Error: Invalid omphalos manifest in ${bundleDirName}:`);
+    log.error(validBundle.map(e => `  - ${e.message}`).join('\n'));
     process.exit(1);
   }
 
-  console.log(`[INFO] Manifest for '${manifest.name}' validated successfully.`);
+  log.info(`[INFO] Manifest for '${manifest.name}' validated successfully.`);
 
   // Our loader logic applies default paths for things that are missing, so we
   // replicate that here.
@@ -242,12 +262,12 @@ async function main() {
   await fs.promises.writeFile(tempPackagePath, manifestString, 'utf-8');
 
   // Use npm, which I sincerely hope always exists, to install any dependencies.
-  console.log(`[INFO] Installing production dependencies in temporary directory...`);
+  log.info(`[INFO] Installing production dependencies in temporary directory...`);
   try {
     await execAsync('npm install --omit=dev --no-package-lock', { cwd: tempDirPath });
-    console.log(`[INFO] Dependencies installed successfully.`);
+    log.info(`[INFO] Dependencies installed successfully.`);
   } catch (err) {
-    console.error(`[ERROR] Failed to install dependencies:`, err);
+    log.error(`[ERROR] Failed to install dependencies:`, err);
     await fs.promises.rm(tempDirPath, { recursive: true, force: true });
     process.exit(1);
   }
@@ -265,18 +285,18 @@ async function main() {
   // the temporary path and all of its files, forcefully.
   output.on('close', async () => {
     const sizeStr = formatBytes(archive.pointer());
-    console.log(`[SUCCESS] Bundle created: ${outputFileName} (${sizeStr})`);
+    log.info(`[SUCCESS] Bundle created: ${outputFileName} (${sizeStr})`);
     try {
       await fs.promises.rm(tempDirPath, { recursive: true, force: true });
     } catch (err) {
-      console.warn(`[WARNING] Could not clean up temporary directory at ${tempDirPath}`);
+      log.warn(`[WARNING] Could not clean up temporary directory at ${tempDirPath}`);
     }
   });
 
   // Handle any warnings that the archiver generates.
   archive.on('warning', (err) => {
     if (err.code === 'ENOENT') {
-      console.warn(`[WARNING] Archiver warning: ${err.message}`);
+      log.warn(`[WARNING] Archiver warning: ${err.message}`);
     } else {
       throw err;
     }
@@ -298,7 +318,7 @@ async function main() {
 
   // Add the package.json file; here we can just use the string.
   archive.append(manifestString, { name: `${prefix}package.json` });
-  console.log(`  -> Added package.json (devDependencies stripped)`);
+  log.info(`  -> Added package.json (devDependencies stripped)`);
 
   // This small helper checks to see if the folder provided exists, and if so
   // it pulls it into the archive.
@@ -307,7 +327,7 @@ async function main() {
     const fullPath = join(absoluteBundlePath, dirName);
     if (jetpack.exists(fullPath) === 'dir') {
       archive.directory(fullPath, `${prefix}${dirName}`);
-      console.log(`  -> Added ${label} directory: ${dirName}`);
+      log.info(`  -> Added ${label} directory: ${dirName}`);
     }
   };
 
@@ -321,7 +341,7 @@ async function main() {
   const tempNodeModules = join(tempDirPath, 'node_modules');
   if (jetpack.exists(tempNodeModules) === 'dir') {
     archive.directory(tempNodeModules, `${prefix}node_modules`);
-    console.log(`  -> Added clean node_modules directory`);
+    log.info(`  -> Added clean node_modules directory`);
   }
 
   // If there is an extension script defined, then include it as well. I can't
@@ -331,9 +351,9 @@ async function main() {
     const extPath = join(absoluteBundlePath, manifest.omphalos.extension);
     if (jetpack.exists(extPath) === 'file') {
       archive.file(extPath, { name: `${prefix}${manifest.omphalos.extension}` });
-      console.log(`  -> Added extension file: ${manifest.omphalos.extension}`);
+      log.info(`  -> Added extension file: ${manifest.omphalos.extension}`);
     } else {
-      console.warn(`[WARNING] Extension file '${manifest.omphalos.extension}' is declared but not found.`);
+      log.warn(`[WARNING] Extension file '${manifest.omphalos.extension}' is declared but not found.`);
     }
   }
 
@@ -346,12 +366,12 @@ async function main() {
 
     if (pathType === 'dir') {
       archive.directory(fullExtraPath, `${prefix}${extraPath}`);
-      console.log(`  -> Added extra directory: ${extraPath}`);
+      log.info(`  -> Added extra directory: ${extraPath}`);
     } else if (pathType === 'file') {
       archive.file(fullExtraPath, { name: `${prefix}${extraPath}` });
-      console.log(`  -> Added extra file: ${extraPath}`);
+      log.info(`  -> Added extra file: ${extraPath}`);
     } else {
-      console.warn(`[WARNING] Extra include '${extraPath}' was not found.`);
+      log.warn(`[WARNING] Extra include '${extraPath}' was not found.`);
     }
   }
 
@@ -366,7 +386,7 @@ async function main() {
 try {
   await main();
 } catch (error) {
-  console.error(error);
+  log.error(error);
   process.exit(1);
 }
 
