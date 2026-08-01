@@ -15,6 +15,7 @@
     "node": ">=20.x"
   },
   "exports": {
+    "./bundle": "./src/bundle.js",
     "./constants": "./src/constants.js",
     "./logger": "./src/logger.js",
     "./schema": "./src/schema.js"

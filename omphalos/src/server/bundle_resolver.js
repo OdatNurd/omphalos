@@ -5,6 +5,7 @@ import jetpack from 'fs-jetpack';
 import semver from 'semver';
 
 import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
+import { getBundlePaths } from '@odatnurd/omphalos-common/bundle';
 
 import { resolve, isAbsolute } from 'path';
 
@@ -20,57 +21,6 @@ const log = logger('resolver');
  * cannot be ignored. */
 const SYS_BUNDLE_NAME = 'omphalos-system';
 const SYS_BUNDLE_FOLDER = 'system-bundle';
-
-
-// =============================================================================
-
-
-/* This does the work of scanning for all possible bundle folders, both in the
- * regular bundle folder as well as in all configured extra bundle folders.
- *
- * The return value is a list of absolute paths which probably contain a bundle;
- * this means that they have a manifest but that it has not been checked for
- * validity yet. */
-function getBundlePaths() {
-  const baseDir = config.get('baseDir');
-  const bundles = config.get('bundleDir');
-
-  log.info('scanning all bundle folders for installed bundles');
-
-  const pathList = [resolve(baseDir, SYS_BUNDLE_FOLDER)];
-
-  // Scan for all directories in the overall bundle directory and find all that
-  // have a packqge.json in them; we don't need to validate it, just find it to
-  // mark it as a candidate.
-  //
-  // All candidates are stored into an array as their absolute bundle path.
-  pathList.push(...jetpack.list(bundles).filter(dir => {
-    return jetpack.exists(resolve(bundles, dir)) === 'dir' &&
-           jetpack.exists(resolve(bundles, dir, 'package.json')) === 'file'
-  }).map(dir => resolve(bundles, dir)));
-
-  // In addition to the above, the configuration can specify extra folders that
-  // contain bundles. Scan now over those taking the same steps as above to
-  // find all extra directories that appear to be bundles and return their
-  // absolute paths.
-  //
-  // Here the path might be absolute; if it's not then it's relative to the
-  // base install location of the application.
-  pathList.push(...config.get('bundles.additional')
-    .map(dir => isAbsolute(dir) ? dir : resolve(baseDir, dir))
-    .filter(dir => {
-      if (jetpack.exists(resolve(bundles, dir, 'package.json')) === 'file') {
-        return true;
-      }
-
-      log.warn(`configured additional bundle was not found: ${dir}`);
-      return false;
-    })
-  );
-
-  log.info(`found ${pathList.length} potential bundle(s)`)
-  return pathList;
-}
 
 
 // =============================================================================
@@ -255,8 +205,10 @@ export function discoverBundles(appManifest) {
   // value.
   let bundles = {};
 
-  // Find all possible bundles, then load and validate their manifest files.
-  for (const thisBundle of getBundlePaths()) {
+  // Find all possible bundles, then load and validate their manifest files. We
+  // need to pass in the system bundle as the first set of bundles to find.
+  const sysBundle = resolve(config.get('baseDir'), SYS_BUNDLE_FOLDER);
+  for (const thisBundle of getBundlePaths(config, [sysBundle])) {
     try {
       // Determine the manifest file name based on the bundle path. We want a
       // version of this that trims away the longer portions of the bundle path
