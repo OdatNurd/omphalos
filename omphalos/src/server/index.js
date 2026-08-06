@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
+import { SYSTEM_DASHBOARD } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -68,7 +68,7 @@ function spaTemplate(dom, bundles, version) {
   // part of this that is needed by the top level code is a faked up bundle
   // name that identifies us as the system bundle.
   const manifest = {
-    name: SYSTEM_BUNDLE,
+    name: SYSTEM_DASHBOARD,
     version,
     "omphalos": {
       "compatibleRange": `~${version}`,
@@ -183,8 +183,8 @@ function makeTemplateAPIObject(app, io) {
       // Direct the message to the front end; we don't need to use the full
       // sender here since nothing on the server side can do anything about a
       // toast anyway.
-      io.to(SYSTEM_BUNDLE).emit('message', {
-        bundle: SYSTEM_BUNDLE,
+      io.to(SYSTEM_DASHBOARD).emit('message', {
+        bundle: SYSTEM_DASHBOARD,
         event: 'toast', data:
         { toast: msg, level, timeout: timeout_secs * 1000 }
       });

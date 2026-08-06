@@ -1,10 +1,11 @@
 // =============================================================================
 
 
-/* The predefined name of the system bundle; this is used by various internals
- * that are used to transmit messages along the same communications lines as
- * user defined messages to direct them specifically to the system only. */
-export const SYSTEM_BUNDLE = '__omphalos_system__';
+/* The predefined name of the hard coded endpoint used for the system dashboard,
+ * which is used to transmit messages directly to the dashboard through the same
+ * communicatons lines as user defined messages to direct them specifically to
+ * the dashboard only. */
+export const SYSTEM_DASHBOARD = '__omphalos_dashboard__';
 
 /* This message is transmitted from the server to an overlay when the user uses
  * the dashboard to ask an overlay to reload itself. */
@@ -33,7 +34,7 @@ export const MSG_STORAGE_UPDATE = '__sys_storage_update';
 
 /* Messages that have this as their event are requests to generate a toast
  * message to the dashboard; messages of this type should be directed to the
- * SYSTEM_BUNDLE, which will redirect them to the front end code that will
+ * SYSTEM_DASHBOARD, which will redirect them to the front end code that will
  * actually display the toast. */
 export const MSG_EVENT_TOAST = 'toast';
 

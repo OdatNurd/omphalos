@@ -165,7 +165,7 @@ function performStorageUpdate(data) {
 function sendStorageUpdate(key, value) {
   log.debug(`${asset.name}:${bundle.name} sending storage update: '${key}'=>${JSON.stringify(value)}`);
 
-  sendMessageToBundle(constants.MSG_STORAGE_UPDATE, constants.SYSTEM_BUNDLE,
+  sendMessageToBundle(constants.MSG_STORAGE_UPDATE, constants.SYSTEM_DASHBOARD,
                       { bundle: bundle.name, key, value,  });
 }
 
@@ -354,17 +354,17 @@ export function toast(msg, level, timeout_secs) {
     timeout_secs *= 1000;
   }
 
-  // If we're the system asset, instead of sending a message off just  raise the
+  // If we're the system asset, instead of sending a message off just raise the
   // toast event, since the system will not deliver back to us.
   //
   // This is to facilitate debugging; the system generally doesn't need to do
   // anything relating to the API.
   if (asset.type === 'system') {
-    bridge.emit('toast.__omphalos_system__', { toast: msg, level, timeout: timeout_secs });
+    bridge.emit(`toast.${constants.SYSTEM_DASHBOARD}`, { toast: msg, level, timeout: timeout_secs });
     return
   }
 
-  sendMessageToBundle('toast', constants.SYSTEM_BUNDLE, { toast: msg, level, timeout: timeout_secs });
+  sendMessageToBundle('toast', constants.SYSTEM_DASHBOARD, { toast: msg, level, timeout: timeout_secs });
 }
 
 

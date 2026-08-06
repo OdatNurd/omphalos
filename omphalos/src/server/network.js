@@ -92,8 +92,8 @@ function sendConnectionUpdate(io) {
 
     // Send an update message to tell the other end about what is currently
     // connected to us.
-    io.to(constants.SYSTEM_BUNDLE).emit('message', {
-      bundle: constants.SYSTEM_BUNDLE,
+    io.to(constants.SYSTEM_DASHBOARD).emit('message', {
+      bundle: constants.SYSTEM_DASHBOARD,
       event: constants.MSG_CONNECTIONS_UPDATE,
       data: result
     });
@@ -239,7 +239,7 @@ export function setupSocketIO(io) {
       //
       // Not all system messages need to be forwarded on; in this case, bundle
       // will be undefined and we stop handling.
-      if (msgData.bundle === constants.SYSTEM_BUNDLE) {
+      if (msgData.bundle === constants.SYSTEM_DASHBOARD) {
         msgData = handleSystemMessage(msgData);
 
         if (msgData === undefined) {
