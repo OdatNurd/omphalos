@@ -2,6 +2,8 @@
   import { Content, Icon } from '$components';
   import { onMount } from 'svelte';
 
+  import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
+
   import { sounds } from '$stores/sounds.js';
 
   // The textual name for the device that represents the Omphalos sound
@@ -91,7 +93,7 @@
     // Only play in the browser when the sound device is not the overlay ID.
     if (soundDevice !== OVERLAY_ID) {
       const audio = document.createElement("audio");
-      audio.src = 'http://localhost:3000/bundles/omphalos-system/sounds/omphalos.mp3';
+      audio.src = `/bundles/${SYSTEM_BUNDLE}/sounds/omphalos.mp3`;
 
       // Assign the device ID, unless the user was not allowed to enumerate
       // devices; in that case the device will be the default placeholder, and

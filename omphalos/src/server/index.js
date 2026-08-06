@@ -301,8 +301,22 @@ async function launchServer() {
 // =============================================================================
 
 
-// Boom goes the proverbial dynamite.
-launchServer();
+try {
+  // Boom goes the proverbial dynamite.
+  await launchServer();
+}
+catch (err) {
+  log.error('===============================================================');
+  log.error(`FATAL STARTUP ERROR: ${err.message}`);
+  log.error('===============================================================');
+  if (err.stack !== undefined) {
+    log.error(err.stack);
+  }
+
+  // Flag the OS that the application failed, but allow the event loop
+  // to drain naturally so async file streams (like Winston) can flush.
+  process.exitCode = 1;
+}
 
 
 // =============================================================================

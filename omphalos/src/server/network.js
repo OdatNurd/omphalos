@@ -306,7 +306,7 @@ function handleSystemMessage(msgData, io, socket) {
       // bundle is known by, or messages won't arrive. But our internal name for
       // this bundle is not this, for reasons I do not currently recall but
       // which probably made a lot of sense at the time.
-      bundle: 'omphalos-system',
+      bundle: constants.SYSTEM_BUNDLE,
       event: constants.MSG_GLOBAL_STORAGE_REFRESH,
       data: getGlobalStorage()
     });
@@ -326,12 +326,12 @@ function handleSystemMessage(msgData, io, socket) {
     // Every time storage updates, send an update to the system bundle running
     // in the dash, so that it can update its local cache of the values that it
     // uses in its inspector panels.
-    io.to('omphalos-system').emit('message', {
+    io.to(constants.SYSTEM_BUNDLE).emit('message', {
       // Problematically, this needs to point at the actual bundle name that the
       // bundle is known by, or messages won't arrive. But our internal name for
       // this bundle is not this, for reasons I do not currently recall but
       // which probably made a lot of sense at the time.
-      bundle: 'omphalos-system',
+      bundle: constants.SYSTEM_BUNDLE,
       event: constants.MSG_GLOBAL_STORAGE_UPDATE,
       data: { bundle, key, value }
     });

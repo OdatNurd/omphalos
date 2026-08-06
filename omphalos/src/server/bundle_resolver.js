@@ -4,6 +4,7 @@ import { logger } from '#core/logger';
 import jetpack from 'fs-jetpack';
 import semver from 'semver';
 
+import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
 import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
 import { getBundlePaths } from '@odatnurd/omphalos-common/bundle';
 
@@ -15,12 +16,6 @@ import { resolve, isAbsolute } from 'path';
 
 /* Get our subsystem logger. */
 const log = logger('resolver');
-
-/* The name of the system bundle that we pack in and the name of the folder (
- * relative to the base install directory); this is always loaded first and
- * cannot be ignored. */
-const SYS_BUNDLE_NAME = 'omphalos-system';
-const SYS_BUNDLE_FOLDER = 'system-bundle';
 
 
 // =============================================================================
@@ -192,9 +187,9 @@ export function discoverBundles(appManifest) {
 
   // If the system bundle appears in the list of bundles to ignore, remove it
   // and generate a warning; the system bundle is required and can't be removed.
-  if (ignoredBundles.includes(SYS_BUNDLE_NAME)) {
-    log.warn(`attempt to ignore the system bundle '${SYS_BUNDLE_NAME}'; this bundle cannot be ignored`);
-    ignoredBundles = ignoredBundles.filter(item => item !== SYS_BUNDLE_NAME)
+  if (ignoredBundles.includes(SYSTEM_BUNDLE)) {
+    log.warn(`attempt to ignore the system bundle '${SYSTEM_BUNDLE}'; this bundle cannot be ignored`);
+    ignoredBundles = ignoredBundles.filter(item => item !== SYSTEM_BUNDLE)
   }
 
   // The list of loaded and validated bundle manifests; items in here are
@@ -207,7 +202,7 @@ export function discoverBundles(appManifest) {
 
   // Find all possible bundles, then load and validate their manifest files. We
   // need to pass in the system bundle as the first set of bundles to find.
-  const sysBundle = resolve(config.get('baseDir'), SYS_BUNDLE_FOLDER);
+  const sysBundle = resolve(config.get('baseDir'), SYSTEM_BUNDLE);
   for (const thisBundle of getBundlePaths(config, [sysBundle])) {
     try {
       // Determine the manifest file name based on the bundle path. We want a
@@ -248,6 +243,22 @@ export function discoverBundles(appManifest) {
       const validBundle = isValidBundleManifest(manifest.omphalos);
       if (validBundle !== true){
         throw new Error(validBundle.map(e => e.message).join(', '))
+      }
+
+      // If the bundle claims the system bundle name but is not located in the
+      // explicit system bundle path, then refuse to load it; if we let it
+      // through it will cause a collision that kicks the bundle out entirely.
+      if (manifest.name === SYSTEM_BUNDLE && thisBundle !== sysBundle) {
+        log.error(`bundle at ${shortPath} is attempting to use the reserved system bundle name '${SYSTEM_BUNDLE}'; skipping`);
+        continue;
+      }
+
+      // If we are loading the physical system bundle directory, its manifest
+      // must declare the correct name; otherwise various things will break due
+      // to message routing.
+      if (thisBundle === sysBundle && manifest.name !== SYSTEM_BUNDLE) {
+        log.error(`the core bundle at ${shortPath} must be named '${SYSTEM_BUNDLE}'; found '${manifest.name}'`);
+        continue;
       }
 
       // If this bundle's required application version is not satisfied, this
@@ -324,6 +335,14 @@ export function discoverBundles(appManifest) {
   // circular dependencies. This also converts the structure into a directed
   // graph, though it is not guaranteed to be acyclic.
   satisfyDependencies(bundles);
+
+  // Verify that we have the system bundle; it will not be present if its
+  // manifest does not have the right name, or something about it (such as a
+  // missing dependency) caused it to not load; in that case we can't continue
+  // because that bundle is part of the core.
+  if (bundles[SYSTEM_BUNDLE] === undefined) {
+    throw new Error(`the system bundle '${SYSTEM_BUNDLE}' failed to load; cannot continue`);
+  }
 
   return bundles;
 }

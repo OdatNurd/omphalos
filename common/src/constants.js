@@ -7,6 +7,13 @@
  * the dashboard only. */
 export const SYSTEM_DASHBOARD = '__omphalos_dashboard__';
 
+/* The predefined name of system bundle that carries some of the default
+ * functionality in the app, such as the sound board and variable inspectors.
+ *
+ * These are item that either need panels in the dashboard, overlays, or both,
+ * in order to function. */
+export const SYSTEM_BUNDLE = 'omphalos-system';
+
 /* This message is transmitted from the server to an overlay when the user uses
  * the dashboard to ask an overlay to reload itself. */
 export const MSG_RELOAD = '__sys_reload';

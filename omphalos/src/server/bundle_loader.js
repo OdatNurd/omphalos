@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
+import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -296,7 +296,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
-        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, 'omphalos-system',
+        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
           { bundle: bundleName, key, value }
         )
       },
@@ -316,7 +316,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
-        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, 'omphalos-system',
+        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
           { bundle: bundleName, key }
         )
       },
