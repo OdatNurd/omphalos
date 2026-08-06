@@ -32,6 +32,20 @@ export const MSG_STORAGE_REFRESH = '__sys_storage_refresh';
  * propagates it out to everyone else in the bundle. */
 export const MSG_STORAGE_UPDATE = '__sys_storage_update';
 
+/* This message can be sent to SYSTEM_DASHBOARD to request a full global
+ * refresh; the result will be a message of type MSG_GLOBALSTORAGE_REFRESH. */
+export const MSG_REQUEST_GLOBAL_STATE = '__sys_request_global_state';
+
+/* This message is a message from the server to the system bundle running in the
+ * dashboard, which allows it to request a complete and total refresh of every
+ * variable currently in storage, for use in an inspector panel. */
+export const MSG_GLOBAL_STORAGE_REFRESH = '__sys_global_storage_refresh';
+
+/* This message is a message from the server to the system bundle running in the
+ * dashboard, which is transmitted along with a MSG_STORAGE_UPDATE but directly
+ * to the system bundle, so that it can update its inspector panel. */
+export const MSG_GLOBAL_STORAGE_UPDATE = '__sys_global_storage_update';
+
 /* Messages that have this as their event are requests to generate a toast
  * message to the dashboard; messages of this type should be directed to the
  * SYSTEM_DASHBOARD, which will redirect them to the front end code that will

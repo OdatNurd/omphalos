@@ -13,6 +13,18 @@
         }
       }
     ],
+    "panels": [
+      {
+        "file": "variables.html",
+        "name": "variables",
+        "title": "System Storage",
+        "workspace": "System",
+        "size": {
+          "width": 6,
+          "height": 19
+        }
+      }
+    ],
     "sounds": [
       {
         "file": "omphalos.mp3",

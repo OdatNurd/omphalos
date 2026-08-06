@@ -1,7 +1,7 @@
 import { logger } from '#core/logger';
 import * as constants from '@odatnurd/omphalos-common/constants';
 
-import { setValue, getValue } from '#core/storage';
+import { setValue, getValue, getGlobalStorage } from '#core/storage';
 import { assert } from '#api/assert';
 
 import * as joker from '@axel669/joker';
@@ -240,7 +240,7 @@ export function setupSocketIO(io) {
       // Not all system messages need to be forwarded on; in this case, bundle
       // will be undefined and we stop handling.
       if (msgData.bundle === constants.SYSTEM_DASHBOARD) {
-        msgData = handleSystemMessage(msgData);
+        msgData = handleSystemMessage(msgData, io, socket);
 
         if (msgData === undefined) {
           return log.debug('event does not need to be forwarded')
@@ -290,8 +290,28 @@ export function dispatchMessageEvent(bundle, event, data) {
  *
  * This will return all undefined values if whatever the system message was is
  * wholly managed by this call, and does not require a transmission out. */
-function handleSystemMessage(msgData) {
+function handleSystemMessage(msgData, io, socket) {
   log.debug(`Handling system message: ${JSON.stringify(msgData)}`);
+
+  // The system panels in the standard system bundle can make specific requests
+  // of us, in particular one to fetch the current state of all variables as
+  // they exist so that it can display them.
+  //
+  // Such messages do not need to be handled otherwise.
+  if (msgData.event === constants.MSG_REQUEST_GLOBAL_STATE) {
+    log.debug('sending a total global storage value refresh to the dashboard')
+    log.debug('sending brute force global state to inspector');
+    socket.emit('message', {
+      // Problematically, this needs to point at the actual bundle name that the
+      // bundle is known by, or messages won't arrive. But our internal name for
+      // this bundle is not this, for reasons I do not currently recall but
+      // which probably made a lot of sense at the time.
+      bundle: 'omphalos-system',
+      event: constants.MSG_GLOBAL_STORAGE_REFRESH,
+      data: getGlobalStorage()
+    });
+    return;
+  }
 
   // If this is a system message that tells us to update storage, we save the
   // value and then send out a storage update to the other members of the bundle
@@ -302,6 +322,19 @@ function handleSystemMessage(msgData) {
 
     // Persist the updated value into the storage
     setValue(bundle, key, value);
+
+    // Every time storage updates, send an update to the system bundle running
+    // in the dash, so that it can update its local cache of the values that it
+    // uses in its inspector panels.
+    io.to('omphalos-system').emit('message', {
+      // Problematically, this needs to point at the actual bundle name that the
+      // bundle is known by, or messages won't arrive. But our internal name for
+      // this bundle is not this, for reasons I do not currently recall but
+      // which probably made a lot of sense at the time.
+      bundle: 'omphalos-system',
+      event: constants.MSG_GLOBAL_STORAGE_UPDATE,
+      data: { bundle, key, value }
+    });
 
     // Send out a complete refresh of the storage; this will go to everyone but
     // the client that did the update in the first place.

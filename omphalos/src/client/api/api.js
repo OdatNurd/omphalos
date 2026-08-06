@@ -11,6 +11,11 @@ import EventBridge from '@axel669/event-bridge';
 // =============================================================================
 
 
+/* Export out the constants object; this has the __sys prefix to indicate that
+ * we own it; this is not for outer consumption, generally speaking. It is used
+ * by the system bundle to be able to know the names of things. */
+export { constants as __sys_constants };
+
 /* All of the values here have this default value to begin with, and are set
  * by a call to the API initialization routine, which is where the data for
  * them comes from (except for the socket, which we make ourselves). */

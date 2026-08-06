@@ -167,3 +167,15 @@ export function getValue(bundle, key, defaultValue) {
 
 
 // =============================================================================
+
+
+/* Retrieve the entire storage dictionary across all bundles. This is used as
+ * a part of the special request that the system bundle makes from some of its
+ * inspector panels, which allow it to display the entire state of the universe
+ * of stored state. */
+export function getGlobalStorage() {
+  return storage;
+}
+
+
+// =============================================================================

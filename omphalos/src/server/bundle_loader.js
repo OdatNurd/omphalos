@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { MSG_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
+import { MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -286,11 +286,19 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
     // Bundle persistent storage accessors.
     bundleVars: {
       // Store the value of the given key into the permanent storage of this
-      // bundle
+      // bundle. This sends a message to other bundle members to tell them that
+      // the value changed, and sends a refresh to the system dashboard so that
+      // it can update its inspector.
       set: (key, value) => {
         setValue(bundleName, key, value);
         omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
                                      { key, value,  });
+        // This is the actual system bundle and not the sentinel we use for our
+        // routing; the messagte has to be sent to this bundle or the panel in
+        // the dashboard won't see it.
+        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, 'omphalos-system',
+          { bundle: bundleName, key, value }
+        )
       },
 
       // Retrive the value of a specific bundle's key/valye pair, which may
@@ -298,11 +306,19 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       // value for a key that does not exist.
       get: (key, defaultValue) => getValue(bundleName, key, defaultValue),
 
-      // Delete the value of a key from the permanent storage.
+      // Delete the value of a key from the permanent storage. Then tell all
+      // members of the bundle that the variable is gone, and also update the
+      // global inspector panel.
       delete: (key) => {
         deleteValue(bundleName, key);
         omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
                                      { key, value: undefined,  });
+        // This is the actual system bundle and not the sentinel we use for our
+        // routing; the messagte has to be sent to this bundle or the panel in
+        // the dashboard won't see it.
+        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, 'omphalos-system',
+          { bundle: bundleName, key }
+        )
       },
     },
 

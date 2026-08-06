@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Global State Inspector</title>
+  <style>
+    .bundle-block {
+      margin-bottom: 1.25rem;
+    }
+
+    .bundle-name {
+      font-weight: 600;
+      color: var(--omph-primary);
+      border-bottom: 1px solid var(--omph-border);
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.85rem;
+    }
+
+    .var-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px dotted var(--omph-bg-hover);
+      background: var(--omph-bg);
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+    }
+
+    .var-key {
+      color: var(--omph-fg);
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+
+    .var-val {
+      color: var(--omph-success);
+      font-family: monospace;
+      font-size: 0.95rem;
+      word-break: break-all;
+      margin-left: 1rem;
+      text-align: right;
+    }
+
+    .empty-state {
+      color: var(--omph-fg-mute);
+      font-style: italic;
+      font-size: 0.90rem;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    Real-time global inspector. Displays all variables persisted across all loaded bundles.
+  </p>
+
+  <div class="control-group">
+    <span class="control-group-title">State Inspector</span>
+
+    <div id="inspector-content">
+      <span class="empty-state">Waiting for global state payload...</span>
+    </div>
+  </div>
+
+  <script>
+    const container = document.querySelector('#inspector-content');
+
+    let globalState = {};
+
+    const renderState = () => {
+      const bundles = Object.keys(globalState).sort();
+
+      if (bundles.length === 0) {
+        container.innerHTML = '<span class="empty-state">No state data available in the system.</span>';
+        return;
+      }
+
+      let html = '';
+      bundles.forEach(bundle => {
+        html += `<div class="bundle-block">`;
+        html += `<div class="bundle-name">${bundle}</div>`;
+
+        const vars = globalState[bundle];
+        const keys = Object.keys(vars).sort();
+
+        if (keys.length === 0) {
+          html += `<div class="empty-state">No variables set</div>`;
+        } else {
+          keys.forEach(key => {
+            const val = typeof vars[key] === 'object' ? JSON.stringify(vars[key]) : String(vars[key]);
+
+            html += `<div class="var-row">`;
+            html += `<span class="var-key">${key}</span>`;
+            html += `<span class="var-val">${val}</span>`;
+            html += `</div>`;
+          });
+        }
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    };
+
+    // Listen for an update message that gives us the whole state as one big
+    // object. A refresh of this type is requested when the panel loads.
+    //
+    // Update our global state wholesale, and then render.
+    omphalos.listenFor(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_REFRESH, (data) => {
+      omphalos.log.debug('received a global state refresh');
+      globalState = data;
+      renderState();
+    });
+
+    // Listen for a global message update that tells us that the value of a key
+    // in a specific bundle has been modified.
+    //
+    // Patch just the variable that changed and then render.
+    omphalos.listenFor(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_UPDATE, (data) => {
+      const { bundle, key, value } = data;
+      omphalos.log.debug(`received targetted storage refresh for ${bundle}:${key}`);
+
+      // We might not have a record for this bundle yet, in which case set up an
+      // empty object for it.
+      if (globalState[bundle] === undefined) {
+        globalState[bundle] = {};
+      }
+
+      // If there is a value, the value is being changed; otherwise it is being
+      // removed.
+      if (value !== undefined) {
+        globalState[bundle][key] = value;
+      } else {
+        delete globalState[bundle][key];
+      }
+
+      renderState();
+    });
+
+    // Request an initial update; even though we may not be connected yet, in
+    // that state the connection is being establishe, and socket.io will buffer
+    // the message, so ship out a request to get a complete dump of the current
+    // state system.
+    omphalos.sendMessageToBundle(
+      omphalos.__sys_constants.MSG_REQUEST_GLOBAL_STATE,
+      omphalos.__sys_constants.SYSTEM_DASHBOARD,
+      {}
+    );
+  </script>
+</body>
+</html>
