@@ -318,6 +318,12 @@ function handleSystemMessage(msgData, io, socket) {
   // so that they will know about it.
   if (msgData.event === constants.MSG_STORAGE_UPDATE) {
     const { bundle, key, value } = msgData.data;
+
+    // Grab the existing value prior to overwriting it so we can hand it off to
+    // any extensions that are listening for changes as a part of their
+    // callback.
+    const oldValue = getValue(bundle, key);
+
     log.debug('message is a storage update');
 
     // Persist the updated value into the storage
@@ -341,7 +347,7 @@ function handleSystemMessage(msgData, io, socket) {
     return {
       bundle,
       event: constants.MSG_STORAGE_UPDATE,
-      data: { key, value }
+      data: { key, value, oldValue }
     }
   }
 

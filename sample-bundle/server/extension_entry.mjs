@@ -17,8 +17,15 @@ export function main(omphalos) {
   // capture the omphalos object for logging.
   symbols["exported"] = () => omphalos.log.info('I am an exported function');
 
-  // Get the number of times the clack button was pressed.
-  let clicks = omphalos.bundleVars.get('clickCount', 69);
+  // Create a Skepsis instance to track the global click count. This will pull
+  // the existing value or default to 69 if it is not already set.
+  const clickCount = omphalos.Skepsis('clickCount', 69);
+
+  // Prove that the server can also reactively listen to its own variable
+  // changes.
+  clickCount.on((newValue, oldValue) => {
+    omphalos.log.debug(`Skepsis reactive trigger: clickCount changed from ${oldValue} to ${newValue}`);
+  });
 
   // Listen for an incoming click message, and when one arrives, send out a
   // clack.
@@ -26,9 +33,10 @@ export function main(omphalos) {
     omphalos.log.debug('*** CLICK? CLACK! ***');
     omphalos.sendMessage('clack');
 
-    clicks++;
-    omphalos.bundleVars.set('clickCount', clicks);
-    omphalos.toast(`Server received a click message (${clicks} times); sent clack`, 'info', 3);
+    // Update the global value via the Skepsis setter
+    clickCount.value++;
+
+    omphalos.toast(`Server received a click message (${clickCount.value} times); sent clack`, 'info', 3);
   });
 
   // Try to import a symbol from another omphalos bundle; this will give you

@@ -164,7 +164,11 @@ function makeTemplateAPIObject(app, io) {
       set: undefined,
       get: undefined,
       delete: undefined,
+      on: undefined,
     },
+
+    // Skepsis variable container
+    Skepsis: undefined,
 
     // Listen for incoming messages and trigger a handler. This is entirely
     // event based on the server side because there is no socket. This requires

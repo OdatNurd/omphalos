@@ -45,6 +45,11 @@ const levels = ['error', 'warn', 'info', 'debug', 'silly'];
  * The value here is replaced with updates when they occur. */
 let storage = {};
 
+/* This flag tracks whether we have received our initial storage payload from
+ * the server. Before this is true, we lock all writes to prevent client-side
+ * defaults from clobbering the server's persisted state. */
+let isHydrated = false;
+
 /* Our log object. We front load it with stubs for all levels, and when the API
  * is initialized the log initialize routine will replace some or all of the
  * stubs with a logger that uses the asset name, depending on level and
@@ -132,7 +137,27 @@ function reloadAsset(req) {
 function updateStorageCache(data) {
   log.debug(`${asset.name}:${bundle.name} got storage refresh: ${JSON.stringify(data)}`);
 
+  const oldStorage = storage;
   storage = data;
+  isHydrated = true;
+
+  // TODO: When network lifecycle events are implemented, we should set
+  // isHydrated back to false upon socket disconnect, so that the UI is locked
+  // until the subsequent reconnect refresh arrives.
+
+  // Fire events on the event bridge so that any local Skepsis listeners can
+  // hydrate their UI with the newly arrived server state.
+  for (const [key, value] of Object.entries(storage)) {
+    bridge.emit(`var:${key}`, { newValue: value, oldValue: oldStorage[key] });
+  }
+
+  // Notify listeners of any keys that existed previously but were removed by
+  // the new state, so that they know that the value has been deleted.
+  for (const key of Object.keys(oldStorage)) {
+    if (storage[key] === undefined) {
+      bridge.emit(`var:${key}`, { newValue: undefined, oldValue: oldStorage[key] });
+    }
+  }
 }
 
 
@@ -149,12 +174,15 @@ function performStorageUpdate(data) {
   log.debug(`${asset.name}:${bundle.name} got storage update: ${JSON.stringify(data)}`);
 
   const { key, value } = data;
+  const oldValue = storage[key];
+
   if (value !== undefined) {
     storage[key] = value;
   } else {
     delete storage[key]
   }
 
+  bridge.emit(`var:${key}`, { newValue: value, oldValue });
   log.debug(`${asset.name}:${bundle.name} storage is now: ${JSON.stringify(storage)}`);
 }
 
@@ -392,9 +420,19 @@ export const bundleVars = {
     assert(key !== undefined, 'a key name must be provided')
     assert(value !== undefined, `no value provided for key ${key}`);
 
-    // Store the key locally, then let everyone else know that the update
-    // happened.
+    // TODO: When network lifecycle events are implemented, this should also
+    // block writes when the socket is disconnected.
+    if (isHydrated === false) {
+      log.warn(`Dropped update for '${key}'. The API is not yet hydrated with server state.`);
+      return;
+    }
+
+    // Store the key locally, trigger any local listeners, then let everyone
+    // else know that the update happened.
+    const oldValue = storage[key];
     storage[key] = value;
+
+    bridge.emit(`var:${key}`, { newValue: value, oldValue });
     sendStorageUpdate(key, value);
   },
 
@@ -416,10 +454,83 @@ export const bundleVars = {
 
     assert(key !== undefined, 'a key name must be provided')
 
-    // Delete the key from our storage, then let everyone else know that it
-    // happened.
+    // TODO: When network lifecycle events are implemented, this should also
+    // block writes when the socket is disconnected.
+    if (isHydrated === false) {
+      log.warn(`Dropped delete for '${key}'. The API is not yet hydrated with server state.`);
+      return;
+    }
+
+    // Delete the key from our storage, trigger any local listeners, then let
+    // everyone else know that it happened.
+    const oldValue = storage[key];
     delete storage[key]
+
+    bridge.emit(`var:${key}`, { newValue: undefined, oldValue });
     sendStorageUpdate(key);
+  },
+
+  // Attach a listener to a specific key that executes a callback when the value
+  // changes. The callback is provided both the new and old values when it's
+  // invoked, and the return value is a function that can be used to cancel the
+  // listener.
+  on: (key, callback) => {
+    assert(key !== undefined, 'a key name must be provided');
+    assert(typeof callback === 'function', 'callback must be a function');
+
+    const unlisten = bridge.on(`var:${key}`, (event) => callback(event.data.newValue, event.data.oldValue, key));
+    return () => unlisten();
+  }
+}
+
+
+// =============================================================================
+
+
+/* Exposes the Skepsis factory function. This returns an object representing
+ * a single reactive variable within the bundle's storage. It acts as a proxy
+ * that handles fetching the value, assigning mutations, and listening for
+ * remote updates. */
+export function Skepsis(key, defaultValue) {
+  assert(key !== undefined, 'Skepsis requires a key');
+
+  // We explicitly DO NOT auto-set the default value on the client side.
+  //
+  // The server acts as the source of truth for initialization. If we broadcast
+  // a default here, it creates a race condition that clobbers the server state
+  // before the WebSocket has finished syncing the initial payload.
+  //
+  // We can make this smarter when we get the events in place that let the
+  // client know that it is connected, or some such.
+
+  return {
+    // Get the current value of the variable; the default value that was given
+    // above is used if the variable is not set yet. This is a lazy kind of
+    // thing since until the first refresh arrives, we don't know the actual
+    // value yet.
+    get value() {
+      return bundleVars.get(key, defaultValue);
+    },
+
+    // Change the current value of the variable to the passed in value.
+    set value(newValue) {
+      bundleVars.set(key, newValue);
+    },
+
+    // Register a callback any time the value changes.
+    on: (callback) => {
+      return bundleVars.on(key, callback);
+    },
+
+    // When the value of the Skepsis is an object, after changing a value this
+    // can be used to tell the system that the value changed. WHen the value is
+    // not an object, nothing happens.
+    update: () => {
+      const current = bundleVars.get(key, defaultValue);
+      if (typeof current === 'object' && current !== null) {
+        bundleVars.set(key, current);
+      }
+    }
   }
 }
 

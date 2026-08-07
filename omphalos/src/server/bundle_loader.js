@@ -290,9 +290,10 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       // the value changed, and sends a refresh to the system dashboard so that
       // it can update its inspector.
       set: (key, value) => {
+        const oldValue = getValue(bundleName, key);
         setValue(bundleName, key, value);
         omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
-                                     { key, value,  });
+                                     { key, value, oldValue });
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
@@ -310,9 +311,10 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       // members of the bundle that the variable is gone, and also update the
       // global inspector panel.
       delete: (key) => {
+        const oldValue = getValue(bundleName, key);
         deleteValue(bundleName, key);
         omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
-                                     { key, value: undefined,  });
+                                     { key, value: undefined, oldValue });
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
@@ -320,6 +322,54 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
           { bundle: bundleName, key }
         )
       },
+
+      // Attach a listener to a specific key that executes a callback when the
+      // value changes. Because the server taps into the same EventBridge loop
+      // as the network logic, we just intercept the storage update event
+      // directly here.
+      on: (key, callback) => {
+        assert(key !== undefined, 'a key name must be provided');
+        assert(typeof callback === 'function', 'callback must be a function');
+
+        return bundle_api.listenFor(MSG_STORAGE_UPDATE, (data) => {
+          if (data.key === key) {
+            callback(data.value, data.oldValue, key);
+          }
+        });
+      }
+    },
+
+    // The Skepsis factory wrapper for server-side code execution; this has the
+    // same interface as that which is used for the client side API, except that
+    // here we don't need to lazy load because we have access to the actual
+    // storage.
+    Skepsis: (key, defaultValue) => {
+      assert(key !== undefined, 'Skepsis requires a key');
+
+      if (bundle_api.bundleVars.get(key) === undefined && defaultValue !== undefined) {
+        bundle_api.bundleVars.set(key, defaultValue);
+      }
+
+      return {
+        get value() {
+          return bundle_api.bundleVars.get(key);
+        },
+
+        set value(newValue) {
+          bundle_api.bundleVars.set(key, newValue);
+        },
+
+        on: (callback) => {
+          return bundle_api.bundleVars.on(key, callback);
+        },
+
+        update: () => {
+          const current = bundle_api.bundleVars.get(key);
+          if (typeof current === 'object' && current !== null) {
+            bundle_api.bundleVars.set(key, current);
+          }
+        }
+      }
     },
 
     // The exposed listenFor needs to do error checking and infer missing
@@ -479,4 +529,3 @@ export async function loadBundles(omphalos, appManifest) {
 
 
 // =============================================================================
-

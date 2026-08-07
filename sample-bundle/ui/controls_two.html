@@ -12,13 +12,44 @@
   </p>
 
   <div id="clacker"></div>
+
+  <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
+    <p style="margin-bottom: 0.25rem;">Global Click Tracking (Skepsis API):</p>
+    <div id="total-clicks" style="font-weight: bold; color: var(--omph-primary); margin-bottom: 0.75rem;"></div>
+    <button id="reset-clicks" class="warning">Reset Lifetime Clicks</button>
+  </div>
+
   <script>
     const output = document.querySelector('#clacker');
+    const totalOutput = document.querySelector('#total-clicks');
+    const resetBtn = document.querySelector('#reset-clicks');
+
+    // This example has our own local count for the number of times a clack has
+    // occured; this allows us to test that the message passing is working as
+    // expected.
     let clackCount = 0;
     omphalos.listenFor('clack', () => {
       clackCount++;
       output.innerHTML = `Button clicked ${clackCount} times since panel reload`;
-      output.style = 'border-top: 1px solid';
+      output.style = 'border-top: 1px solid; padding-top: 0.5rem;';
+    });
+
+    // This example uses a Skepsis to show the total number of times that the
+    // button has ever been clicked. This one is slightly more reactive; it gets
+    // the value of the variable, and updates automagically on change.
+    const globalClicks = omphalos.Skepsis('clickCount', 0);
+
+    // Set the initial value on load
+    totalOutput.innerHTML = `Lifetime Clicks: ${globalClicks.value}`;
+
+    // Listen for changes from the server or other panels
+    globalClicks.on((newValue) => {
+      totalOutput.innerHTML = `Lifetime Clicks: ${newValue}`;
+    });
+
+    // Test client-side mutation propagating to the server and local listeners
+    resetBtn.addEventListener('click', () => {
+      globalClicks.value = 0;
     });
   </script>
 </body>
