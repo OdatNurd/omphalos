@@ -1,0 +1,58 @@
+---
+title: omphalos.asset
+sidebar:
+  label: asset
+  badge:
+    variant: tip
+    text: Client
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+:::caution[Client only]
+This item is only present in the API object in `panels` and `graphics`; it is
+not present in the API that is given to the `extension`.
+:::
+
+This object is a copy of the asset configuration of the asset (`panel` or
+`graphic) to which this copy of the API belongs.
+
+A key named `type` is added to this object, with a value that indicates what
+type of asset this is; `graphic` or `panel`.
+
+<Tabs syncKey="constellations">
+  <TabItem label="Panel">
+```json
+{
+  "type": "panel",
+  "file": "controls_two.html",
+  "name": "controls-two",
+  "title": "Control Panel Two",
+  "workspace": "Controls",
+  "size": {
+    "width": 4,
+    "height": 7
+  }
+}
+```
+  </TabItem>
+  <TabItem label="Graphic">
+```json
+{
+  "type": "graphic",
+  "file": "the_overlay.html",
+  "size": {
+    "width": 960,
+    "height": 540
+  },
+  "name": "the_overlay.html"
+}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+The information conveyed here is based on the information in the
+[manifest](/guides/manifest) or in the [omphalos.bundle](../bundle)
+value; it is *not* dynamic (i.e. the `size` you see, if any, is the
+declared default size, etc).
+:::

@@ -1,9 +1,11 @@
 ---
 title: bundleVars.get
+sidebar:
+  label: get
 ---
 
 ```js
-function bundleVars.get(key, defaultValue);
+function omphalos.bundleVars.get(key, defaultValue);
 ```
 
 Fetch the value of the provided `key` from the persistent storage for this bundle

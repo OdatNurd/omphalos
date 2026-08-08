@@ -24,10 +24,9 @@ body {
 }
 ```
 
-When graphics load, `window.omphalosConfig` is set to the configuration under
-which omphalos is currently running. This is the same configuration as is loaded
-from the configuration files.
+When graphics load, [omphalos.config](/api/omphalos/config) is set to the
+configuration under which Omphalos is currently running. This is the same
+configuration as is loaded from the configuration files.
 
-In addition, an API is set up via a load of `/omphalos-api.js`; this file is
-currently empty and so it does nothing, but one day it will have the code that
-provides the API that lets graphics talk to other parts of the system.
+In addition, a global variables named [omphalos](/api/api) is set up to provide
+an API to the graphic that allows it to interface with the system.

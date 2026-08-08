@@ -1,28 +1,28 @@
 ---
-title: createRouter
+title: omphalos.createRouter
 sidebar:
+  label: createRouter
   badge:
     variant: note
     text: Server
 ---
 
 ```js
-function createRouter()
+function omphalos.createRouter()
 ```
 
 :::caution[Server only]
-This item is only present in the API object given to an `extension`; it is
-not available in `panels` and `graphics`.
+This item is only present in the API object given to an `extension`; it is not
+available in `panels` and `graphics`.
 :::
 
 Create and return back a new [express router][1] to allow your extension to
 respond to any requests it may need to respond to, expose the routes of used
 libraries, etc.
 
-Example:
+The created router can be mounted using [omphalos.mount](../mount).
 
-```js
-  // Simple router test.
+```js title="Simple router Test"
   const router = omphalos.createRouter();
 
   router.get('/my_custom_route', (req, res) => res.send('it worked!'))

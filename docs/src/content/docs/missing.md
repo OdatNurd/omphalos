@@ -9,4 +9,3 @@ yet ready.
 
 1. Full Bleed Panels
 2. Single Instance Graphics
-3. Multiple Workspaces

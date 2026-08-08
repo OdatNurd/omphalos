@@ -1,13 +1,14 @@
 ---
-title: mount
+title: omphalos.mount
 sidebar:
+  label: mount
   badge:
     variant: note
     text: Server
 ---
 
 ```js
-function mount(router)
+function omphalos.mount(router)
 ```
 
 :::caution[Server only]
@@ -15,15 +16,14 @@ This item is only present in the API object given to an `extension`; it is
 not available in `panels` and `graphics`.
 :::
 
-Mount a router created by [createRouter](./createRouter) into the underlying
-application.
+Mount a router created by [omphalos.createRouter](../createRouter) into the
+underlying application.
 
 Custom routers are mounted in the order that extensions are loaded.
 
 Example:
 
-```js
-  // Simple router test.
+```js title="Simple Router Test"
   const router = omphalos.createRouter();
 
   router.get('/my_custom_route', (req, res) => res.send('it worked!'))

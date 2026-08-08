@@ -1,10 +1,12 @@
 ---
-title: listenFor
+title: omphalos.listenFor
+sidebar:
+  label: listenFor
 ---
 
 ```js
-function listenFor(event, listener)
-function listenFor(event, bundle, listener)
+function omphalos.listenFor(event, listener)
+function omphalos.listenFor(event, bundle, listener)
 ```
 
 Listen for a given event to arrive and, when it does, invoke the listener with
@@ -13,6 +15,12 @@ the payload of the event as an argument.
 By default the event is listened for in the current bundle; to listen for
 events that were sent to some other bundle, pass that as the second argument to
 the function.
+
+The return value of both functions is a function that can be used to cancel the
+callback.
+
+This listens for events that are raised by [omphalos.sendMessage](./sendmessage)
+and [omphalos.sendMessageToBundle](./sendmessagetobundle).
 
 :::note[variable arguments]
 With only two arguments, the `bundle` is inferred to be the current bundle;

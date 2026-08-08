@@ -1,9 +1,11 @@
 ---
-title: toast
+title: omphalos.toast
+sidebar:
+  label: toast
 ---
 
 ```js
-function toast(msg, level, timeout_secs)
+function omphalos.toast(msg, level, timeout_secs)
 ```
 
 Display a toast in the dashboard that contains the provided message text.
