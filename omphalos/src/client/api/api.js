@@ -11,10 +11,25 @@ import EventBridge from '@axel669/event-bridge';
 // =============================================================================
 
 
+/* The subset of constants that are to be exported to the client API; there are
+ * many constants that are for internal use only and are thus exported out via
+ * a different object (since the system needs them). */
+const publicConstants = {
+  EVENT_IO_CONNECT: constants.EVENT_IO_CONNECT,
+  EVENT_IO_DISCONNECT: constants.EVENT_IO_DISCONNECT,
+}
+
+// =============================================================================
+
+
 /* Export out the constants object; this has the __sys prefix to indicate that
  * we own it; this is not for outer consumption, generally speaking. It is used
- * by the system bundle to be able to know the names of things. */
+ * by the system bundle to be able to know the names of things.
+ *
+ * We also have a public constants value that gets given to the API consumer as
+ * well. */
 export { constants as __sys_constants };
+export { publicConstants as constants };
 
 /* All of the values here have this default value to begin with, and are set
  * by a call to the API initialization routine, which is where the data for
@@ -141,10 +156,6 @@ function updateStorageCache(data) {
   storage = data;
   isHydrated = true;
 
-  // TODO: When network lifecycle events are implemented, we should set
-  // isHydrated back to false upon socket disconnect, so that the UI is locked
-  // until the subsequent reconnect refresh arrives.
-
   // Fire events on the event bridge so that any local Skepsis listeners can
   // hydrate their UI with the newly arrived server state.
   for (const [key, value] of Object.entries(storage)) {
@@ -234,6 +245,18 @@ export function __init_api(manifest, assetConfig, appConfig) {
   // events can be directed to us.
   socket.on('connect', () => {
     log.debug(`connection for ${asset.name}:${manifest.name} established on ${socket.id}`);
+    bridge.emit(`${constants.EVENT_IO_CONNECT}.${bundle.name}`);
+  });
+
+  // When the socket disconnects, we need to update our internal state, lock
+  // the variable updates, and notify any listeners.
+  socket.on('disconnect', (reason) => {
+    log.debug(`connection for ${asset.name}:${manifest.name} lost: ${reason}`);
+
+    // Lock writes to Skepsis and bundleVars until the next refresh arrives
+    isHydrated = false;
+
+    bridge.emit(`${constants.EVENT_IO_DISCONNECT}.${bundle.name}`);
   });
 
   // Dispatch incoming messages. They should have a structure of:
@@ -420,8 +443,7 @@ export const bundleVars = {
     assert(key !== undefined, 'a key name must be provided')
     assert(value !== undefined, `no value provided for key ${key}`);
 
-    // TODO: When network lifecycle events are implemented, this should also
-    // block writes when the socket is disconnected.
+    // Block writes when the socket is disconnected or not yet hydrated.
     if (isHydrated === false) {
       log.warn(`Dropped update for '${key}'. The API is not yet hydrated with server state.`);
       return;
@@ -454,8 +476,7 @@ export const bundleVars = {
 
     assert(key !== undefined, 'a key name must be provided')
 
-    // TODO: When network lifecycle events are implemented, this should also
-    // block writes when the socket is disconnected.
+    // Block deletes when the socket is disconnected or not yet hydrated.
     if (isHydrated === false) {
       log.warn(`Dropped delete for '${key}'. The API is not yet hydrated with server state.`);
       return;
@@ -532,6 +553,41 @@ export function Skepsis(key, defaultValue) {
       }
     }
   }
+}
+
+
+// =============================================================================
+
+
+/* A thin wrapper over listenFor to align with standard event terminology.
+ *
+ * This listens for an event and invokes the listener function provided with the
+ * payload of the event when it happens. */
+export function onEvent(event, bundleName, listener) {
+  return listenFor(event, bundleName, listener);
+}
+
+
+// =============================================================================
+
+
+/* A thin wrapper over sendMessage to align with standard event terminology.
+ *
+ * This transmits an event to all listeners in the current bundle. */
+export function raiseEvent(event, data) {
+  sendMessage(event, data);
+}
+
+
+// =============================================================================
+
+
+/* A thin wrapper over sendMessageToBundle to align with standard event
+ * terminology.
+ *
+ * This transmits an event to all listeners in a specific bundle. */
+export function raiseEventToBundle(event, bundleName, data) {
+  sendMessageToBundle(event, bundleName, data);
 }
 
 

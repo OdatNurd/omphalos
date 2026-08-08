@@ -41,6 +41,6 @@ has, and also has some other fields that can be utilized at runtime.
 
 :::caution
 While this gives you information such as the `storageFile` that is used to
-store [bundle variables](../bundlevars/set), the result is undefined should you
-modify such files yourself without using the appropriate API.
+store [bundle variables](/api/omphalos/bundlevars/set), the result is undefined
+should you modify such files yourself without using the appropriate API.
 :::

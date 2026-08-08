@@ -59,5 +59,10 @@ export const MSG_GLOBAL_STORAGE_UPDATE = '__sys_global_storage_update';
  * actually display the toast. */
 export const MSG_EVENT_TOAST = 'toast';
 
+/* These events are fired locally by the client API to indicate when the
+ * underlying websocket connection has been established or lost. */
+export const EVENT_IO_CONNECT = '__sys_io_connect';
+export const EVENT_IO_DISCONNECT = '__sys_io_disconnect';
+
 
 // =============================================================================

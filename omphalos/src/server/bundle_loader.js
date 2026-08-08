@@ -391,7 +391,12 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       }
 
       return listenFor(event, bundle, listener);
-    }
+    },
+
+    // Event thin wrappers for server extension code.
+    onEvent: (event, bundle, listener) => bundle_api.listenFor(event, bundle, listener),
+    raiseEvent: (event, data) => bundle_api.sendMessage(event, data),
+    raiseEventToBundle: (event, bundle, data) => bundle_api.sendMessageToBundle(event, bundle, data)
   }
 
   // Invoke the entrypoint to initialize the module

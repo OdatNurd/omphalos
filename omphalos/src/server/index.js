@@ -175,6 +175,11 @@ function makeTemplateAPIObject(app, io) {
     // a known bundle to infer arguments, so this is just a placeholder entry.
     listenFor: undefined,
 
+    // Event wrapper aliases
+    onEvent: undefined,
+    raiseEvent: undefined,
+    raiseEventToBundle: undefined,
+
     // Trigger a toast message.
     toast: (msg, level, timeout_secs) => {
       const levels = ['message', 'info', 'warning', 'success', 'error'];

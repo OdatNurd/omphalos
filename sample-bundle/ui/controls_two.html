@@ -16,7 +16,7 @@
   <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
     <p style="margin-bottom: 0.25rem;">Global Click Tracking (Skepsis API):</p>
     <div id="total-clicks" style="font-weight: bold; color: var(--omph-primary); margin-bottom: 0.75rem;"></div>
-    <button id="reset-clicks" class="warning">Reset Lifetime Clicks</button>
+    <button id="reset-clicks" class="warning" disabled>Reset Lifetime Clicks</button>
   </div>
 
   <script>
@@ -24,16 +24,35 @@
     const totalOutput = document.querySelector('#total-clicks');
     const resetBtn = document.querySelector('#reset-clicks');
 
+    // -------------------------------------------------------------------------
+    // Network Lifecycle Events
+    // -------------------------------------------------------------------------
+    omphalos.onEvent(omphalos.constants.EVENT_IO_CONNECT, () => {
+      omphalos.log.debug('Socket connected: enabling reset button');
+      resetBtn.disabled = false;
+    });
+
+    omphalos.onEvent(omphalos.constants.EVENT_IO_DISCONNECT, () => {
+      omphalos.log.debug('Socket disconnected: disabling reset button');
+      resetBtn.disabled = true;
+    });
+
+    // -------------------------------------------------------------------------
+    // Standard Events
+    // -------------------------------------------------------------------------
     // This example has our own local count for the number of times a clack has
     // occured; this allows us to test that the message passing is working as
     // expected.
     let clackCount = 0;
-    omphalos.listenFor('clack', () => {
+    omphalos.onEvent('clack', () => {
       clackCount++;
       output.innerHTML = `Button clicked ${clackCount} times since panel reload`;
       output.style = 'border-top: 1px solid; padding-top: 0.5rem;';
     });
 
+    // -------------------------------------------------------------------------
+    // Skepsis API
+    // -------------------------------------------------------------------------
     // This example uses a Skepsis to show the total number of times that the
     // button has ever been clicked. This one is slightly more reactive; it gets
     // the value of the variable, and updates automagically on change.

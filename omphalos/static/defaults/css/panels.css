@@ -152,21 +152,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
 }
 
-:where(button:hover) {
+:where(button:hover:not(:disabled)) {
   background: var(--omph-bg-hover);
 }
 
-:where(button:focus-visible) {
+:where(button:focus-visible:not(:disabled)) {
   outline: none;
   border-color: var(--omph-border-focus);
   box-shadow: 0 0 0 3px rgba(90, 106, 128, 0.3);
 }
 
-:where(button:active) {
+:where(button:active:not(:disabled)) {
   transform: translateY(1px);
+}
+
+:where(button:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
 }
 
 /* --- Button Variants --- */
@@ -180,7 +186,7 @@
   color: #FFFFFF;
 }
 
-:where(button.primary:hover) {
+:where(button.primary:hover:not(:disabled)) {
   background: var(--omph-primary-hover);
   border-color: var(--omph-primary-hover);
 }

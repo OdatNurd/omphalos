@@ -6,6 +6,9 @@ sidebar:
 
 ```js
 function omphalos.sendMessage(event, data)
+
+// also known as:
+function omphalos.raiseEvent(event, data)
 ```
 
 :::caution[server side use]
@@ -18,11 +21,11 @@ Send a named event message to all assets in the current `bundle`; `data` can be
 any desired value, so long as it is `JSON`-encodeable.
 
 To send a message to items in a different bundle, use
-[omphalos.sendMessageToBundle](../sendmessagetobundle) instead.
+[omphalos.sendMessageToBundle](/api/omphalos/sendmessagetobundle) instead.
 
 The message will be transmitted to all `graphics`, `panels` and `extension`
 listeners in the current bundle, ***except*** for the sender, and can be listened
-for via [omphalos.listenFor](../listenfor).
+for via [omphalos.listenFor](/api/omphalos/listenfor).
 
 :::caution[reserved names]
 Event names that start with `__sys` are reserved by Omphalos for system events;
