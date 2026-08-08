@@ -6,6 +6,17 @@ import copyStatic from '@axel669/rollup-copy-static';
 import $path from '@axel669/rollup-dollar-path';
 
 
+// Watch the static folder so that a change triggers a rebuild.
+function watchStaticDir() {
+  return {
+    name: 'watch-static-dir',
+    buildStart() {
+      this.addWatchFile('static');
+    }
+  }
+}
+
+
 export default [
   {
     input: 'src/client/app.js',
@@ -30,7 +41,8 @@ export default [
       commonjs(),
       resolve({ browser: true }),
       postcss(),
-      copyStatic("static")
+      copyStatic("static"),
+      watchStaticDir()
     ],
   },
   {
