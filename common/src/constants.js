@@ -71,5 +71,12 @@ export const EVENT_IO_DISCONNECT = '__sys_io_disconnect';
 export const EVENT_PEER_CONNECTED = '__sys_peer_connected';
 export const EVENT_PEER_DISCONNECTED = '__sys_peer_disconnected';
 
+/* Local lifecycle hooks emitted by the client API before and after form
+ * persistence operations. */
+export const EVENT_FORM_PRE_SAVE = '__sys_form_pre_save';
+export const EVENT_FORM_POST_SAVE = '__sys_form_post_save';
+export const EVENT_FORM_PRE_LOAD = '__sys_form_pre_load';
+export const EVENT_FORM_POST_LOAD = '__sys_form_post_load';
+
 
 // =============================================================================

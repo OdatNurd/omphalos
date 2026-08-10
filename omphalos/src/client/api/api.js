@@ -19,6 +19,10 @@ const publicConstants = {
   EVENT_IO_DISCONNECT: constants.EVENT_IO_DISCONNECT,
   EVENT_PEER_CONNECTED: constants.EVENT_PEER_CONNECTED,
   EVENT_PEER_DISCONNECTED: constants.EVENT_PEER_DISCONNECTED,
+  EVENT_FORM_PRE_SAVE: constants.EVENT_FORM_PRE_SAVE,
+  EVENT_FORM_POST_SAVE: constants.EVENT_FORM_POST_SAVE,
+  EVENT_FORM_PRE_LOAD: constants.EVENT_FORM_PRE_LOAD,
+  EVENT_FORM_POST_LOAD: constants.EVENT_FORM_POST_LOAD,
 }
 
 // =============================================================================
@@ -604,5 +608,210 @@ export function raiseEventToBundle(event, bundleName, data) {
   sendMessageToBundle(event, bundleName, data);
 }
 
+
+// =============================================================================
+
+
+/* A helper for resolving a form element from either an HTMLFormElement or a
+ * string  identifier. When a form element is passed in, it is directly passed
+ * back. Otherwise, it is either the name of a form or a selector that will
+ * return one.
+ *
+ * This is used by the form persistence functions to look up a target. */
+function resolveForm(identifier) {
+  if (identifier instanceof HTMLFormElement === true) {
+    return identifier;
+  }
+
+  const form = document.forms[identifier];
+  return form !== undefined ? form : document.querySelector(identifier);
+}
+
+
+// =============================================================================
+
+
+/* Scrapes all values from a target form and saves them to the bundle's storage.
+ * Emits local pre-save and post-save lifecycle events.
+ *
+ * If a control has a `data-var` attribute, its value is saved to a top-level
+ * bundle variable of that name.
+ *
+ * Any remaining named fields are bundled together into a single meta-object
+ * using the schema: `form:<asset-name>:<form-name>`.
+ *
+ * This allows for form specific state to be bundled together while, at the
+ * same time, allowing variables used for other purposes to still be handled as
+ * they normaly would be. */
+function saveForm(identifier) {
+  const form = resolveForm(identifier);
+  assert(form !== null && form !== undefined, `could not find form matching '${identifier}'`);
+
+  const formName = form.name !== '' ? form.name : form.id;
+  assert(formName !== '' && formName !== undefined, 'form must have a name or id attribute to be saved');
+
+  // Emit the pre-save lifecycle hook now so that the bundle author can mutate
+  // the DOM as needed prior to us doing our form scrape (e.g. they may want to
+  // take rich components and update hidden form elements with them).
+  bridge.emit(`${constants.EVENT_FORM_PRE_SAVE}.${bundle.name}`, { formName, form });
+
+  // When form fields have a data-var attribute set, their values go directly
+  // to the bundleVar of the same name, and are placed in the "vars" object.
+  //
+  // Other elements are stored in the "meta" object and stored as a single
+  // bundleVar using the metaKey.
+  const metaKey = `form:${asset.name}:${formName}`;
+  const data = { meta: {}, vars: {} };
+
+  // Form controls we never want to scrape values from
+  const skipTypes = ['submit', 'button', 'reset', 'fieldset', 'file'];
+
+  // Iterate over all elements in the form.
+  Array.from(form.elements).forEach(ctrl => {
+    // Skip anything that doesn't have a name or the attribute set.
+    if (ctrl.name === '' && (ctrl.dataset.var === undefined || ctrl.dataset.var === '')) {
+      return;
+    }
+
+    // Skip the control if it is of a type that we do not care about.
+    if (skipTypes.includes(ctrl.type) === true) {
+      return;
+    }
+
+    // Pull the value of the element out now; this is a boolean for a checkbox,
+    // a string for a radio button, an array of strings if the control is a
+    // select that has multiple items, otherwise just the value.
+    let val;
+    if (ctrl.type === 'checkbox') {
+      val = ctrl.checked;
+    } else if (ctrl.type === 'radio') {
+      if (ctrl.checked === false) {
+        return;
+      }
+      val = ctrl.value;
+    } else if (ctrl.type === 'select-multiple') {
+      val = Array.from(ctrl.selectedOptions).map(o => o.value);
+    } else {
+      val = ctrl.value;
+    }
+
+    // Variables that have the dataset attribute go in one place, everything
+    // else is a meta.
+    if (ctrl.dataset.var !== undefined && ctrl.dataset.var !== '') {
+      data.vars[ctrl.dataset.var] = val;
+    } else if (ctrl.name !== '') {
+      data.meta[ctrl.name] = val;
+    }
+  });
+
+  // Write the storage out now; this is one write per standard variable plus
+  // one extra for the meta storage of the form.
+  for (const [key, val] of Object.entries(data.vars)) {
+    bundleVars.set(key, val);
+  }
+  bundleVars.set(metaKey, data.meta);
+
+  // Now that the set is complete, trigger the post save event.
+  //
+  // We structureClone the data so post-save listeners receive an isolated
+  // duplicate and cannot mutate the live references we just committed to
+  // storage.
+  bridge.emit(`${constants.EVENT_FORM_POST_SAVE}.${bundle.name}`, {
+    formName,
+    form,
+    data: structuredClone(data)
+  });
+}
+
+
+// =============================================================================
+
+
+/* Perform the reverse operation that saveForm performs; this will scan the form
+ * for elements, and then push values into them from storage the same as was
+ * originaly pulled out.
+ *
+ * Form values with a data-set attribute are populated from bundle storage
+ * directly, and others come from the saved metadata.
+ *
+ * When there is no value for a form field in a saved variable, it is left
+ * untouched. */
+function loadForm(identifier) {
+  const form = resolveForm(identifier);
+  assert(form !== null && form !== undefined, `could not find form matching '${identifier}'`);
+
+  const formName = form.name !== '' ? form.name : form.id;
+  assert(formName !== '' && formName !== undefined, 'form must have a name or id attribute to be loaded');
+
+  // Set up our data the same as was set up. Here we need to clone the data
+  // because we allow an event handler to mutate it prior to us actually
+  // applying it.
+  //
+  // We can start by pulling the value of the meta key and cloning it.
+  const metaKey = `form:${asset.name}:${formName}`;
+  const data = {
+    meta: structuredClone(bundleVars.get(metaKey, {})),
+    vars: {}
+  };
+
+  // Now for values that have the attribute set, we need to fetch their values
+  // from bundleVars directly; this may end up as undefined if no such variable
+  // exists yet.
+  Array.from(form.elements).forEach(ctrl => {
+    if (ctrl.dataset.var !== undefined && ctrl.dataset.var !== '') {
+      const rawVal = bundleVars.get(ctrl.dataset.var);
+      data.vars[ctrl.dataset.var] = (typeof rawVal === 'object' && rawVal !== null)
+                                      ? structuredClone(rawVal)
+                                      : rawVal;
+    }
+  });
+
+  // Trigger the pre-load lifecycle hook, passing the data in; this can be
+  // mutated by the handler if needs be.
+  bridge.emit(`${constants.EVENT_FORM_PRE_LOAD}.${bundle.name}`, { formName, form, data });
+
+  // Apply all values to the DOM now; pulling from values in the meta or from
+  // actual bundleVars as needed. This uses the data as it was returned from the
+  // event handler, in case the event handler changed it.
+  Array.from(form.elements).forEach(ctrl => {
+    let val;
+    if (ctrl.dataset.var !== undefined && ctrl.dataset.var !== '') {
+      val = data.vars[ctrl.dataset.var];
+    } else if (ctrl.name !== '') {
+      val = data.meta[ctrl.name];
+    }
+
+    // Do nothing if there's no stored value, allowing HTML defaults to persist
+    // as they were set up in the form.
+    if (val === undefined) {
+      return;
+    }
+
+    if (ctrl.type === 'checkbox') {
+      ctrl.checked = !!val;
+    } else if (ctrl.type === 'radio') {
+      ctrl.checked = (ctrl.value === String(val));
+    } else if (ctrl.type === 'select-multiple') {
+      const valArray = Array.isArray(val) === true ? val : [val];
+      Array.from(ctrl.options).forEach(o => {
+        o.selected = valArray.includes(o.value) === true;
+      });
+    } else {
+      ctrl.value = val;
+    }
+  });
+
+  // Lastly, trigger the post-load lifecycle hook, which allows the asset to
+  // know what just happened.
+  bridge.emit(`${constants.EVENT_FORM_POST_LOAD}.${bundle.name}`, { formName, form, data });
+}
+
+// =============================================================================
+
+/* Export out the form functionality as an object. */
+export const form = {
+  save: saveForm,
+  load: loadForm
+};
 
 // =============================================================================

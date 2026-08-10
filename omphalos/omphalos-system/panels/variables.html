@@ -30,6 +30,10 @@
       margin-bottom: 0.25rem;
     }
 
+    .var-row.is-object {
+      flex-direction: column;
+    }
+
     .var-key {
       color: var(--omph-fg);
       font-family: monospace;
@@ -43,6 +47,22 @@
       word-break: break-all;
       margin-left: 1rem;
       text-align: right;
+    }
+
+    /* Pretty-print styles for JSON objects */
+    .var-row.is-object .var-val {
+      margin-left: 0;
+      margin-top: 0.5rem;
+      text-align: left;
+    }
+
+    .var-val pre {
+      margin: 0;
+      background: var(--omph-bg-mute);
+      padding: 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--omph-border);
+      white-space: pre-wrap;
     }
 
     .empty-state {
@@ -90,9 +110,10 @@
           html += `<div class="empty-state">No variables set</div>`;
         } else {
           keys.forEach(key => {
-            const val = typeof vars[key] === 'object' ? JSON.stringify(vars[key]) : String(vars[key]);
+            const isObj = typeof vars[key] === 'object' && vars[key] !== null;
+            const val = isObj ? `<pre>${JSON.stringify(vars[key], null, 2)}</pre>` : String(vars[key]);
 
-            html += `<div class="var-row">`;
+            html += `<div class="var-row ${isObj ? 'is-object' : ''}">`;
             html += `<span class="var-key">${key}</span>`;
             html += `<span class="var-val">${val}</span>`;
             html += `</div>`;

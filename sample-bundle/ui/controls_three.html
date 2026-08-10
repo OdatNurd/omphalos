@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form Persistence Demo</title>
+</head>
+<body>
+  <p>
+    This panel demonstrates automated form persistence. It uses <code>omphalos.form.save</code>
+    and <code>omphalos.form.load</code> to serialize standard fields into a meta-dictionary,
+    and pushes <code>data-var</code> fields out to global Skepsis variables.
+  </p>
+
+  <div class="control-group">
+    <span class="control-group-title">Player Info Form</span>
+
+    <form id="player-form">
+      <div class="control-cluster spread">
+        <span class="control-text">Player Tag (Meta)</span>
+        <input type="text" name="playerTag" placeholder="e.g. OdatNurd" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Global Clicks (data-var)</span>
+        <input type="number" id="global-clicks-input" data-var="clickCount" placeholder="0" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Faction (Meta Select)</span>
+        <select name="faction">
+          <option value="red">Red Team</option>
+          <option value="blue">Blue Team</option>
+          <option value="green">Green Team</option>
+        </select>
+      </div>
+
+      <div class="control-cluster">
+        <span class="control-text">Difficulty (Meta Radio):</span>
+        <input type="radio" name="difficulty" id="diff-easy" value="easy" />
+        <label for="diff-easy" class="control-text">Easy</label>
+
+        <input type="radio" name="difficulty" id="diff-medium" value="medium" checked />
+        <label for="diff-medium" class="control-text">Med</label>
+
+        <input type="radio" name="difficulty" id="diff-hard" value="hard" />
+        <label for="diff-hard" class="control-text">Hard</label>
+      </div>
+
+      <div class="control-cluster">
+        <input type="checkbox" name="isReady" id="isReadyCheck" />
+        <label for="isReadyCheck" class="control-text">Player Ready (Meta Checkbox)</label>
+      </div>
+    </form>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Orphaned Association</span>
+    <span class="control-text full-width">
+      This field exists completely outside the form tag, but uses the HTML5
+      <code>form="player-form"</code> attribute.
+    </span>
+    <input type="text" name="externalNote" form="player-form" placeholder="External Note..." />
+  </div>
+
+  <div class="control-cluster right" style="margin-top: 1rem;">
+    <button id="btn-load">Manual Load</button>
+    <button id="btn-save" class="primary">Save Form</button>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // Form Lifecycle Hooks
+    // -------------------------------------------------------------------------
+
+    omphalos.onEvent(omphalos.constants.EVENT_FORM_PRE_SAVE, (payload) => {
+      omphalos.log.debug(`[PRE-SAVE] DOM is about to be scraped for: ${payload.formName}`);
+    });
+
+    omphalos.onEvent(omphalos.constants.EVENT_FORM_POST_SAVE, (payload) => {
+      omphalos.log.debug(`[POST-SAVE] Committed payload for ${payload.formName}:`, payload.data);
+    });
+
+    omphalos.onEvent(omphalos.constants.EVENT_FORM_PRE_LOAD, (payload) => {
+      omphalos.log.debug(`[PRE-LOAD] Modifying fetch payload by reference before DOM injection...`);
+      if (payload.data.meta.externalNote) {
+        // Example mutation: Force uppercase on load
+        payload.data.meta.externalNote = payload.data.meta.externalNote.toUpperCase();
+      }
+    });
+
+    omphalos.onEvent(omphalos.constants.EVENT_FORM_POST_LOAD, (payload) => {
+      omphalos.log.debug(`[POST-LOAD] DOM successfully hydrated for: ${payload.formName}`);
+    });
+
+    // -------------------------------------------------------------------------
+    // Reactive Data Binding
+    // -------------------------------------------------------------------------
+    const globalClicks = omphalos.Skepsis('clickCount', 0);
+    const clickInput = document.getElementById('global-clicks-input');
+
+    // When the variable changes externally, update the input field visually.
+    globalClicks.on((newValue) => {
+      // Only update if it's different so we don't blow away the user's cursor
+      // position mid-type.
+      if (Number(clickInput.value) !== newValue) {
+        clickInput.value = newValue;
+      }
+    });
+
+    // When the user types in the input field, push it out to the network
+    // immediately.
+    clickInput.addEventListener('input', (e) => {
+      globalClicks.value = Number(e.target.value);
+    });
+
+    // -------------------------------------------------------------------------
+    // Event Triggers
+    // -------------------------------------------------------------------------
+
+    // Automatically load the form when the API finishes hydrating state.
+    omphalos.onEvent(omphalos.constants.EVENT_IO_CONNECT, () => {
+      omphalos.log.debug('API Hydrated: Auto-loading form state');
+      omphalos.form.load('player-form');
+
+      // Also ensure our reactive field is synced on first load
+      clickInput.value = globalClicks.value;
+    });
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      omphalos.form.save('player-form');
+      omphalos.toast('Form state saved!', 'success', 2);
+    });
+
+    document.getElementById('btn-load').addEventListener('click', () => {
+      omphalos.form.load('player-form');
+      omphalos.toast('Form state reloaded from storage', 'info', 2);
+    });
+  </script>
+</body>
+</html>

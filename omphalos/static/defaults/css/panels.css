@@ -115,7 +115,9 @@
 }
 
 /* --- Form Controls --- */
-:where(input, select, textarea) {
+
+/* Text fields and dropdowns */
+:where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
   background: var(--omph-bg-mute);
   color: var(--omph-fg);
   border: 1px solid var(--omph-border);
@@ -129,10 +131,18 @@
   margin-bottom: 0.5rem;
 }
 
-:where(input:focus, select:focus, textarea:focus) {
+:where(input:focus:not([type="checkbox"]):not([type="radio"]), select:focus, textarea:focus) {
   outline: none;
   border-color: var(--omph-border-focus);
   box-shadow: 0 0 0 3px rgba(90, 106, 128, 0.3);
+}
+
+/* Checkboxes and Radios */
+:where(input[type="checkbox"], input[type="radio"]) {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  accent-color: var(--omph-primary);
 }
 
 /* --- Buttons --- */
