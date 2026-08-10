@@ -63,6 +63,22 @@ function client_info(socket) {
 // =============================================================================
 
 
+/* This is a small helper which calculates the number of currently active
+ * connections for a specific asset type and name within a given bundle.
+ *
+ * This is used in the payload for peer connected and disconnected events so
+ * that it is possible to know for sure when a particular asset is gone, since
+ * the same asset can theoreticaly be loaded more than once. */
+function getAssetCount(bundle, type, name) {
+  return Object.values(clients).filter(c =>
+    c.bundle === bundle && c.type === type && c.name === name
+  ).length;
+}
+
+
+// =============================================================================
+
+
 /* Using a debounced call, transmit out an event to the dashboard to give it
  * an update on the current connection state of all panels and graphics.
  *
@@ -177,6 +193,58 @@ export function setupSocketIO(io) {
       data: getValue(authInfo.bundle)
     });
 
+    // Hydrate the new client with the connection state of any of its pre-
+    // existing peers with the appropriate event. These are grouped by name and
+    // type, with one event per unique peer.
+    //
+    // This effectively simulates the same events that would occur if those
+    // peers connected after this asset connected (which is already done) so
+    // that the state of other assets is always known, even at connect time.
+    const existingPeers = {};
+    for (const [sockID, client] of Object.entries(clients)) {
+      if (client.bundle === authInfo.bundle) {
+        // Skip the connecting asset's own type/name combination so it doesn't
+        // receive a peer notification about itself, since that is not helpful.
+        if (client.type === authInfo.type && client.name === authInfo.name) {
+          continue;
+        }
+
+        const peerKey = `${client.type}::${client.name}`;
+        if (existingPeers[peerKey] === undefined) {
+          existingPeers[peerKey] = {
+            type: client.type,
+            name: client.name,
+            count: 0
+          };
+        }
+
+        existingPeers[peerKey].count++;
+      }
+    }
+
+    // Emit the existing peer states directly to the newly connected socket
+    for (const peerData of Object.values(existingPeers)) {
+      socket.emit('message', {
+        bundle: authInfo.bundle,
+        event: constants.EVENT_PEER_CONNECTED,
+        data: peerData
+      });
+    }
+
+    // Broadcast to other peers in the bundle that a new asset has connected.
+    // socket.to() inherently excludes the sender.
+    const currentCount = getAssetCount(authInfo.bundle, authInfo.type, authInfo.name);
+    const peerData = { type: authInfo.type, name: authInfo.name, count: currentCount };
+
+    socket.to(authInfo.bundle).emit('message', {
+      bundle: authInfo.bundle,
+      event: constants.EVENT_PEER_CONNECTED,
+      data: peerData
+    });
+
+    // Dispatch the peer connection event to the server-side extension.
+    dispatchMessageEvent(authInfo.bundle, constants.EVENT_PEER_CONNECTED, peerData);
+
     // Handle disconnects; for graphics this needs to update state that is used
     // in the UI so that the graphic display can indicate connection status.
     socket.on('disconnect', () => {
@@ -185,8 +253,25 @@ export function setupSocketIO(io) {
       // If this is a client that exists in the list, then schedule an update to
       // tell the front end that connection state changed.
       if (clients[socket.id] !== undefined) {
+        const client = clients[socket.id];
+
+        // Remove us from the client list BEFORE calculating the remaining count
+        // in the event.
         delete clients[socket.id];
         sendConnectionUpdate(io);
+
+        const remainingCount = getAssetCount(client.bundle, client.type, client.name);
+        const disconnectData = { type: client.type, name: client.name, count: remainingCount };
+
+        // Broadcast to other peers in the bundle that the asset has disconnected.
+        socket.to(client.bundle).emit('message', {
+          bundle: client.bundle,
+          event: constants.EVENT_PEER_DISCONNECTED,
+          data: disconnectData
+        });
+
+        // Dispatch the peer disconnection event to the server-side extension.
+        dispatchMessageEvent(client.bundle, constants.EVENT_PEER_DISCONNECTED, disconnectData);
       }
     });
 

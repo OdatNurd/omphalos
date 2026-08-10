@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { SYSTEM_DASHBOARD } from '@odatnurd/omphalos-common/constants';
+import * as sys_constants from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -68,7 +68,7 @@ function spaTemplate(dom, bundles, version) {
   // part of this that is needed by the top level code is a faked up bundle
   // name that identifies us as the system bundle.
   const manifest = {
-    name: SYSTEM_DASHBOARD,
+    name: sys_constants.SYSTEM_DASHBOARD,
     version,
     "omphalos": {
       "compatibleRange": `~${version}`,
@@ -113,6 +113,15 @@ function spaTemplate(dom, bundles, version) {
 function makeTemplateAPIObject(app, io) {
   const exportSymbols = {};
   return {
+    // Expose public and system constants matching the client API exactly
+    constants: {
+      EVENT_IO_CONNECT: sys_constants.EVENT_IO_CONNECT,
+      EVENT_IO_DISCONNECT: sys_constants.EVENT_IO_DISCONNECT,
+      EVENT_PEER_CONNECTED: sys_constants.EVENT_PEER_CONNECTED,
+      EVENT_PEER_DISCONNECTED: sys_constants.EVENT_PEER_DISCONNECTED,
+    },
+    __sys_constants: sys_constants,
+
     // The list of symbols that are exported by bundles; the keys are the names
     // of bundles and the objects are the symbols from that object.
     exportSymbols,
@@ -192,8 +201,8 @@ function makeTemplateAPIObject(app, io) {
       // Direct the message to the front end; we don't need to use the full
       // sender here since nothing on the server side can do anything about a
       // toast anyway.
-      io.to(SYSTEM_DASHBOARD).emit('message', {
-        bundle: SYSTEM_DASHBOARD,
+      io.to(sys_constants.SYSTEM_DASHBOARD).emit('message', {
+        bundle: sys_constants.SYSTEM_DASHBOARD,
         event: 'toast', data:
         { toast: msg, level, timeout: timeout_secs * 1000 }
       });

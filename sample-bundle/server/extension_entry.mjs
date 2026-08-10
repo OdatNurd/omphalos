@@ -22,9 +22,18 @@ export function main(omphalos) {
   const clickCount = omphalos.Skepsis('clickCount', 69);
 
   // Prove that the server can also reactively listen to its own variable
-  // changes.
-  clickCount.on((newValue, oldValue) => {
-    omphalos.log.debug(`Skepsis reactive trigger: clickCount changed from ${oldValue} to ${newValue}`);
+  // changes. The callback signature now includes the key name.
+  clickCount.on((newValue, oldValue, key) => {
+    omphalos.log.debug(`Skepsis reactive trigger: ${key} changed from ${oldValue} to ${newValue}`);
+  });
+
+  // Listen for peer connection and disconnection events
+  omphalos.onEvent(omphalos.constants.EVENT_PEER_CONNECTED, (data) => {
+    omphalos.log.info(`Extension saw peer connect: [${data.type}] ${data.name}`);
+  });
+
+  omphalos.onEvent(omphalos.constants.EVENT_PEER_DISCONNECTED, (data) => {
+    omphalos.log.info(`Extension saw peer disconnect: [${data.type}] ${data.name}`);
   });
 
   // Listen for an incoming click message, and when one arrives, send out a

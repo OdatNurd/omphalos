@@ -17,6 +17,8 @@ import EventBridge from '@axel669/event-bridge';
 const publicConstants = {
   EVENT_IO_CONNECT: constants.EVENT_IO_CONNECT,
   EVENT_IO_DISCONNECT: constants.EVENT_IO_DISCONNECT,
+  EVENT_PEER_CONNECTED: constants.EVENT_PEER_CONNECTED,
+  EVENT_PEER_DISCONNECTED: constants.EVENT_PEER_DISCONNECTED,
 }
 
 // =============================================================================
@@ -152,6 +154,8 @@ function reloadAsset(req) {
 function updateStorageCache(data) {
   log.debug(`${asset.name}:${bundle.name} got storage refresh: ${JSON.stringify(data)}`);
 
+  const wasHydrated = isHydrated;
+
   const oldStorage = storage;
   storage = data;
   isHydrated = true;
@@ -168,6 +172,13 @@ function updateStorageCache(data) {
     if (storage[key] === undefined) {
       bridge.emit(`var:${key}`, { newValue: undefined, oldValue: oldStorage[key] });
     }
+  }
+
+  // If we were not previously hydrated (meaning we just connected or reconnected
+  // and this is our first state payload), we are now fully ready. We fire the
+  // connect event here so developers know the API state is entirely usable.
+  if (wasHydrated === false) {
+    bridge.emit(`${constants.EVENT_IO_CONNECT}.${bundle.name}`);
   }
 }
 
@@ -243,9 +254,12 @@ export function __init_api(manifest, assetConfig, appConfig) {
   // When our socket connects, we need to announce ourselves to the server to
   // join the communications channel that is associated with our bundle, so that
   // events can be directed to us.
+  //
+  // We specifically do not emit the EVENT_IO_CONNECT here because that is done
+  // after the hydration of the variables happens, to make sure that when the
+  // event is received, variables are ready.
   socket.on('connect', () => {
     log.debug(`connection for ${asset.name}:${manifest.name} established on ${socket.id}`);
-    bridge.emit(`${constants.EVENT_IO_CONNECT}.${bundle.name}`);
   });
 
   // When the socket disconnects, we need to update our internal state, lock

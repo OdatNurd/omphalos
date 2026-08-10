@@ -60,9 +60,16 @@ export const MSG_GLOBAL_STORAGE_UPDATE = '__sys_global_storage_update';
 export const MSG_EVENT_TOAST = 'toast';
 
 /* These events are fired locally by the client API to indicate when the
- * underlying websocket connection has been established or lost. */
+ * underlying websocket connection has been established and hydrated, or
+ * lost. */
 export const EVENT_IO_CONNECT = '__sys_io_connect';
 export const EVENT_IO_DISCONNECT = '__sys_io_disconnect';
+
+/* These events are broadcasted to a bundle when a sibling asset (panel or
+ * graphic) connects or disconnects, allowing assets and extensions to react to
+ * their peers. */
+export const EVENT_PEER_CONNECTED = '__sys_peer_connected';
+export const EVENT_PEER_DISCONNECTED = '__sys_peer_disconnected';
 
 
 // =============================================================================
