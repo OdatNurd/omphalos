@@ -1,5 +1,5 @@
 ---
-title: API
+title: Overview
 ---
 
 Each [graphic](/guides/graphics) and [panel](/guides/panels) has a

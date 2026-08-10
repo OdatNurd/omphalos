@@ -28,19 +28,19 @@ export function main(omphalos) {
   });
 
   // Listen for peer connection and disconnection events
-  omphalos.onEvent(omphalos.constants.EVENT_PEER_CONNECTED, (data) => {
+  omphalos.event.peerConnected((data) => {
     omphalos.log.info(`Extension saw peer connect: [${data.type}] ${data.name}`);
   });
 
-  omphalos.onEvent(omphalos.constants.EVENT_PEER_DISCONNECTED, (data) => {
+  omphalos.event.peerDisconnected((data) => {
     omphalos.log.info(`Extension saw peer disconnect: [${data.type}] ${data.name}`);
   });
 
   // Listen for an incoming click message, and when one arrives, send out a
   // clack.
-  omphalos.listenFor('click', () => {
+  omphalos.event.on('click', () => {
     omphalos.log.debug('*** CLICK? CLACK! ***');
-    omphalos.sendMessage('clack');
+    omphalos.event.raise('clack');
 
     // Update the global value via the Skepsis setter
     clickCount.value++;

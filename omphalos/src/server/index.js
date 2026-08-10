@@ -112,14 +112,24 @@ function spaTemplate(dom, bundles, version) {
  * return as a reminder of the contract. */
 function makeTemplateAPIObject(app, io) {
   const exportSymbols = {};
-  return {
-    // Expose public and system constants matching the client API exactly
-    constants: {
-      EVENT_IO_CONNECT: sys_constants.EVENT_IO_CONNECT,
-      EVENT_IO_DISCONNECT: sys_constants.EVENT_IO_DISCONNECT,
-      EVENT_PEER_CONNECTED: sys_constants.EVENT_PEER_CONNECTED,
-      EVENT_PEER_DISCONNECTED: sys_constants.EVENT_PEER_DISCONNECTED,
+
+  const eventObj = {
+    // The specific broadcast functions are wired up here using the top level IO
+    raiseToBundle: (eventName, targetBundle, data) => {
+      assert(targetBundle !== undefined, 'valid bundle not specified');
+      assert(eventName !== undefined, 'message not specified');
+
+      io.to(targetBundle).emit('message', { bundle: targetBundle, event: eventName, data });
+      dispatchMessageEvent(targetBundle, eventName, data);
     },
+
+    // General raise and on listeners require the target bundle context, and
+    // will thus be fully fleshed out by the bundle loader.
+    on: undefined,
+    raise: undefined
+  };
+
+  return {
     __sys_constants: sys_constants,
 
     // The list of symbols that are exported by bundles; the keys are the names
@@ -154,18 +164,8 @@ function makeTemplateAPIObject(app, io) {
     // Application configuration
     config: config.getProperties(),
 
-    // Directs a message to all listeners in a specific bundle;
-    sendMessageToBundle: (event, bundle, data) => {
-      assert(bundle !== undefined, 'valid bundle not specified');
-      assert(event !== undefined, 'message not specified');
-
-      io.to(bundle).emit('message', { bundle, event, data });
-      dispatchMessageEvent(bundle, event, data);
-    },
-
-    // Sending a message to only the current bundle requires that we know the
-    // current bundle, which is not known until the bundle actually loads.
-    sendMessage: undefined,
+    // The event bus for this specific extension instance.
+    event: eventObj,
 
     // Manipulating bundle specific persistent sotrage requires that we know the
     // current bundle, which is not known until the bundle actually loads.
@@ -178,16 +178,6 @@ function makeTemplateAPIObject(app, io) {
 
     // Skepsis variable container
     Skepsis: undefined,
-
-    // Listen for incoming messages and trigger a handler. This is entirely
-    // event based on the server side because there is no socket. This requires
-    // a known bundle to infer arguments, so this is just a placeholder entry.
-    listenFor: undefined,
-
-    // Event wrapper aliases
-    onEvent: undefined,
-    raiseEvent: undefined,
-    raiseEventToBundle: undefined,
 
     // Trigger a toast message.
     toast: (msg, level, timeout_secs) => {

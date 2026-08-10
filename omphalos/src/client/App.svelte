@@ -14,7 +14,7 @@
 
   // Listen for incoming toast requests from the system and dispatch them. This
   // relies on the fact that the payload is verified on the other end.
-  omphalos.listenFor('toast', data => toast[data.level](data.toast, data.timeout));
+  omphalos.event.on('toast', data => toast[data.level](data.toast, data.timeout));
 
   // Obtain the full list of workspaces, which we need to pass to the navbar to
   // generate links and to the dashboard wrapper component so that it can tell

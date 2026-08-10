@@ -27,12 +27,12 @@
     // -------------------------------------------------------------------------
     // Network Lifecycle Events
     // -------------------------------------------------------------------------
-    omphalos.onEvent(omphalos.constants.EVENT_IO_CONNECT, () => {
+    omphalos.event.ioConnect(() => {
       omphalos.log.debug('Socket connected and hydrated: enabling reset button');
       resetBtn.disabled = false;
     });
 
-    omphalos.onEvent(omphalos.constants.EVENT_IO_DISCONNECT, () => {
+    omphalos.event.ioDisconnect(() => {
       omphalos.log.debug('Socket disconnected: disabling reset button');
       resetBtn.disabled = true;
     });
@@ -40,11 +40,11 @@
     // -------------------------------------------------------------------------
     // Peer Events
     // -------------------------------------------------------------------------
-    omphalos.onEvent(omphalos.constants.EVENT_PEER_CONNECTED, (data) => {
+    omphalos.event.peerConnected((data) => {
       omphalos.toast(`Peer Connected: ${data.type} "${data.name}"`, 'success', 3);
     });
 
-    omphalos.onEvent(omphalos.constants.EVENT_PEER_DISCONNECTED, (data) => {
+    omphalos.event.peerDisconnected((data) => {
       omphalos.toast(`Peer Disconnected: ${data.type} "${data.name}"`, 'warning', 3);
     });
 
@@ -55,7 +55,7 @@
     // occured; this allows us to test that the message passing is working as
     // expected.
     let clackCount = 0;
-    omphalos.onEvent('clack', () => {
+    omphalos.event.on('clack', () => {
       clackCount++;
       output.innerHTML = `Button clicked ${clackCount} times since panel reload`;
       output.style = 'border-top: 1px solid; padding-top: 0.5rem;';

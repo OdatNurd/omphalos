@@ -25,7 +25,7 @@
     }
 
     // Ship off an event to trigger the reload.
-    omphalos.sendMessageToBundle(MSG_RELOAD, bundle, {
+    omphalos.event.raiseToBundle(MSG_RELOAD, bundle, {
       "type": ["graphic"],
       "name": graphic
     });

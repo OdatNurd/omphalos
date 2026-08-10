@@ -22,7 +22,7 @@
   <script>
     const msg = document.querySelector('#msg-text');
 
-    omphalos.listenFor('show-msg', () => {
+    omphalos.event.on('show-msg', () => {
       if (msg.classList.contains('hidden')) {
         msg.classList.remove('hidden')
         omphalos.toast('Displayed the message in the overlay');
@@ -30,7 +30,7 @@
         omphalos.toast('The message is already visible', 'warning');
       }
     });
-    omphalos.listenFor('hide-msg', () => {
+    omphalos.event.on('hide-msg', () => {
       if (msg.classList.contains('hidden') === false) {
         msg.classList.add('hidden')
         omphalos.toast('Hid the message in the overlay');

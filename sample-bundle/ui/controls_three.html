@@ -73,15 +73,15 @@
     // Form Lifecycle Hooks
     // -------------------------------------------------------------------------
 
-    omphalos.onEvent(omphalos.constants.EVENT_FORM_PRE_SAVE, (payload) => {
+    omphalos.event.formPreSave((payload) => {
       omphalos.log.debug(`[PRE-SAVE] DOM is about to be scraped for: ${payload.formName}`);
     });
 
-    omphalos.onEvent(omphalos.constants.EVENT_FORM_POST_SAVE, (payload) => {
+    omphalos.event.formPostSave((payload) => {
       omphalos.log.debug(`[POST-SAVE] Committed payload for ${payload.formName}:`, payload.data);
     });
 
-    omphalos.onEvent(omphalos.constants.EVENT_FORM_PRE_LOAD, (payload) => {
+    omphalos.event.formPreLoad((payload) => {
       omphalos.log.debug(`[PRE-LOAD] Modifying fetch payload by reference before DOM injection...`);
       if (payload.data.meta.externalNote) {
         // Example mutation: Force uppercase on load
@@ -89,7 +89,7 @@
       }
     });
 
-    omphalos.onEvent(omphalos.constants.EVENT_FORM_POST_LOAD, (payload) => {
+    omphalos.event.formPostLoad((payload) => {
       omphalos.log.debug(`[POST-LOAD] DOM successfully hydrated for: ${payload.formName}`);
     });
 
@@ -119,7 +119,7 @@
     // -------------------------------------------------------------------------
 
     // Automatically load the form when the API finishes hydrating state.
-    omphalos.onEvent(omphalos.constants.EVENT_IO_CONNECT, () => {
+    omphalos.event.ioConnect(() => {
       omphalos.log.debug('API Hydrated: Auto-loading form state');
       omphalos.form.load('player-form');
 

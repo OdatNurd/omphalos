@@ -1,0 +1,41 @@
+---
+title: omphalos.event.formPreLoad
+sidebar:
+  label: formPreLoad
+  badge:
+    variant: tip
+    text: Client
+---
+
+```js
+omphalos.event.formPreLoad((payload) => {
+  omphalos.log.debug(`form ${payload.formName} is about to load);
+})
+```
+
+:::caution[Client only]
+This item is only present in the API object in `panels` and `graphics`; it is
+not present in the API that is given to the `extension`.
+:::
+
+This event is raised by a call to [omphalos.form.load](/api/omphalos/form/load)
+to load a form from storage. The event invokes prior to the load taking place,
+and has the following payload:
+
+```js
+{
+  formName: "string",
+  form: "HTMLFormElement",
+  data: {
+    meta: "object",
+    vars: "object"
+  }
+}
+```
+
+You can mutate the payload as desired during this event; the mutated data is
+used in the final load.
+
+Invoking this function is equivalent to a call to
+[omphalos.event.on](/api/omphalos/event/on), and thus returns a function you can
+use to cancel the event listener registration as needed.

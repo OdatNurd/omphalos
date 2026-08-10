@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
+import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE, EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -272,6 +272,13 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
     throw new BundleLoadError(`the extension endoint does not export the symbol 'main'`);
   }
 
+  /* A mapping of raw system constants to the camelCase function names exposed
+   * on the server-side omphalos.event API object. */
+  const serverEvents = {
+    peerConnected: EVENT_PEER_CONNECTED,
+    peerDisconnected: EVENT_PEER_DISCONNECTED,
+  };
+
   // Set up a bundle specific version of the API; this is the global API but
   // with some fields swapped out for bundle specific items.
   const bundle_api = {
@@ -280,8 +287,30 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
     log: logger(bundleName),
     bundle: structuredClone(manifest),
 
-    // Directs a message to all listeners in the current bundle;
-    sendMessage: (event, data) => omphalos.sendMessageToBundle(event, bundleName, data),
+    // The event bus for this specific extension instance.
+    event: {
+      ...omphalos.event,
+
+      // The exposed listenFor needs to do error checking and infer missing
+      // bundles; the call into the network code assumes that this has been done
+      // and just implements it.
+      on: (eventName, bundleTarget, listener) => {
+        assert(eventName !== undefined, 'message not specified');
+        assert(bundleTarget !== undefined || listener !== undefined, 'no event listener callback supplied');
+
+        // Second argument is optional but listener is required; if the call signature
+        // has only two arguments, infer the bundle and use it as the listener.
+        if (listener === undefined) {
+          listener = bundleTarget;
+          bundleTarget = bundleName;
+        }
+
+        return listenFor(eventName, bundleTarget, listener);
+      },
+
+      // Directs a message to all listeners in the current bundle;
+      raise: (eventName, data) => omphalos.event.raiseToBundle(eventName, bundleName, data)
+    },
 
     // Bundle persistent storage accessors.
     bundleVars: {
@@ -292,12 +321,12 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       set: (key, value) => {
         const oldValue = getValue(bundleName, key);
         setValue(bundleName, key, value);
-        omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
-                                     { key, value, oldValue });
+        bundle_api.event.raiseToBundle(MSG_STORAGE_UPDATE, bundleName,
+                                       { key, value, oldValue });
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
-        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
+        bundle_api.event.raiseToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
           { bundle: bundleName, key, value }
         )
       },
@@ -313,12 +342,12 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
       delete: (key) => {
         const oldValue = getValue(bundleName, key);
         deleteValue(bundleName, key);
-        omphalos.sendMessageToBundle(MSG_STORAGE_UPDATE, bundleName,
-                                     { key, value: undefined, oldValue });
+        bundle_api.event.raiseToBundle(MSG_STORAGE_UPDATE, bundleName,
+                                       { key, value: undefined, oldValue });
         // This is the actual system bundle and not the sentinel we use for our
         // routing; the messagte has to be sent to this bundle or the panel in
         // the dashboard won't see it.
-        omphalos.sendMessageToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
+        bundle_api.event.raiseToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE,
           { bundle: bundleName, key }
         )
       },
@@ -331,7 +360,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
         assert(key !== undefined, 'a key name must be provided');
         assert(typeof callback === 'function', 'callback must be a function');
 
-        return bundle_api.listenFor(MSG_STORAGE_UPDATE, (data) => {
+        return bundle_api.event.on(MSG_STORAGE_UPDATE, (data) => {
           if (data.key === key) {
             callback(data.value, data.oldValue, key);
           }
@@ -370,33 +399,18 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
           }
         }
       }
-    },
+    }
+  }
 
-    // The exposed listenFor needs to do error checking and infer missing
-    // bundles; the call into the network code assumes that this has been done
-    // and just implements it.
-    listenFor: (event, bundle, listener) => {
-      assert(event !== undefined, 'message not specified');
+  // Dynamically generate the system event wrapper functions based on our list
+  // of server events.
+  for (const [fnName, rawEvent] of Object.entries(serverEvents)) {
+    const wrapper = (bundleTarget, listener) => bundle_api.event.on(rawEvent, bundleTarget, listener);
 
-      // If there is no listener, the bundle argument is actually the listener and
-      // the bundle is inferred; hence we need at least one of the two set or the
-      // call is missing too many arguments.
-      assert(bundle !== undefined || listener !== undefined, 'no event listener callback supplied');
-
-      // Second argument is optional but listener is required; if the call signature
-      // has only two arguments, infer the bundle and use it as the listener.
-      if (listener === undefined) {
-        listener = bundle;
-        bundle = bundleName;
-      }
-
-      return listenFor(event, bundle, listener);
-    },
-
-    // Event thin wrappers for server extension code.
-    onEvent: (event, bundle, listener) => bundle_api.listenFor(event, bundle, listener),
-    raiseEvent: (event, data) => bundle_api.sendMessage(event, data),
-    raiseEventToBundle: (event, bundle, data) => bundle_api.sendMessageToBundle(event, bundle, data)
+    // Our wrapper has a property for the content of the event string, so that
+    // you can raise the event manually if needed, based on the handler.
+    wrapper.eventName = rawEvent;
+    bundle_api.event[fnName] = wrapper;
   }
 
   // Invoke the entrypoint to initialize the module

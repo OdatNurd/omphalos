@@ -1,4 +1,4 @@
-import { MSG_CONNECTIONS_UPDATE, EVENT_IO_DISCONNECT } from '@odatnurd/omphalos-common/constants';
+import { MSG_CONNECTIONS_UPDATE } from '@odatnurd/omphalos-common/constants';
 import { readable } from 'svelte/store';
 
 
@@ -31,13 +31,13 @@ import { readable } from 'svelte/store';
  *
  * The callback gets a set function that it can use to update the data. */
 export const connections = readable({}, (set) => {
-  const unlistenConn = omphalos.onEvent(MSG_CONNECTIONS_UPDATE, data => set(data));
+  const unlistenConn = omphalos.event.on(MSG_CONNECTIONS_UPDATE, data => set(data));
 
   // When the dashboard itself loses connection to the server, we must assume
   // all panel and graphic connections are severed. Flushing the state here
   // causes all UI elements to instantly revert to their 0-count (disconnected)
   // state.
-  const unlistenDrop = omphalos.onEvent(EVENT_IO_DISCONNECT, () => set({}));
+  const unlistenDrop = omphalos.event.ioDisconnect(() => set({}));
 
   return () => {
     unlistenConn();

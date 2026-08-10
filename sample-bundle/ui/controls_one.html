@@ -73,7 +73,7 @@
 
   <script>
     const btn = document.querySelector("#clicker")
-    btn.addEventListener('click', () => omphalos.sendMessage('click'));
+    btn.addEventListener('click', () => omphalos.event.raise('click'));
 
     ['message', 'info', 'warning', 'success', 'error'].forEach(level => {
       const element = document.querySelector(`#${level}`);
@@ -82,7 +82,7 @@
 
     ['show-msg', 'hide-msg'].forEach(test => {
       const element = document.querySelector(`#${test}`);
-      element.addEventListener('click', () => omphalos.sendMessage(test));
+      element.addEventListener('click', () => omphalos.event.raise(test));
     });
 
     document.querySelector('#alter-setting').addEventListener('click', () => {

@@ -130,7 +130,7 @@
     // object. A refresh of this type is requested when the panel loads.
     //
     // Update our global state wholesale, and then render.
-    omphalos.listenFor(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_REFRESH, (data) => {
+    omphalos.event.on(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_REFRESH, (data) => {
       omphalos.log.debug('received a global state refresh');
       globalState = data;
       renderState();
@@ -140,7 +140,7 @@
     // in a specific bundle has been modified.
     //
     // Patch just the variable that changed and then render.
-    omphalos.listenFor(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_UPDATE, (data) => {
+    omphalos.event.on(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_UPDATE, (data) => {
       const { bundle, key, value } = data;
       omphalos.log.debug(`received targetted storage refresh for ${bundle}:${key}`);
 
@@ -165,7 +165,7 @@
     // that state the connection is being establishe, and socket.io will buffer
     // the message, so ship out a request to get a complete dump of the current
     // state system.
-    omphalos.sendMessageToBundle(
+    omphalos.event.raiseToBundle(
       omphalos.__sys_constants.MSG_REQUEST_GLOBAL_STATE,
       omphalos.__sys_constants.SYSTEM_DASHBOARD,
       {}

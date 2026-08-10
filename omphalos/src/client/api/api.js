@@ -11,31 +11,10 @@ import EventBridge from '@axel669/event-bridge';
 // =============================================================================
 
 
-/* The subset of constants that are to be exported to the client API; there are
- * many constants that are for internal use only and are thus exported out via
- * a different object (since the system needs them). */
-const publicConstants = {
-  EVENT_IO_CONNECT: constants.EVENT_IO_CONNECT,
-  EVENT_IO_DISCONNECT: constants.EVENT_IO_DISCONNECT,
-  EVENT_PEER_CONNECTED: constants.EVENT_PEER_CONNECTED,
-  EVENT_PEER_DISCONNECTED: constants.EVENT_PEER_DISCONNECTED,
-  EVENT_FORM_PRE_SAVE: constants.EVENT_FORM_PRE_SAVE,
-  EVENT_FORM_POST_SAVE: constants.EVENT_FORM_POST_SAVE,
-  EVENT_FORM_PRE_LOAD: constants.EVENT_FORM_PRE_LOAD,
-  EVENT_FORM_POST_LOAD: constants.EVENT_FORM_POST_LOAD,
-}
-
-// =============================================================================
-
-
 /* Export out the constants object; this has the __sys prefix to indicate that
  * we own it; this is not for outer consumption, generally speaking. It is used
- * by the system bundle to be able to know the names of things.
- *
- * We also have a public constants value that gets given to the API consumer as
- * well. */
+ * by the system bundle to be able to know the names of things. */
 export { constants as __sys_constants };
-export { publicConstants as constants };
 
 /* All of the values here have this default value to begin with, and are set
  * by a call to the API initialization routine, which is where the data for
@@ -323,7 +302,7 @@ export function __init_api(manifest, assetConfig, appConfig) {
 /* Transmit an event to all listeners in a specific bundle. The event will get
  * sent to all members of that bundle except the sender, which presumably does
  * not need to get a message to itself since it already knows the content. */
-export function sendMessageToBundle(event, bundleName, data) {
+function sendMessageToBundle(event, bundleName, data) {
   assert(bundleName !== undefined, 'valid bundle not specified');
   assert(event !== undefined, 'message not specified');
 
@@ -336,7 +315,7 @@ export function sendMessageToBundle(event, bundleName, data) {
 
 /* Transmit an event to all listeners in the current bundle. The event will get
  * sent to all members of the bundle except the sender. */
-export function sendMessage(event, data) {
+function sendMessage(event, data) {
   assert(event !== undefined, 'message not specified');
 
   sendMessageToBundle(event, bundle.name, data);
@@ -355,7 +334,7 @@ export function sendMessage(event, data) {
  *
  * The return value is a function that you can use to remove the listener if
  * you no longer require it. */
-export function listenFor(event, bundleName, listener) {
+function listenFor(event, bundleName, listener) {
   assert(event !== undefined, 'message not specified');
 
   // If there is no listener, the bundle argument is actually the listener and
@@ -577,35 +556,50 @@ export function Skepsis(key, defaultValue) {
 // =============================================================================
 
 
-/* A thin wrapper over listenFor to align with standard event terminology.
- *
- * This listens for an event and invokes the listener function provided with the
- * payload of the event when it happens. */
-export function onEvent(event, bundleName, listener) {
-  return listenFor(event, bundleName, listener);
+/* A mapping of raw system constants to the camelCase function names exposed
+ * on the omphalos.event API object for strictly local events. */
+const localClientEvents = {
+  ioConnect: constants.EVENT_IO_CONNECT,
+  ioDisconnect: constants.EVENT_IO_DISCONNECT,
+  formPreSave: constants.EVENT_FORM_PRE_SAVE,
+  formPostSave: constants.EVENT_FORM_POST_SAVE,
+  formPreLoad: constants.EVENT_FORM_PRE_LOAD,
+  formPostLoad: constants.EVENT_FORM_POST_LOAD,
+};
+
+/* A mapping of raw system constants to the camelCase function names exposed
+ * on the omphalos.event API object for networked events. */
+const networkedClientEvents = {
+  peerConnected: constants.EVENT_PEER_CONNECTED,
+  peerDisconnected: constants.EVENT_PEER_DISCONNECTED,
+};
+
+/* The public event API surface. Contains general on/raise handlers and
+ * will be dynamically populated with the system event wrapper functions. */
+export const event = {
+  on: (eventName, bundleName, listener) => listenFor(eventName, bundleName, listener),
+  raise: (eventName, data) => sendMessage(eventName, data),
+  raiseToBundle: (eventName, bundleName, data) => sendMessageToBundle(eventName, bundleName, data)
+};
+
+// Dynamically generate the strictly local event wrapper functions
+for (const [fnName, rawEvent] of Object.entries(localClientEvents)) {
+  const wrapper = (listener) => listenFor(rawEvent, bundle.name, listener);
+
+  // Our wrapper has a property for the content of the event string, so that you
+  // can raise the event manually if needed, based on the handler.
+  wrapper.eventName = rawEvent;
+  event[fnName] = wrapper;
 }
 
+// Dynamically generate the networked event wrapper functions
+for (const [fnName, rawEvent] of Object.entries(networkedClientEvents)) {
+  const wrapper = (bundleTarget, listener) => listenFor(rawEvent, bundleTarget, listener);
 
-// =============================================================================
-
-
-/* A thin wrapper over sendMessage to align with standard event terminology.
- *
- * This transmits an event to all listeners in the current bundle. */
-export function raiseEvent(event, data) {
-  sendMessage(event, data);
-}
-
-
-// =============================================================================
-
-
-/* A thin wrapper over sendMessageToBundle to align with standard event
- * terminology.
- *
- * This transmits an event to all listeners in a specific bundle. */
-export function raiseEventToBundle(event, bundleName, data) {
-  sendMessageToBundle(event, bundleName, data);
+  // Our wrapper has a property for the content of the event string, so that you
+  // can raise the event manually if needed, based on the handler.
+  wrapper.eventName = rawEvent;
+  event[fnName] = wrapper;
 }
 
 

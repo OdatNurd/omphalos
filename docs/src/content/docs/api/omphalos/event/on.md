@@ -1,17 +1,12 @@
 ---
-title: omphalos.listenFor
+title: omphalos.event.on
 sidebar:
-  label: listenFor
+  label: on
 ---
 
 ```js
-function omphalos.listenFor(event, listener)
-function omphalos.listenFor(event, bundle, listener)
-
-// also known as:
-function omphalos.onEvent(event, listener)
-function omphalos.onEvent(event, bundle, listener)
-
+function omphalos.event.on(event, listener)
+function omphalos.event.on(event, bundle, listener)
 ```
 
 Listen for a given event to arrive and, when it does, invoke the listener with
@@ -25,8 +20,8 @@ The return value of both functions is a function that can be used to cancel the
 callback.
 
 This listens for events that are raised by
-[omphalos.sendMessage](/api/omphalos/sendmessage)
-and [omphalos.sendMessageToBundle](/api/omphalos/sendmessagetobundle).
+[omphalos.event.raise](/api/omphalos/event/raise)
+and [omphalos.event.raiseToBundle](/api/omphalos/event/raisetobundle).
 
 :::note[variable arguments]
 With only two arguments, the `bundle` is inferred to be the current bundle;
