@@ -218,3 +218,62 @@ dashboard only.
 
 If this is set to `true`, the system, will only allow a single instance of this
 overlay to be served; other attempts will fail.
+
+
+### soundPath
+
+* optional (defaults to `'sounds'` if not specified)
+
+```json
+  "soundsPath": "sounds",
+```
+
+When using sounds, this specifies the folder inside of the bundle layout that
+all of the sound files should be relative to.
+
+### sounds
+
+* optional
+
+```json
+  "sounds": [
+    {
+      "file": "sample.mp3",
+      "name": "sample",
+      "volume": 1.0,
+      "pan": 0.0
+    }
+  ]
+```
+
+If given this specifies the details on all of the sounds that this bundle
+exposes to the dashboard.
+
+#### file
+
+* required
+
+The underlying sound file itself.
+
+#### name
+
+* required
+
+The internal name for this sound; this is what is used to play the sound when
+using [omphalos.playSound](/api/omphalos/playsound).
+
+#### volume
+
+* optional
+
+The relative volume of this sound, by default. 0.0 is muted and 1.0 is full
+volume. This is just the baseline; the value can be adjusted in the mixer in
+the dashboard.
+
+#### pan
+
+* optional
+
+The relative panning of this sound, by default. -1.0 is full left, 0.0 is
+center, and 1.0 is full right. This is just the baseline; the value can be
+adjusted in the mixer in the dashboard.

@@ -7,7 +7,11 @@
 </head>
 <body>
 
-<!-- TODO: Make this be more than just an empty page that does nothing. -->
+<script>
+  omphalos.event.on(omphalos.__sys_constants.MSG_PLAY_SOUND, (data) => {
+    omphalos._playAudioInternal(data.bundle, data.file, data.options);
+  });
+</script>
 
 </body>
 </html>

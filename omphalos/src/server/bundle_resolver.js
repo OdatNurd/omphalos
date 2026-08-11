@@ -313,6 +313,18 @@ export function discoverBundles(appManifest) {
           }
         })
 
+        // Ensure that all sounds have default values for volume and pan, even
+        // if the manifest does not provide them.
+        const sounds = manifest.omphalos.sounds ?? [];
+        sounds.forEach(sound => {
+          if (sound.volume === undefined) {
+            sound.volume = 1.0;
+          }
+          if (sound.pan === undefined) {
+            sound.pan = 0.0;
+          }
+        })
+
         // Save it now.
         bundles[manifest.name] = manifest;
       }

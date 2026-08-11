@@ -186,6 +186,18 @@ function setupAssetRoutes(manifest, bundleName, assetType, router) {
       log.error(`file does not exist: ${staticFile}`)
     }
 
+    // Attempt to loosely validate that sound files provided are of a type that
+    // modern browsers actually support natively.
+    if (assetType === 'sound') {
+      const parts = asset.file.split('.');
+      const ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
+      const validAudioExts = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'webm'];
+
+      if (validAudioExts.includes(ext) === false) {
+        log.warn(`sound file '${asset.file}' has an extension that may not be playable in browsers`);
+      }
+    }
+
     // If the static file is not rooted in the asset path, then a relative path
     // is trying to escape; log an error and don't add a static route.
     //

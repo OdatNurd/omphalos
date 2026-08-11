@@ -50,6 +50,10 @@ let storage = {};
  * defaults from clobbering the server's persisted state. */
 let isHydrated = false;
 
+/* A singleton reference to our Web Audio API context. This is instantiated
+ * lazily to avoid auto-play blocking errors inside modern browsers. */
+let audioContext = undefined;
+
 /* Our log object. We front load it with stubs for all levels, and when the API
  * is initialized the log initialize routine will replace some or all of the
  * stubs with a logger that uses the asset name, depending on level and
@@ -293,6 +297,138 @@ export function __init_api(manifest, assetConfig, appConfig) {
       document.documentElement.style.setProperty('--omph-graphic-h', `${asset.size.height}px`);
     }
   }
+}
+
+
+// =============================================================================
+
+
+/* The playback engine that accepts playback options and uses the Web Audio API
+ * to render audio nodes on the fly. This correctly supports volume, panning,
+ * and audio sink devices, and connects/disconnects dynamically to prevent
+ * memory leaks when sounds overlap.
+ *
+ * This is not intended for public usage; this is used internally to actually
+ * cause audio to play. */
+export async function _playAudioInternal(bundleName, soundFile, options = {}) {
+  log.debug(`playing ${bundleName}:${soundFile}`);
+
+  // Lazy initialization of the Web Audio API Context.
+  if (audioContext === undefined) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext !== undefined) {
+       audioContext = new AudioContext();
+    }
+  }
+
+  // Modern browsers aggressively suspend audio contexts until the user interacts.
+  // We attempt to resume here if it was suspended.
+  if (audioContext !== undefined && audioContext.state === 'suspended') {
+    await audioContext.resume();
+  }
+
+  const volume = options.volume !== undefined ? options.volume : 1.0;
+  const pan = options.pan !== undefined ? options.pan : 0.0;
+  const deviceId = options.deviceId;
+
+  const url = `/bundles/${bundleName}/sounds/${soundFile}`;
+  const audio = new Audio(url);
+  audio.crossOrigin = "anonymous";
+
+  if (audioContext !== undefined) {
+   // Because the Web Audio API graph takes over routing, we apparently have to
+   // set the sink ID on the audio context itself, not the underlying HTMLMediaElement.
+   if (deviceId !== undefined) {
+     let targetSink = deviceId;
+
+     // Explicitly reset the singleton context to the default output driver when
+     // the overlay or default option is requested, ensuring it doesn't get stuck
+     // on a previous hardware ID.
+     if (deviceId === '_system_default_' || deviceId === '_overlay_') {
+       targetSink = '';
+     }
+
+     if (typeof audioContext.setSinkId === 'function') {
+       try {
+         await audioContext.setSinkId(targetSink);
+       } catch(err) {
+         log.error(`audioContext.setSinkId failed: ${err}`);
+       }
+     } else {
+         log.warn('audioContext.setSinkId is not supported in this browser.');
+     }
+   }
+
+   const source = audioContext.createMediaElementSource(audio);
+
+   const gainNode = audioContext.createGain();
+
+   // Human hearing is logarithmic; squaring the linear 0.0-1.0 slider value
+   // maps it cleanly to a perceptual audio taper.
+   gainNode.gain.value = volume * volume;
+
+   const pannerNode = audioContext.createStereoPanner ? audioContext.createStereoPanner() : audioContext.createPanner();
+   if (audioContext.createStereoPanner !== undefined) {
+     pannerNode.pan.value = pan;
+   } else {
+     // Graceful fallback if StereoPanner is not supported in the browser.
+     pannerNode.panningModel = 'equalpower';
+     pannerNode.setPosition(pan, 0, 1 - Math.abs(pan));
+   }
+
+   source.connect(gainNode);
+   gainNode.connect(pannerNode);
+   pannerNode.connect(audioContext.destination);
+
+   // Disconnect all of our nodes so they can be garbage collected correctly
+   // when the sound finishes playing.
+   audio.addEventListener('ended', () => {
+     source.disconnect();
+     gainNode.disconnect();
+     pannerNode.disconnect();
+     audio.remove();
+   });
+  }
+
+  try {
+    await audio.play();
+  } catch (err) {
+    log.error(`playback failed: ${err}`);
+  }
+}
+
+
+// =============================================================================
+
+
+/* Sends a trigger request to the server, prompting it to look up the global
+ * routing tables and dispatch the playback command to the appropriate hardware
+ * output.
+ *
+ * This function is overloaded:
+ *   playSound(soundName)
+ *   playSound(soundName, options)
+ *   playSound(soundName, bundleName)
+ *   playSound(soundName, bundleName, options)
+ *
+ * If the bundle is omitted, it will automatically default to the bundle of the
+ * asset invoking the function. */
+export function playSound(soundName, arg2, arg3) {
+  let targetBundle = bundle.name;
+  let options = {};
+
+  if (typeof arg2 === 'string') {
+    targetBundle = arg2;
+    options = arg3 || {};
+  } else if (typeof arg2 === 'object') {
+    options = arg2;
+  }
+
+  sendMessageToBundle(constants.MSG_TRIGGER_SOUND, constants.SYSTEM_BUNDLE, {
+    bundle: targetBundle,
+    sound: soundName,
+    options: options
+  });
 }
 
 

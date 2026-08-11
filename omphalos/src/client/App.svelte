@@ -16,6 +16,12 @@
   // relies on the fact that the payload is verified on the other end.
   omphalos.event.on('toast', data => toast[data.level](data.toast, data.timeout));
 
+  // Global listener for audio routed to the dashboard.
+  omphalos.event.on(omphalos.__sys_constants.MSG_PLAY_SOUND, data => {
+    const options = data.options || {};
+    omphalos._playAudioInternal(data.bundle, data.file, options);
+  });
+
   // Obtain the full list of workspaces, which we need to pass to the navbar to
   // generate links and to the dashboard wrapper component so that it can tell
   // what workspaces are actually valid.

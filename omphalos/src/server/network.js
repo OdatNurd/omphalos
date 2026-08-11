@@ -150,7 +150,74 @@ function sendConnectionUpdate(io) {
  *
  * Short story long, the 'message' event is used to route traffic, and the
  * actual event is in the payload. */
-export function setupSocketIO(io) {
+export function setupSocketIO(io, bundles) {
+  // Centralized Server-Side Audio Mixing & Routing
+
+  // We listen here to the internet EventBridge to catch the sound trigger that
+  // gets sent to the system bundle; this allows us to catch events that are
+  // coming both from client sockets as well as server side extension code.
+  bridge.on(`${constants.MSG_TRIGGER_SOUND}.${constants.SYSTEM_BUNDLE}`, (e) => {
+    const data = e.data;
+    log.debug(`processing sound trigger: ${JSON.stringify(data)}`);
+
+    const targetBundle = data.bundle;
+    const soundName = data.sound;
+    const explicitOptions = data.options || {};
+
+    // Look up the definition of the sound in the loaded bundle manifests to
+    // acquire its file path and baseline levels.
+    const manifest = bundles[targetBundle];
+    if (manifest === undefined || manifest.omphalos.sounds === undefined) {
+      return;
+    }
+
+    const soundDef = manifest.omphalos.sounds.find(s => s.name === soundName);
+    if (soundDef === undefined) {
+      return;
+    }
+
+    // Fetch global routing and master mix settings from the system bundle. This
+    // defauls to the overlay if not given; similarly, we have a default master
+    // volume and panning.
+    const routingDevice = getValue(constants.SYSTEM_BUNDLE, 'audioRoutingDevice', '_overlay_');
+    const masterVol = getValue(constants.SYSTEM_BUNDLE, 'masterVolume', 1.0);
+    const masterPan = getValue(constants.SYSTEM_BUNDLE, 'masterPan', 0.0);
+
+    // Fetch the user's per-sound adjustments saved to the target bundle.
+    const soundOverrides = getValue(targetBundle, `audio_settings_${soundName}`, {});
+
+    // Calculate the base levels, utilizing a strict cascade hierarchy:
+    // API Options -> Saved Overrides -> Manifest Defaults
+    const baseVol = explicitOptions.volume ?? soundOverrides.volume ?? soundDef.volume;
+    const basePan = explicitOptions.pan ?? soundOverrides.pan ?? soundDef.pan;
+
+    // Compute the final mixed output levels and strictly clamp them.
+    const finalVol = Math.max(0, Math.min(1, masterVol * baseVol));
+    const finalPan = Math.max(-1, Math.min(1, masterPan + basePan));
+
+    // Determine the final delivery destination for playback.
+    const destBundle = (routingDevice === '_overlay_') ? constants.SYSTEM_BUNDLE : constants.SYSTEM_DASHBOARD;
+
+    const playPayload = {
+      bundle: targetBundle,
+      sound: soundName,
+      file: soundDef.file,
+      options: {
+        volume: finalVol,
+        pan: finalPan,
+        deviceId: routingDevice
+      }
+    };
+
+    io.to(destBundle).emit('message', {
+      bundle: destBundle,
+      event: constants.MSG_PLAY_SOUND,
+      data: playPayload
+    });
+
+    dispatchMessageEvent(destBundle, constants.MSG_PLAY_SOUND, playPayload);
+  });
+
   // Set up a global event handler for knowing when we're getting incoming
   // connections. This sets up the socket specific handlers that allow us to
   // manage our communications.
@@ -316,6 +383,15 @@ export function setupSocketIO(io) {
       }
 
       log.silly(`MSG: ${JSON.stringify(msgData)}`);
+
+      // Drop sound triggers directly onto the internal event bridge so the
+      // central routing logic at the top of this function picks it up. We
+      // explicitly return here to prevent broadcasting it to client sockets.
+      if (msgData.event === constants.MSG_TRIGGER_SOUND) {
+        log.debug(`intercepted sound trigger from client: ${JSON.stringify(msgData.data)}`);
+        dispatchMessageEvent(msgData.bundle, msgData.event, msgData.data);
+        return;
+      }
 
       // If this message is directed to the system, then perform special
       // handling on it. The handler will do what is needed (if anything) and

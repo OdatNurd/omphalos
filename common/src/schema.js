@@ -119,10 +119,13 @@ export const isValidBundleManifest = joker.validator({
 
     // A list of sound drop files that are contained in this bundle. The names
     // of each sound must be unique within a bundle, and the file is a file
-    // relative to the set "soundPath".
+    // relative to the set "soundPath". Volume and Pan are optional initial mix
+    // overrides.
     "?sounds[]": {
       "file": "string",
       "name": "string",
+      "?volume": "number",
+      "?pan": "number"
     }
   }
 });

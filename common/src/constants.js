@@ -78,5 +78,10 @@ export const EVENT_FORM_POST_SAVE = '__sys_form_post_save';
 export const EVENT_FORM_PRE_LOAD = '__sys_form_pre_load';
 export const EVENT_FORM_POST_LOAD = '__sys_form_post_load';
 
+/* These messages coordinate the triggering and playback of sounds across the
+ * system, allowing audio to be routed to the appropriate output sink. */
+export const MSG_TRIGGER_SOUND = '__sys_trigger_sound';
+export const MSG_PLAY_SOUND = '__sys_play_sound';
+
 
 // =============================================================================
