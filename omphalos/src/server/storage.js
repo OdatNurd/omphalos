@@ -125,15 +125,24 @@ export function deleteValue(bundle, key) {
   log.silly(`deleteValue(${bundle}, ${key}`);
 
   assert(bundle !== undefined, 'cannot delete a key without a bundle');
-  assert(key !== undefined, 'a key name must be provided')
+  assert(key !== undefined, 'a key name must be provided');
 
-  // Get the storgae object for this bundle,and delete the key; if there is
-  // not already storage for this bundle, add some.
-  let obj = storage[bundle] ?? {};
-  delete obj[key]
+  // Grab the object. If it doesn't exist, there is nothing to delete.
+  let obj = storage[bundle];
+  if (obj === undefined) {
+    return;
+  }
 
-  // Put the object back; it may be new if this bundle had no settings before.
-  storage[bundle] = obj;
+  delete obj[key];
+
+  // If deleting this key leaves the bundle completely empty, we purge the
+  // entire bundle object so that empty dictionaries do not clutter global
+  // state and persist indefinitely.
+  if (Object.keys(obj).length === 0) {
+    delete storage[bundle];
+  } else {
+    storage[bundle] = obj;
+  }
 
   saveStorage();
 }

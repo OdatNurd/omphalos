@@ -1,7 +1,7 @@
 import { logger } from '#core/logger';
 import * as constants from '@odatnurd/omphalos-common/constants';
 
-import { setValue, getValue, getGlobalStorage } from '#core/storage';
+import { setValue, getValue, deleteValue, getGlobalStorage } from '#core/storage';
 import { assert } from '#api/assert';
 
 import * as joker from '@axel669/joker';
@@ -411,8 +411,12 @@ function handleSystemMessage(msgData, io, socket) {
 
     log.debug('message is a storage update');
 
-    // Persist the updated value into the storage
-    setValue(bundle, key, value);
+    // Persist the updated value into the storage or delete it if undefined
+    if (value !== undefined) {
+      setValue(bundle, key, value);
+    } else {
+      deleteValue(bundle, key);
+    }
 
     // Every time storage updates, send an update to the system bundle running
     // in the dash, so that it can update its local cache of the values that it

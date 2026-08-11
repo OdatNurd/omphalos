@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Global State Inspector</title>
   <style>
+    /* Base layout for the dynamically generated variable rows. We group
+     * variables by bundle, creating a distinct visual block for each. */
     .bundle-block {
       margin-bottom: 1.25rem;
     }
@@ -20,8 +22,11 @@
       font-size: 0.85rem;
     }
 
+    /* Flexbox row for individual variables. This is designed to (hopefully)
+     * cleanly separate the key name, value, and action buttons. */
     .var-row {
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
       padding: 0.35rem 0.5rem;
       border-bottom: 1px dotted var(--omph-bg-hover);
@@ -30,8 +35,11 @@
       margin-bottom: 0.25rem;
     }
 
-    .var-row.is-object {
-      flex-direction: column;
+    .var-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
     }
 
     .var-key {
@@ -40,6 +48,7 @@
       font-size: 0.95rem;
     }
 
+    /* Values are aligned right and allowed to break words if they get too long */
     .var-val {
       color: var(--omph-success);
       font-family: monospace;
@@ -49,7 +58,10 @@
       text-align: right;
     }
 
-    /* Pretty-print styles for JSON objects */
+    /* Pretty-print styles for complex JSON objects/arrays.
+     *
+     * If a value is an object, we stack it vertically under the key name and
+     * wrap it in a shaded preformatted text block. */
     .var-row.is-object .var-val {
       margin-left: 0;
       margin-top: 0.5rem;
@@ -70,6 +82,88 @@
       font-style: italic;
       font-size: 0.90rem;
     }
+
+    /* Custom smaller button variant specifically for the inline row actions */
+    .btn-small {
+      background: var(--omph-bg-mute);
+      color: var(--omph-fg);
+      border: 1px solid var(--omph-border);
+      border-radius: var(--omph-radius);
+      padding: 0.15rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-left: 0.25rem;
+    }
+
+    .btn-small:hover {
+      background: var(--omph-bg-hover);
+    }
+
+    .btn-small.error {
+      color: var(--omph-error);
+      border-color: var(--omph-error);
+    }
+
+    .btn-small.error:hover {
+      background: var(--omph-error);
+      color: #fff;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    /* Native HTML5 Dialog styling.
+     *
+     * The ::backdrop pseudo-element automatically dims the page content behind
+     * the modal when .showModal() is called. */
+    dialog {
+      background: var(--omph-bg);
+      color: var(--omph-fg);
+      border: 1px solid var(--omph-border);
+      border-radius: var(--omph-radius);
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    .form-control {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-control label {
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      color: var(--omph-fg-mute);
+    }
+
+    .form-control input, .form-control textarea, .form-control select {
+      font-family: monospace;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    /* The JSON editor needs enough height to comfortably edit objects */
+    .form-control textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
   </style>
 </head>
 <body>
@@ -78,44 +172,143 @@
   </p>
 
   <div class="control-group">
-    <span class="control-group-title">State Inspector</span>
+    <div class="control-cluster spread" style="margin-bottom: 0.75rem; border-bottom: 1px solid var(--omph-border); padding-bottom: 0.25rem;">
+      <span class="control-group-title" style="border: none; margin: 0; padding: 0; width: auto;">State Inspector</span>
+      <!-- Global Add Button: Opens the modal allowing the user to select any bundle -->
+      <button class="primary btn-small" onclick="openAddModal()">+ Add Variable</button>
+    </div>
 
+    <!-- The container where renderState() will inject the dynamic DOM -->
     <div id="inspector-content">
       <span class="empty-state">Waiting for global state payload...</span>
     </div>
   </div>
 
+  <!-- The Native HTML5 Modal for editing/adding variables. It remains hidden by
+       default until dialog.showModal() is called in JS. -->
+  <dialog id="var-modal">
+    <div class="modal-header" id="modal-title">Edit Variable</div>
+    <div class="form-control">
+      <label>Bundle</label>
+      <div style="display: flex; gap: 0.5rem;">
+        <!-- Dropdown to pick an existing bundle -->
+        <select id="modal-bundle-select" style="flex: 1;"></select>
+        <!-- Hidden input that appears if "-- Custom / New --" is selected -->
+        <input type="text" id="modal-bundle-custom" placeholder="New bundle name..." style="display: none; flex: 1;" />
+      </div>
+    </div>
+    <div class="form-control">
+      <label>Key</label>
+      <input type="text" id="modal-key" placeholder="Variable key name" />
+    </div>
+    <div class="form-control">
+      <label>Value (JSON)</label>
+      <!-- A textarea instead of an input so users can format complex objects/arrays -->
+      <textarea id="modal-value"></textarea>
+    </div>
+    <div class="control-cluster right">
+      <button id="modal-cancel">Cancel</button>
+      <button id="modal-save" class="primary">Save</button>
+    </div>
+  </dialog>
+
   <script>
     const container = document.querySelector('#inspector-content');
+    const modal = document.getElementById('var-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBundleSelect = document.getElementById('modal-bundle-select');
+    const modalBundleCustom = document.getElementById('modal-bundle-custom');
+    const modalKey = document.getElementById('modal-key');
+    const modalValue = document.getElementById('modal-value');
 
+    // Our local, real-time cache of the server's backend storage.
     let globalState = {};
 
+    // -------------------------------------------------------------------------
+    // Utilities
+    // -------------------------------------------------------------------------
+
+    // A crucial security helper. Since we are taking raw string data from the
+    // network and injecting it directly into innerHTML, we must escape it to
+    // prevent Cross-Site Scripting (XSS) if someone sets a variable to a
+    // <script> tag.
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag]));
+    }
+
+    // -------------------------------------------------------------------------
+    // DOM Rendering
+    // -------------------------------------------------------------------------
+
+    // Wipes the #inspector-content container and rebuilds the DOM string from
+    // scratch based on the current globalState.
     const renderState = () => {
       const bundles = Object.keys(globalState).sort();
 
+      // If the state is totally empty, show a placeholder.
       if (bundles.length === 0) {
         container.innerHTML = '<span class="empty-state">No state data available in the system.</span>';
         return;
       }
 
       let html = '';
+
+      // Build the UI grouped by bundle name. WHen we do this we add a data-
+      // bundle attribute so that the event handlers know what to target.
       bundles.forEach(bundle => {
         html += `<div class="bundle-block">`;
-        html += `<div class="bundle-name">${bundle}</div>`;
+        html += `<div class="bundle-name" style="display: flex; justify-content: space-between; align-items: center;">
+                   <span>${bundle}</span>
+                   <div>
+                     <button class="btn-small add-btn" data-bundle="${escapeHTML(bundle)}">+ Add</button>
+                     <button class="btn-small error del-bundle-btn" data-bundle="${escapeHTML(bundle)}">Del Bundle</button>
+                   </div>
+                 </div>`;
 
         const vars = globalState[bundle];
         const keys = Object.keys(vars).sort();
 
+        // If a bundle exists but has no keys, indicate that.
         if (keys.length === 0) {
           html += `<div class="empty-state">No variables set</div>`;
         } else {
+          // Iterate over every variable in this bundle to display it.
           keys.forEach(key => {
+            // Determine if the value is an Object/Array. This dictates the
+            // layout that we want to use.
             const isObj = typeof vars[key] === 'object' && vars[key] !== null;
+
+            // Format the value. Objects get pretty-printed JSON, primitives get
+            // converted to strings.
             const val = isObj ? `<pre>${JSON.stringify(vars[key], null, 2)}</pre>` : String(vars[key]);
 
             html += `<div class="var-row ${isObj ? 'is-object' : ''}">`;
-            html += `<span class="var-key">${key}</span>`;
-            html += `<span class="var-val">${val}</span>`;
+            html += `  <div class="var-row-header">`;
+            html += `    <span class="var-key">${key}</span>`;
+
+            // Primitives are rendered inline on the same row as the key and
+            // buttons.
+            if (isObj === false) {
+              html += `  <span class="var-val">${val}</span>`;
+            }
+
+            // Action buttons with embedded target data.
+            html += `    <div class="action-btns">
+                           <button class="btn-small edit-btn" data-bundle="${escapeHTML(bundle)}" data-key="${escapeHTML(key)}">Edit</button>
+                           <button class="btn-small error del-btn" data-bundle="${escapeHTML(bundle)}" data-key="${escapeHTML(key)}">Del</button>
+                         </div>`;
+            html += `  </div>`;
+
+            // Objects are rendered on a new line below the key and buttons.
+            if (isObj === true) {
+              html += `  <span class="var-val">${val}</span>`;
+            }
             html += `</div>`;
           });
         }
@@ -123,23 +316,213 @@
         html += `</div>`;
       });
 
+      // Inject the fully built string into the DOM.
       container.innerHTML = html;
     };
 
-    // Listen for an update message that gives us the whole state as one big
-    // object. A refresh of this type is requested when the panel loads.
+    // -------------------------------------------------------------------------
+    // Modal Operations
+    // -------------------------------------------------------------------------
+
+    // Automatically show/hide the custom text input depending on what the user
+    // picks from the bundle dropdown in the Add Modal. When the custom bundle
+    // is chosen, more controls become available to allow for entering it.
+    modalBundleSelect.addEventListener('change', () => {
+      if (modalBundleSelect.value === '__custom__') {
+        modalBundleCustom.style.display = 'block';
+        modalBundleCustom.focus();
+      } else {
+        modalBundleCustom.style.display = 'none';
+      }
+    });
+
+    // Opens the modal in "Add" mode.
+    function openAddModal(bundleName = '') {
+      modalTitle.textContent = 'Add Variable';
+
+      // Rebuild the select options dynamically based on current known bundles.
+      const bundles = Object.keys(globalState).sort();
+      let options = bundles.map(b => `<option value="${escapeHTML(b)}">${escapeHTML(b)}</option>`);
+      options.push(`<option value="__custom__">-- Custom / New --</option>`);
+      modalBundleSelect.innerHTML = options.join('');
+
+      // If the user clicked "+ Add" on a specific bundle block, lock the select
+      // to that bundle.
+      if (bundleName !== '') {
+        modalBundleSelect.value = bundleName;
+        modalBundleSelect.disabled = true;
+        modalBundleCustom.style.display = 'none';
+      } else {
+        // Otherwise, let them pick, defaulting to the first bundle or the
+        // custom option.
+        modalBundleSelect.disabled = false;
+        if (bundles.length > 0) {
+          modalBundleSelect.value = bundles[0];
+          modalBundleCustom.style.display = 'none';
+        } else {
+          modalBundleSelect.value = '__custom__';
+          modalBundleCustom.style.display = 'block';
+        }
+      }
+
+      // Clear the inputs for fresh entry in the modal.
+      modalBundleCustom.value = '';
+      modalKey.value = '';
+      modalKey.readOnly = false;
+      modalValue.value = '""';
+
+      modal.showModal();
+    }
+
+    // Opens the modal in "Edit" mode.
+    function openEditModal(bundle, key) {
+      modalTitle.textContent = 'Edit Variable';
+
+      // Lock the bundle selector to the exact bundle we're editing.
+      modalBundleSelect.innerHTML = `<option value="${escapeHTML(bundle)}">${escapeHTML(bundle)}</option>`;
+      modalBundleSelect.value = bundle;
+      modalBundleSelect.disabled = true;
+      modalBundleCustom.style.display = 'none';
+
+      // Lock the key so they can only alter the value.
+      modalKey.value = key;
+      modalKey.readOnly = true;
+
+      // Inject the current value into the textarea, converting objects to JSON
+      // strings.
+      const val = globalState[bundle][key];
+      modalValue.value = JSON.stringify(val, null, 2);
+
+      modal.showModal();
+    }
+
+    // -------------------------------------------------------------------------
+    // Deletion Handlers
+    // -------------------------------------------------------------------------
+
+    // Deletes a specific variable. The server API dictates that pushing `value:
+    // undefined` acts as a deletion instruction. This will also cause the
+    // entire bundle to be dumped from the storage, if this makes it empty.
+    function deleteVariable(bundle, key) {
+      if (confirm(`Are you sure you want to delete '${key}' from '${bundle}'?`)) {
+        omphalos.event.raiseToBundle(
+          omphalos.__sys_constants.MSG_STORAGE_UPDATE,
+          omphalos.__sys_constants.SYSTEM_DASHBOARD,
+          { bundle, key, value: undefined }
+        );
+      }
+    }
+
+    // Deletes an entire bundle by iterating over all its keys and sending a
+    // deletion event for each one.
+    function deleteBundle(bundle) {
+      if (confirm(`Are you sure you want to delete ALL variables in the '${bundle}' bundle?\n\nThis will completely remove the bundle's state.`)) {
+        const keys = Object.keys(globalState[bundle] || {});
+
+        // If a bundle turns out to already by empty for some reason, we still
+        // need to trigger the purge logic. To do that, we send a dummy key
+        // deletion to initiate the server side check. It will notice that the
+        // bundle's storage is empty and purge it.
+        if (keys.length === 0) {
+          omphalos.event.raiseToBundle(
+            omphalos.__sys_constants.MSG_STORAGE_UPDATE,
+            omphalos.__sys_constants.SYSTEM_DASHBOARD,
+            { bundle, key: '__omph_purge__', value: undefined }
+          );
+        } else {
+          // Normal iteration for bundles with actual keys; delete all of the
+          // values.
+          keys.forEach(key => {
+            omphalos.event.raiseToBundle(
+              omphalos.__sys_constants.MSG_STORAGE_UPDATE,
+              omphalos.__sys_constants.SYSTEM_DASHBOARD,
+              { bundle, key, value: undefined }
+            );
+          });
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Form Submission & Event Delegation
+    // -------------------------------------------------------------------------
+
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+      modal.close();
+    });
+
+    document.getElementById('modal-save').addEventListener('click', () => {
+      // Determine the bundle name depending on the dropdown state.
+      const bundle = modalBundleSelect.value === '__custom__'
+                     ? modalBundleCustom.value.trim()
+                     : modalBundleSelect.value.trim();
+      const key = modalKey.value.trim();
+      const valStr = modalValue.value.trim();
+
+      if (bundle === '' || key === '') {
+        omphalos.toast('Bundle and Key are required', 'error');
+        return;
+      }
+
+      // We explicitly require the user to write valid JSON in the text area.
+      // This solves the problem of typing "true" as a string vs a boolean, or
+      // "123" vs 123.
+      let parsedVal;
+      try {
+        parsedVal = valStr !== '' ? JSON.parse(valStr) : undefined;
+      } catch (err) {
+        omphalos.toast('Invalid JSON: ' + err.message, 'error');
+        return;
+      }
+
+      // Synthesize a cross-bundle update. We push the update directly to the
+      // System Dashboard router, bypassing the local scope restrictions of
+      // bundleVars.set().
+      omphalos.event.raiseToBundle(
+        omphalos.__sys_constants.MSG_STORAGE_UPDATE,
+        omphalos.__sys_constants.SYSTEM_DASHBOARD,
+        { bundle, key, value: parsedVal }
+      );
+
+      modal.close();
+    });
+
+    // Because the list of variables is entirely dynamic and rewritten on every
+    // state change, attaching standard event listeners to every single Edit and
+    // Delete button might use a lot of resources.
     //
-    // Update our global state wholesale, and then render.
+    // Instead, a single listener is attached to the parent container. When a
+    // user clicks, the event "bubbles up" to the container, which checks the
+    // target's class list and extracts the bundle/key info from the `data-*`
+    // attributes.
+    container.addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-btn') === true) {
+        openEditModal(e.target.dataset.bundle, e.target.dataset.key);
+      } else if (e.target.classList.contains('del-btn') === true) {
+        deleteVariable(e.target.dataset.bundle, e.target.dataset.key);
+      } else if (e.target.classList.contains('add-btn') === true) {
+        openAddModal(e.target.dataset.bundle);
+      } else if (e.target.classList.contains('del-bundle-btn') === true) {
+        deleteBundle(e.target.dataset.bundle);
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // Network Synchronization
+    // -------------------------------------------------------------------------
+
+    // Listen for a total global storage refresh. This replaces our local cache
+    // wholesale and forces a full re-render.
     omphalos.event.on(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_REFRESH, (data) => {
       omphalos.log.debug('received a global state refresh');
       globalState = data;
       renderState();
     });
 
-    // Listen for a global message update that tells us that the value of a key
-    // in a specific bundle has been modified.
+    // Listen for a targeted global message update that tells us the value of a
+    // single key in a specific bundle has been modified.
     //
-    // Patch just the variable that changed and then render.
+    // This allows us to patch our local cache efficiently.
     omphalos.event.on(omphalos.__sys_constants.MSG_GLOBAL_STORAGE_UPDATE, (data) => {
       const { bundle, key, value } = data;
       omphalos.log.debug(`received targetted storage refresh for ${bundle}:${key}`);
@@ -158,18 +541,32 @@
         delete globalState[bundle][key];
       }
 
+      // Local Garbage Collection:
+      //
+      // If deleting the key left the bundle completely empty, we must delete
+      // the bundle from our local cache, or else it will render as a ghost
+      // bundle.
+      if (Object.keys(globalState[bundle]).length === 0) {
+        delete globalState[bundle];
+      }
+
       renderState();
     });
 
-    // Request an initial update; even though we may not be connected yet, in
-    // that state the connection is being establishe, and socket.io will buffer
-    // the message, so ship out a request to get a complete dump of the current
-    // state system.
-    omphalos.event.raiseToBundle(
-      omphalos.__sys_constants.MSG_REQUEST_GLOBAL_STATE,
-      omphalos.__sys_constants.SYSTEM_DASHBOARD,
-      {}
-    );
+    // Request an initial update when we connect.
+    //
+    // By wrapping this in the ioConnect lifecycle hook, we guarantee that this
+    // panel will ask the server for the latest global state *both* on its
+    // initial load, AND automatically if the WebSocket drops and reconnects
+    // later (e.g. if the server restarts). The connection event is guaranteed
+    // to trigger after the storage hydration.
+    omphalos.event.ioConnect(() => {
+      omphalos.event.raiseToBundle(
+        omphalos.__sys_constants.MSG_REQUEST_GLOBAL_STATE,
+        omphalos.__sys_constants.SYSTEM_DASHBOARD,
+        {}
+      );
+    });
   </script>
 </body>
 </html>

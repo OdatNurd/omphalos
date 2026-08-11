@@ -1,7 +1,7 @@
 ---
 title: Configuration
 sidebar:
-  order: 6
+  order: 8
 ---
 
 This page would talk about the configuration file in more detail. It should
