@@ -334,6 +334,11 @@ export async function _playAudioInternal(bundleName, soundFile, options = {}) {
   const url = `/bundles/${bundleName}/sounds/${soundFile}`;
   const audio = new Audio(url);
   audio.crossOrigin = "anonymous";
+  audio.style.display = "none";
+
+  // Explicitly attach to the DOM to prevent Chrome from aborting or
+  // garbage-collecting the element during playback initialization.
+  document.body.appendChild(audio);
 
   if (audioContext !== undefined) {
    // Because the Web Audio API graph takes over routing, we apparently have to
@@ -388,12 +393,21 @@ export async function _playAudioInternal(bundleName, soundFile, options = {}) {
      pannerNode.disconnect();
      audio.remove();
    });
+  } else {
+    audio.addEventListener('ended', () => {
+      audio.remove();
+    });
   }
 
   try {
     await audio.play();
   } catch (err) {
-    log.error(`playback failed: ${err}`);
+    audio.remove();
+    if (err.name === 'AbortError') {
+      log.warn(`playback aborted by browser: ${err.message}`);
+    } else {
+      log.error(`playback failed: ${err}`);
+    }
   }
 }
 

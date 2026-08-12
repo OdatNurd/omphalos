@@ -297,33 +297,48 @@ export function discoverBundles(appManifest) {
         // If there any graphics, ensure that they all have a name field; use
         // the file as a backup if there is not.
         const graphics = manifest.omphalos.graphics ?? [];
-        graphics.forEach(graphic => {
+        const graphicNames = new Set();
+        for (const graphic of graphics) {
           if (graphic.name === undefined) {
             graphic.name = graphic.file;
           }
-        })
+          if (graphicNames.has(graphic.name)) {
+            throw new Error(`bundle '${manifest.name}' contains duplicate graphic name: '${graphic.name}'`);
+          }
+          graphicNames.add(graphic.name);
+        }
 
         // If there are any panels, ensure that they all have a workspace field;
         // there is a default workspace applied to everything that doesn't have
         // an explicit workspace set.
         const panels = manifest.omphalos.panels ?? [];
-        panels.forEach(panel => {
+        const panelNames = new Set();
+        for (const panel of panels) {
+          if (panelNames.has(panel.name)) {
+            throw new Error(`bundle '${manifest.name}' contains duplicate panel name: '${panel.name}'`);
+          }
+          panelNames.add(panel.name);
           if (panel.workspace === undefined) {
             panel.workspace = 'Workspace';
           }
-        })
+        }
 
         // Ensure that all sounds have default values for volume and pan, even
         // if the manifest does not provide them.
         const sounds = manifest.omphalos.sounds ?? [];
-        sounds.forEach(sound => {
+        const soundNames = new Set();
+        for (const sound of sounds) {
+          if (soundNames.has(sound.name)) {
+            throw new Error(`bundle '${manifest.name}' contains duplicate sound name: '${sound.name}'`);
+          }
+          soundNames.add(sound.name);
           if (sound.volume === undefined) {
             sound.volume = 1.0;
           }
           if (sound.pan === undefined) {
             sound.pan = 0.0;
           }
-        })
+        }
 
         // Save it now.
         bundles[manifest.name] = manifest;
