@@ -14,3 +14,7 @@ TODO.md
 
 # Bundles that we create while testing
 *.omphalos-bundle
+
+# Generated repomixfiles
+omphalos-codebase.md
+omphalos-docs.md

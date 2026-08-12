@@ -4,7 +4,7 @@ sidebar:
   label: config
 ---
 
-This object is a copy of the full [application configuration](/guides/configuration)
+This object is a copy of the full [[application configuration|configuration]]
 that the bundle is running under.
 
 The information in this object has the same structure as the configuration file
@@ -41,6 +41,6 @@ has, and also has some other fields that can be utilized at runtime.
 
 :::caution
 While this gives you information such as the `storageFile` that is used to
-store [bundle variables](/api/omphalos/bundlevars/set), the result is undefined
-should you modify such files yourself without using the appropriate API.
+store [[bundle variables|storage]], the result is undefined should you modify
+such files yourself without using the appropriate API.
 :::

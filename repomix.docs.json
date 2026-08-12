@@ -1,0 +1,15 @@
+{
+  "output": {
+    "filePath": "omphalos-docs.md",
+    "style": "markdown",
+    "patterns": [
+      {
+        "pattern": "**/*.svg",
+        "directoryStructureOnly": true
+      }
+    ]
+  },
+  "include": [
+    "docs/**/*"
+  ]
+}

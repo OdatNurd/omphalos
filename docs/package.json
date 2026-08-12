@@ -29,6 +29,8 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@astrojs/markdown-remark": "^7.2.2",
+    "unist-util-visit": "^5.1.0",
     "wrangler": "^4.100.0"
   }
 }

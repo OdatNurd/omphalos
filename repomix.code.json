@@ -1,0 +1,17 @@
+{
+  "output": {
+    "filePath": "omphalos-codebase.md",
+    "style": "markdown"
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/fontawesome/**",
+      "**/docs/**",
+      "**/gridstack/**",
+      "**/*.svg",
+      "**/*.png"
+    ]
+  }
+}

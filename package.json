@@ -15,6 +15,7 @@
     "node": ">=20.x"
   },
   "scripts": {
+    "repomix": "pnpm dlx repomix -c",
     "app:dev": "pnpm --filter omphalos-app run dev",
     "app:dev:watch": "pnpm --filter omphalos-app run dev:watch",
     "docs:dev": "pnpm --filter omphalos-docs run dev",

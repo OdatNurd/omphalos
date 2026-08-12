@@ -18,9 +18,9 @@ This item is only present in the API object in `panels` and `graphics`; it is
 not present in the API that is given to the `extension`.
 :::
 
-This event is raised by a call to [omphalos.form.load](/api/omphalos/form/load)
-to load a form from storage. The event invokes after the load takes place, and
-has the following payload:
+This event is raised by a call to [[omphalos.form.load()]] to load a form from
+storage. The event invokes after the load takes place, and has the following
+payload:
 
 ```js
 {
@@ -33,6 +33,6 @@ has the following payload:
 }
 ```
 
-Invoking this function is equivalent to a call to
-[omphalos.event.on](/api/omphalos/event/on), and thus returns a function you can
-use to cancel the event listener registration as needed.
+Invoking this function is equivalent to a call to [[omphalos.event.on()]], and
+thus returns a function you can use to cancel the event listener registration
+as needed.

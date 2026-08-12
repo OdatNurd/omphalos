@@ -53,7 +53,7 @@ and load successfully.
 ```
 
 If given, this is a relative path to the entry point of server side extension
-code; this must export the appropriate [lifecycle](/docs/api/lifecycle) symbols.
+code; this must export the appropriate [[extension|extensions]] symbols.
 
 ### panelPath
 
@@ -260,7 +260,7 @@ The underlying sound file itself.
 * required
 
 The internal name for this sound; this is what is used to play the sound when
-using [omphalos.sound.play](/api/omphalos/sound/play).
+using [[omphalos.sound.play()]].
 
 #### volume
 
@@ -268,7 +268,7 @@ using [omphalos.sound.play](/api/omphalos/sound/play).
 
 The relative volume of this sound, by default. 0.0 is muted and 1.0 is full
 volume. This is just the baseline; the value can be adjusted in the mixer in
-the dashboard.
+the dashboard as well as via [[omphalos.sound.set()]].
 
 #### pan
 
@@ -276,4 +276,4 @@ the dashboard.
 
 The relative panning of this sound, by default. -1.0 is full left, 0.0 is
 center, and 1.0 is full right. This is just the baseline; the value can be
-adjusted in the mixer in the dashboard.
+adjusted in the mixer in the dashboard as well as via [[omphalos.sound.set()]].

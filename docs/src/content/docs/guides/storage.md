@@ -7,15 +7,14 @@ sidebar:
 Omphalos allows for persistent storage, which is saved on the server in a
 per-`bundle` way. This is an open ended system that allows for any number of
 variables to be saved and persisted across sessions as well as shared between
-[panels](/guides/panels), [graphics](/guides/graphics) and
-[extensions](/guides/extensions).
+[[panels]], [[graphics]] and [[extensions]].
 
-The [API](/api) has a `bundleVars` object that supports the
+The [[API|omphalos]] has a `bundleVars` object that supports the
 following operations:
- - [setting](/api/omphalos/bundlevars/set) the value
- - [getting](/api/omphalos/bundlevars/get) the value
- - [deleting](/api/omphalos/bundlevars/delete) the variable
- - [notification](/api/omphalos/bundlevars/on) of changes
+ - [[setting|omphalos.bundleVars.set]] the value
+ - [[getting|omphalos.bundleVars.get]] the value
+ - [[deleting|omphalos.bundleVars.delete]] the variable
+ - [[notification|omphalos.bundleVars.on]] of changes
 
 
 The storage systems allows any value to be persisted, with the only
@@ -25,7 +24,7 @@ restriction that it be `JSON-encodable`.
 
 The above API allows for simple, granular access to variables. When a variable
 is used frequently in the code, a better option is often to use a
-[Skepsis](/api/omphalos/skepsis) instead.
+[[Skepsis|omphalos.Skepsis]] instead.
 
 This is a simple object that wraps a particular variable; it's `.value`
 property is always the most recent value, changing the value of this property

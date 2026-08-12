@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
+import { remarkOmphalosLinks } from './src/remarkOmphalosLinks.js';
 
 // https://astro.build/config
 export default defineConfig({
@@ -8,6 +10,11 @@ export default defineConfig({
   publicDir: './static',
   server: {
     port: 3000
+  },
+  markdown: {
+    processor: unified({
+      remarkPlugins: [remarkOmphalosLinks],
+    }),
   },
   integrations: [
     starlight({

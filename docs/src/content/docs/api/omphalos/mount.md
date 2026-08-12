@@ -16,8 +16,8 @@ This item is only present in the API object given to an `extension`; it is
 not available in `panels` and `graphics`.
 :::
 
-Mount a router created by [omphalos.createRouter](/api/omphalos/createRouter) into the
-underlying application.
+Mount a router created by [[omphalos.createRouter()]] into the underlying
+application.
 
 Custom routers are mounted in the order that extensions are loaded.
 

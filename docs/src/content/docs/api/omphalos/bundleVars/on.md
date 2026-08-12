@@ -12,9 +12,8 @@ function omphalos.bundleVars.on(key, callback);
 function callback(newValue, oldValue, key);
 ```
 
-This function registers a callback to be invoked every time the value
-of the specified variable changes, such as through
-[omphalos.bundleVars.set](/api/omphalos/bundlevars/set).
+This function registers a callback to be invoked every time the value of the
+specified variable changes, such as through [[omphalos.bundleVars.set()]].
 
 The return value is an `unlisten` function that can be used to cancel the
 listener.

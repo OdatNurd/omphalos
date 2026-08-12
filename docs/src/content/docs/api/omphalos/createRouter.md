@@ -20,7 +20,7 @@ Create and return back a new [express router][1] to allow your extension to
 respond to any requests it may need to respond to, expose the routes of used
 libraries, etc.
 
-The created router can be mounted using [omphalos.mount](/api/omphalos/mount).
+The created router can be mounted using [[omphalos.mount()]].
 
 ```js title="Simple router Test"
   const router = omphalos.createRouter();

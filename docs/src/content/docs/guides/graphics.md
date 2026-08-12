@@ -24,9 +24,9 @@ body {
 }
 ```
 
-When graphics load, [omphalos.config](/api/omphalos/config) is set to the
-configuration under which Omphalos is currently running. This is the same
-configuration as is loaded from the configuration files.
+When graphics load, [[omphalos.config]] is set to the configuration under which
+Omphalos is currently running. This is the same configuration as is loaded from
+the configuration files.
 
-In addition, a global variables named [omphalos](/api/api) is set up to provide
-an API to the graphic that allows it to interface with the system.
+In addition, a global variables named [[omphalos]] is set up to provide an API
+to the graphic that allows it to interface with the system.

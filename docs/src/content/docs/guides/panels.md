@@ -23,9 +23,9 @@ body {
 }
 ```
 
-When panels load, [omphalos.config](/api/omphalos/config) is set to the
-configuration under which Omphalos is currently running. This is the same
-configuration as is loaded from the configuration files.
+When panels load, [[omphalos.config]] is set to the configuration under which
+Omphalos is currently running. This is the same configuration as is loaded from
+the configuration files.
 
-In addition, a global variables named [omphalos](/api/api) is set up to provide
+In addition, a global variables named [[omphalos]] is set up to provide
 an API to the panel that allows it to interface with the system.
