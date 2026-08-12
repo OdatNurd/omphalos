@@ -43,6 +43,16 @@
         }
       },
       {
+        "file": "sound/sound_test.html",
+        "name": "sound-test",
+        "title": "Sound Playback Test",
+        "workspace": "Sounds",
+        "size": {
+          "width": 6,
+          "height": 14
+        }
+      },
+      {
         "file": "sizing/sizing_one.html",
         "name": "sizing-one",
         "title": "Vertical Change Only",
@@ -87,6 +97,17 @@
           "width": 960,
           "height": 540
         }
+      }
+    ],
+    "soundsPath": "sounds",
+    "sounds": [
+      {
+        "file": "click.ogg",
+        "name": "click"
+      },
+      {
+        "file": "sample.mp3",
+        "name": "sample"
       }
     ]
   }

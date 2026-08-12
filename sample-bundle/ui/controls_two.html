@@ -14,6 +14,13 @@
   <div id="clacker"></div>
 
   <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
+    <p style="margin-bottom: 0.5rem;">Connected Peers:</p>
+    <div id="peer-list" style="font-family: monospace; font-size: 0.9rem; background: var(--omph-bg-mute); padding: 0.5rem; border-radius: var(--omph-radius); border: 1px solid var(--omph-border); min-height: 2rem;">
+      <!-- Content dynamically rendered -->
+    </div>
+  </div>
+
+  <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
     <p style="margin-bottom: 0.25rem;">Global Click Tracking (Skepsis API):</p>
     <div id="total-clicks" style="font-weight: bold; color: var(--omph-primary); margin-bottom: 0.75rem;"></div>
     <button id="reset-clicks" class="warning" disabled>Reset Lifetime Clicks</button>
@@ -23,6 +30,62 @@
     const output = document.querySelector('#clacker');
     const totalOutput = document.querySelector('#total-clicks');
     const resetBtn = document.querySelector('#reset-clicks');
+    const peerList = document.querySelector('#peer-list');
+
+    // -------------------------------------------------------------------------
+    // Peer Tracking Logic
+    // -------------------------------------------------------------------------
+    let peers = {};
+
+    const initPeers = () => {
+      peers = {};
+      const manifest = omphalos.bundle.omphalos;
+
+      // Pre-populate statically known panels from the manifest
+      if (manifest.panels !== undefined) {
+        manifest.panels.forEach(p => {
+          peers[`panel:${p.name}`] = { type: 'panel', name: p.name, count: 'unknown' };
+        });
+      }
+
+      // Pre-populate statically known graphics from the manifest
+      if (manifest.graphics !== undefined) {
+        manifest.graphics.forEach(g => {
+          peers[`graphic:${g.name}`] = { type: 'graphic', name: g.name, count: 'unknown' };
+        });
+      }
+    };
+
+    const renderPeers = () => {
+      const keys = Object.keys(peers).sort();
+
+      if (keys.length === 0) {
+        peerList.innerHTML = '<span style="color: var(--omph-fg-mute); font-style: italic;">No peers detected in manifest.</span>';
+        return;
+      }
+
+      let html = '';
+      keys.forEach(key => {
+        const p = peers[key];
+        let statusHtml = '';
+
+        if (p.count === 'unknown') {
+          statusHtml = `<span style="color: var(--omph-warning);">unknown</span>`;
+        } else if (p.count > 0) {
+          statusHtml = `<span style="color: var(--omph-success);">${p.count} active</span>`;
+        } else {
+          statusHtml = `<span style="color: var(--omph-fg-mute);">offline</span>`;
+        }
+
+        html += `<div style="margin-bottom: 0.25rem;"><span style="color: var(--omph-primary); font-weight: bold;">[${p.type}]</span> ${p.name}: ${statusHtml}</div>`;
+      });
+
+      peerList.innerHTML = html;
+    };
+
+    // Initialize and render the static list immediately upon script execution
+    initPeers();
+    renderPeers();
 
     // -------------------------------------------------------------------------
     // Network Lifecycle Events
@@ -30,22 +93,43 @@
     omphalos.event.ioConnect(() => {
       omphalos.log.debug('Socket connected and hydrated: enabling reset button');
       resetBtn.disabled = false;
+
+      // The server deliberately does not broadcast a peer connection event to us
+      // for our own panel instance. Since we know we are connected, we manually
+      // set our count to 1 (unless it is already higher from other instances).
+      const selfKey = `${omphalos.asset.type}:${omphalos.asset.name}`;
+      if (peers[selfKey] !== undefined) {
+        if (peers[selfKey].count === 'unknown' || peers[selfKey].count === 0) {
+          peers[selfKey].count = 1;
+        }
+      }
+      renderPeers();
     });
 
     omphalos.event.ioDisconnect(() => {
       omphalos.log.debug('Socket disconnected: disabling reset button');
       resetBtn.disabled = true;
+
+      // Revert all peers back to 'unknown' since we lost contact with the server
+      initPeers();
+      renderPeers();
     });
 
     // -------------------------------------------------------------------------
     // Peer Events
     // -------------------------------------------------------------------------
     omphalos.event.peerConnected((data) => {
-      omphalos.toast(`Peer Connected: ${data.type} "${data.name}"`, 'success', 3);
+      if (peers[`${data.type}:${data.name}`] !== undefined) {
+        peers[`${data.type}:${data.name}`].count = data.count;
+        renderPeers();
+      }
     });
 
     omphalos.event.peerDisconnected((data) => {
-      omphalos.toast(`Peer Disconnected: ${data.type} "${data.name}"`, 'warning', 3);
+      if (peers[`${data.type}:${data.name}`] !== undefined) {
+        peers[`${data.type}:${data.name}`].count = data.count;
+        renderPeers();
+      }
     });
 
     // -------------------------------------------------------------------------
@@ -58,7 +142,7 @@
     omphalos.event.on('clack', () => {
       clackCount++;
       output.innerHTML = `Button clicked ${clackCount} times since panel reload`;
-      output.style = 'border-top: 1px solid; padding-top: 0.5rem;';
+      output.style = 'border-top: 1px solid var(--omph-border); padding-top: 0.5rem;';
     });
 
     // -------------------------------------------------------------------------

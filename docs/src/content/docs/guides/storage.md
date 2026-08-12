@@ -1,7 +1,7 @@
 ---
 title: Storage
 sidebar:
-  order: 6
+  order: 7
 ---
 
 Omphalos allows for persistent storage, which is saved on the server in a
@@ -10,7 +10,7 @@ variables to be saved and persisted across sessions as well as shared between
 [panels](/guides/panels), [graphics](/guides/graphics) and
 [extensions](/guides/extensions).
 
-The [API](/api/api) has a `bundleVars` object that supports the
+The [API](/api) has a `bundleVars` object that supports the
 following operations:
  - [setting](/api/omphalos/bundlevars/set) the value
  - [getting](/api/omphalos/bundlevars/get) the value

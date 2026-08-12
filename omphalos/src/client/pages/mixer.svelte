@@ -2,7 +2,7 @@
   import { Content, Icon } from '$components';
   import { onMount, onDestroy } from 'svelte';
 
-  import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_REQUEST_GLOBAL_STATE, MSG_GLOBAL_STORAGE_REFRESH } from '@odatnurd/omphalos-common/constants';
+  import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_REQUEST_GLOBAL_STATE, MSG_GLOBAL_STORAGE_REFRESH, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
 
   import { sounds } from '$stores/sounds.js';
 
@@ -31,6 +31,7 @@
 
   let stateListener;
   let connectListener;
+  let updateListener;
 
   // Helper function to dispatch storage updates specifically targeting the
   // system dashboard, which will re-route the save to the appropriate target
@@ -50,7 +51,7 @@
 
   const updateSound = (bundleName, soundName) => {
     const val = soundSettings[`${bundleName}:${soundName}`];
-    updateStorage(bundleName, `audio_settings_${soundName}`, val);
+    updateStorage(bundleName, `__sys_audio:${bundleName}:${soundName}`, val);
   };
 
   // Helper to parse file extensions into readable type tags with badge coloring
@@ -137,11 +138,11 @@
   }
 
   const soundTest = () => {
-    omphalos.playSound('omphalos', SYSTEM_BUNDLE);
+    omphalos.sound.play('omphalos', SYSTEM_BUNDLE);
   }
 
   const playRemote = (bundleName, soundName) => {
-    omphalos.playSound(soundName, bundleName);
+    omphalos.sound.play(soundName, bundleName);
   }
 
   // After the page mounts, get the list of devices, request state, and bind events.
@@ -168,7 +169,7 @@
       let newSettings = {};
       for (const bundle of $sounds) {
         for (const sound of bundle.sounds) {
-          const key = `audio_settings_${sound.name}`;
+          const key = `__sys_audio:${bundle.name}:${sound.name}`;
           newSettings[`${bundle.name}:${sound.name}`] = data[bundle.name]?.[key] ?? { volume: sound.volume, pan: sound.pan };
         }
       }
@@ -176,11 +177,61 @@
       soundSettings = newSettings;
       stateLoaded = true;
     });
+
+    // Listen for targeted updates to catch programmatic audio changes while the
+    // mixer is actively open, so that the UI sliders stay synced. This makes
+    // life far less confusing, say when you are working on the sound API.
+    updateListener = omphalos.event.on(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE, data => {
+      const { bundle, key, value } = data;
+
+      // Check for master routing controls first; these are stored in the system
+      // bundle.
+      if (bundle === SYSTEM_BUNDLE) {
+        if (key === 'masterVolume') masterVolume = value ?? 1.0;
+        if (key === 'masterPan') masterPan = value ?? 0.0;
+      }
+
+      // If an updae is a per sound override, then we need to check and see what
+      // to update. These keys appear in all bundles, including the system
+      // bundle.
+      if (key.startsWith('__sys_audio:')) {
+        const parts = key.split(':');
+        if (parts.length === 3) {
+          const bName = parts[1];
+          const sName = parts[2];
+          const setKey = `${bName}:${sName}`;
+
+          // Only attempt to update if we have already mapped this sound in our
+          // local UI state.
+          if (soundSettings[setKey] !== undefined) {
+            const bundleObj = $sounds.find(b => b.name === bName);
+            const soundObj = bundleObj?.sounds.find(s => s.name === sName);
+
+            if (value !== undefined) {
+              // We strictly map these to the existing inner object to ensure
+              // Svelte's `<input type="range">` bindings stay connected.
+              soundSettings[setKey].volume = Number(value.volume ?? soundObj?.volume ?? 1.0);
+              soundSettings[setKey].pan = Number(value.pan ?? soundObj?.pan ?? 0.0);
+            } else {
+              // If the value was deleted, revert to the baseline manifest
+              // defaults
+              soundSettings[setKey].volume = Number(soundObj?.volume ?? 1.0);
+              soundSettings[setKey].pan = Number(soundObj?.pan ?? 0.0);
+            }
+
+            // Explicitly force Svelte to acknowledge the inner property
+            // mutations
+            soundSettings = soundSettings;
+          }
+        }
+      }
+    });
   });
 
   onDestroy(() => {
     if (stateListener !== undefined) stateListener();
     if (connectListener !== undefined) connectListener();
+    if (updateListener !== undefined) updateListener();
   });
 
   $: {

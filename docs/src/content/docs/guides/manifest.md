@@ -260,7 +260,7 @@ The underlying sound file itself.
 * required
 
 The internal name for this sound; this is what is used to play the sound when
-using [omphalos.playSound](/api/omphalos/playsound).
+using [omphalos.sound.play](/api/omphalos/sound/play).
 
 #### volume
 

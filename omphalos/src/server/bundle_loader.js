@@ -1,7 +1,7 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE, EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED } from '@odatnurd/omphalos-common/constants';
+import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE, EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED, MSG_TRIGGER_SOUND } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -248,7 +248,7 @@ function setupAssetRoutes(manifest, bundleName, assetType, router) {
  * The return value is an object that represents the list of symbols that the
  * imported module exported for other bundles to use. This could be an empty
  * object. */
-async function loadBundleExtension(omphalos, manifest, bundleName) {
+async function loadBundleExtension(omphalos, manifest, bundleName, bundles) {
   log.info(`loading code extensions for '${bundleName}'`);
 
   // If the manifest doesn't include an extension endpoint, then there is
@@ -411,6 +411,81 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
           }
         }
       }
+    },
+
+    sound: {
+      play: (soundName, arg2, arg3) => {
+        let targetBundle = bundleName;
+        let options = {};
+
+        if (typeof arg2 === 'string') {
+          targetBundle = arg2;
+          options = arg3 || {};
+        } else if (typeof arg2 === 'object') {
+          options = arg2;
+        }
+
+        bundle_api.event.raiseToBundle(MSG_TRIGGER_SOUND, SYSTEM_BUNDLE, {
+          bundle: targetBundle,
+          sound: soundName,
+          options: options
+        });
+      },
+
+      get: (soundName, targetBundleName) => {
+        const target = targetBundleName || bundleName;
+        const targetManifest = bundles[target];
+
+        assert(targetManifest !== undefined, `bundle '${target}' not found.`);
+
+        const soundDef = (targetManifest.omphalos.sounds || []).find(s => s.name === soundName);
+        assert(soundDef !== undefined, `sound '${soundName}' not found in bundle '${target}'.`);
+
+        const overrides = getValue(target, `__sys_audio:${target}:${soundName}`, {});
+        return {
+          volume: overrides.volume ?? soundDef.volume ?? 1.0,
+          pan: overrides.pan ?? soundDef.pan ?? 0.0
+        };
+      },
+
+      set: (soundName, arg2, arg3) => {
+        let targetBundle = bundleName;
+        let options = {};
+
+        if (typeof arg2 === 'string') {
+          targetBundle = arg2;
+          options = arg3 || {};
+        } else if (typeof arg2 === 'object') {
+          options = arg2;
+        }
+
+        const targetManifest = bundles[targetBundle];
+        assert(targetManifest !== undefined, `bundle '${targetBundle}' not found.`);
+
+        const soundDef = (targetManifest.omphalos.sounds || []).find(s => s.name === soundName);
+        assert(soundDef !== undefined, `sound '${soundName}' not found in bundle '${targetBundle}'.`);
+
+        const key = `__sys_audio:${targetBundle}:${soundName}`;
+        const existing = getValue(targetBundle, key, {});
+        const newValue = { ...existing, ...options };
+
+        // Commit directly to the target bundle's storage dictionary
+        setValue(targetBundle, key, newValue);
+
+        // Announce to the target bundle so its assets update immediately
+        bundle_api.event.raiseToBundle(MSG_STORAGE_UPDATE, targetBundle, {
+          key,
+          value: newValue,
+          oldValue: existing
+        });
+
+        // Announce to the system bundle so the dashboard inspectors refresh
+        bundle_api.event.raiseToBundle(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE, {
+          bundle: targetBundle,
+          key,
+          value: newValue
+        });
+      }
     }
   }
 
@@ -452,7 +527,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName) {
  * If there is any error in loading the bundle, such as a missing resource or
  * an error occurs while launching the extension code, this will raise an
  * exception. */
-async function loadBundle(omphalos, manifest) {
+async function loadBundle(omphalos, manifest, bundles) {
   let router = null;
 
   // Alias the name of the bundle for simplicity.
@@ -477,7 +552,7 @@ async function loadBundle(omphalos, manifest) {
   //
   // The return value (assuming no exception) is an object which contains the
   // symbols this bundle exported, which might be empty/
-  const symbols = await loadBundleExtension(omphalos, manifest, bundleName);
+  const symbols = await loadBundleExtension(omphalos, manifest, bundleName, bundles);
 
   // Set up the asset routes as needed. These don't signal an error back because
   // it's not as catastrophic if an assetis missing; this could be done on
@@ -536,7 +611,7 @@ export async function loadBundles(omphalos, appManifest) {
       // Load the bundle; this will throw an exception if there are any issues.
       // If any routes need to be served, the manifest we pass in will be given
       // a "router" key that includes an appropriate router.
-      const { router, symbols } = await loadBundle(omphalos, bundles[name]);
+      const { router, symbols } = await loadBundle(omphalos, bundles[name], bundles);
       if (router !== null) {
         routers.push(router);
       }

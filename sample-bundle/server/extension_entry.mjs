@@ -40,6 +40,7 @@ export function main(omphalos) {
   // clack.
   omphalos.event.on('click', () => {
     omphalos.log.debug('*** CLICK? CLACK! ***');
+    omphalos.sound.play('click');
     omphalos.event.raise('clack');
 
     // Update the global value via the Skepsis setter

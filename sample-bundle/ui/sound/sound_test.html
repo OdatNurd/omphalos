@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sound API Showcase</title>
+  <style>
+    /* Small layout helper to space out stacked button rows cleanly */
+    .btn-row {
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <p>
+    This panel demonstrates the <code>omphalos.sound</code> API. It can trigger
+    audio playback with momentary overrides, or permanently mutate the baseline
+    mixer configuration for a specific sound.
+  </p>
+
+  <div class="control-group">
+    <span class="control-group-title">Playback Triggers</span>
+    <span class="control-text full-width">
+      Fire the sound using the current dashboard defaults, or bypass them for a single execution.
+    </span>
+
+    <div class="control-cluster evenly btn-row">
+      <button id="btn-play-default" class="primary">Play (Mixer Defaults)</button>
+    </div>
+
+    <div class="control-cluster evenly">
+      <button id="btn-play-left" class="info">Play (Hard Left, 100%)</button>
+      <button id="btn-play-right" class="info">Play (Hard Right, 100%)</button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Dashboard Mixer Controls</span>
+    <span class="control-text full-width">
+      Programmatically adjust the stored baseline mix for this sound.
+      If the Dashboard Mixer is open, you will see its sliders move in real-time.
+    </span>
+
+    <span class="control-text full-width" style="margin-top: 0.5rem; font-weight: bold; color: var(--omph-fg);">Panning</span>
+    <div class="control-cluster evenly btn-row">
+      <button id="btn-pan-left">Set Left</button>
+      <button id="btn-pan-center">Set Center</button>
+      <button id="btn-pan-right">Set Right</button>
+    </div>
+
+    <span class="control-text full-width" style="margin-top: 0.5rem; font-weight: bold; color: var(--omph-fg);">Volume</span>
+    <div class="control-cluster evenly">
+      <button id="btn-vol-25">25%</button>
+      <button id="btn-vol-50">50%</button>
+      <button id="btn-vol-75">75%</button>
+      <button id="btn-vol-100">100%</button>
+    </div>
+  </div>
+
+  <script>
+    // The target sound name we assume is placed in the manifest
+    const SOUND_NAME = 'sample';
+
+    // -------------------------------------------------------------------------
+    // Playback Triggers
+    // -------------------------------------------------------------------------
+
+    document.getElementById('btn-play-default').addEventListener('click', () => {
+      // Fire the sound with no options, relying entirely on the dashboard baseline
+      omphalos.sound.play(SOUND_NAME);
+      omphalos.toast(`Triggered '${SOUND_NAME}' with default mix`, 'info', 2);
+    });
+
+    document.getElementById('btn-play-left').addEventListener('click', () => {
+      // Override the baseline strictly for this single playback
+      omphalos.sound.play(SOUND_NAME, { pan: -1.0, volume: 1.0 });
+      omphalos.toast(`Triggered '${SOUND_NAME}' (Left/100%)`, 'info', 2);
+    });
+
+    document.getElementById('btn-play-right').addEventListener('click', () => {
+      // Override the baseline strictly for this single playback
+      omphalos.sound.play(SOUND_NAME, { pan: 1.0, volume: 1.0 });
+      omphalos.toast(`Triggered '${SOUND_NAME}' (Right/100%)`, 'info', 2);
+    });
+
+
+    // -------------------------------------------------------------------------
+    // Persistent Baseline Mutations
+    // -------------------------------------------------------------------------
+
+    // Wire up the panning adjusters
+    const panControls = [
+      { id: 'btn-pan-left', val: -1.0, label: 'Left' },
+      { id: 'btn-pan-center', val: 0.0, label: 'Center' },
+      { id: 'btn-pan-right', val: 1.0, label: 'Right' }
+    ];
+
+    panControls.forEach(ctrl => {
+      document.getElementById(ctrl.id).addEventListener('click', () => {
+        omphalos.sound.set(SOUND_NAME, { pan: ctrl.val });
+        omphalos.toast(`Baseline Pan set to ${ctrl.label}`, 'success', 2);
+      });
+    });
+
+    // Wire up the volume adjusters
+    const volControls = [
+      { id: 'btn-vol-25', val: 0.25 },
+      { id: 'btn-vol-50', val: 0.50 },
+      { id: 'btn-vol-75', val: 0.75 },
+      { id: 'btn-vol-100', val: 1.0 }
+    ];
+
+    volControls.forEach(ctrl => {
+      document.getElementById(ctrl.id).addEventListener('click', () => {
+        omphalos.sound.set(SOUND_NAME, { volume: ctrl.val });
+        omphalos.toast(`Baseline Volume set to ${ctrl.val * 100}%`, 'success', 2);
+      });
+    });
+  </script>
+</body>
+</html>

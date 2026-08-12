@@ -196,25 +196,6 @@ function makeTemplateAPIObject(app, io) {
         event: 'toast', data:
         { toast: msg, level, timeout: timeout_secs * 1000 }
       });
-    },
-
-    // Trigger a sound to play through the global audio mixing engine.
-    playSound: function(soundName, arg2, arg3) {
-      let targetBundle = this.bundle.name;
-      let options = {};
-
-      if (typeof arg2 === 'string') {
-        targetBundle = arg2;
-        options = arg3 || {};
-      } else if (typeof arg2 === 'object') {
-        options = arg2;
-      }
-
-      this.event.raiseToBundle(sys_constants.MSG_TRIGGER_SOUND, sys_constants.SYSTEM_BUNDLE, {
-        bundle: targetBundle,
-        sound: soundName,
-        options: options
-      });
     }
   }
 }

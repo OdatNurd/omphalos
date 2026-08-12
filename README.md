@@ -18,8 +18,22 @@ do, how it does it and (perhaps most importantly) what the name means.
 This is still a work in progress and initially started life as my [Devember][4]
 project for [2022][5].
 
+## Audio & Asset Attributions
+
+Special thanks to the creators of the following audio assets used in this
+project:
+
+* **UI Sound Effects:**
+  * `click15.ogg` — From the [Kenney UI Audio Pack][6] by Kenney (CC0 / Public
+    Domain).
+* **Text-to-Speech / Voice:**
+  * `omphalos.mp3` & `sample.mp3` — Audio generated via [Narakeet][7] using the
+    "Radiobot" voice persona.
+
   [1]: https://www.nodecg.dev/
   [2]: https://www.elgato.com/en/stream-deck-mk2
   [3]: https://omphalos.ruinouspileofcrap.com
   [4]: https://devember.org/
   [5]: https://github.com/OdatNurd/devember-2021
+  [6]: https://kenney.nl/assets/ui-audio
+  [7]: https://www.narakeet.com/

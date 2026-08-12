@@ -415,40 +415,6 @@ export async function _playAudioInternal(bundleName, soundFile, options = {}) {
 // =============================================================================
 
 
-/* Sends a trigger request to the server, prompting it to look up the global
- * routing tables and dispatch the playback command to the appropriate hardware
- * output.
- *
- * This function is overloaded:
- *   playSound(soundName)
- *   playSound(soundName, options)
- *   playSound(soundName, bundleName)
- *   playSound(soundName, bundleName, options)
- *
- * If the bundle is omitted, it will automatically default to the bundle of the
- * asset invoking the function. */
-export function playSound(soundName, arg2, arg3) {
-  let targetBundle = bundle.name;
-  let options = {};
-
-  if (typeof arg2 === 'string') {
-    targetBundle = arg2;
-    options = arg3 || {};
-  } else if (typeof arg2 === 'object') {
-    options = arg2;
-  }
-
-  sendMessageToBundle(constants.MSG_TRIGGER_SOUND, constants.SYSTEM_BUNDLE, {
-    bundle: targetBundle,
-    sound: soundName,
-    options: options
-  });
-}
-
-
-// =============================================================================
-
-
 /* Transmit an event to all listeners in a specific bundle. The event will get
  * sent to all members of that bundle except the sender, which presumably does
  * not need to get a message to itself since it already knows the content. */
@@ -956,6 +922,104 @@ function loadForm(identifier) {
 export const form = {
   save: saveForm,
   load: loadForm
+};
+
+// =============================================================================
+
+/* The public sound API surface. Elements here allow for triggering the playback
+ * of sournds in bundles, fetching the configuration for any registered sounds
+ * in the current bundle, and setting them.
+ *
+ * The server side versions of these APIS are cross bundle wth regards to
+ * getting and setting configuration; here that is not allowed since an asset
+ * only knows about its own sounds. */
+export const sound = {
+  // Sends a trigger request to the server, prompting it to look up the global
+  // routing tables and dispatch the playback command to the appropriate
+  // hardware output.
+  //
+  // If no sound options are given, the dashboard defaults are used, which will
+  // fall back to the defaults in the bundle if the mixer has not yet been
+  // adjusted. Otherwise, the options given override what the dashboard default
+  // values are.
+  //
+  // This function is overloaded:
+  //   play(soundName)
+  //   play(soundName, options)
+  //   play(soundName, bundleName)
+  //   play(soundName, bundleName, options)
+  //
+  // If the bundle is omitted, it will automatically default to the bundle of
+  // the asset invoking the function.
+  play: (soundName, arg2, arg3) => {
+    let targetBundle = bundle.name;
+    let options = {};
+
+    if (typeof arg2 === 'string') {
+      targetBundle = arg2;
+      options = arg3 || {};
+    } else if (typeof arg2 === 'object') {
+      options = arg2;
+    }
+
+    sendMessageToBundle(constants.MSG_TRIGGER_SOUND, constants.SYSTEM_BUNDLE, {
+      bundle: targetBundle,
+      sound: soundName,
+      options: options
+    });
+  },
+
+  // Get the option object that provides the currently configured default per-
+  // sound volume and panning for a sound. For call compliance this allows you
+  // to specify a bundle, but the bundle must be the asset's bundle.
+  //
+  // This returns either the currently system configured values in the dashboard
+  // mixer or, if that is not present yet, the defaults from the bundle.
+  get: (soundName, bundleName) => {
+    const target = bundleName || bundle.name;
+    assert(target === bundle.name, 'cross-bundle sound inspection is a server-only feature.');
+
+    const soundDef = (bundle.omphalos.sounds || []).find(s => s.name === soundName);
+    assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);
+
+    const overrides = bundleVars.get(`__sys_audio:${target}:${soundName}`, {});
+    return {
+      volume: overrides.volume ?? soundDef.volume ?? 1.0,
+      pan: overrides.pan ?? soundDef.pan ?? 0.0
+    };
+  },
+
+  // Set the option object that provides the default per-sound volume and
+  // panning for a specific sound. For call compliance this allows you to
+  // specify a bundle, but the bundle must be the asset's bundle.
+  //
+  // The default options given will be used to set the defaults for sound
+  // playback for this sound.
+  //
+  // This function is overloaded:
+  //   set(soundName, options)
+  //   set(soundName, bundleName, options)
+  set: (soundName, arg2, arg3) => {
+    let targetBundle = bundle.name;
+    let options = {};
+
+    if (typeof arg2 === 'string') {
+      targetBundle = arg2;
+      options = arg3 || {};
+    } else if (typeof arg2 === 'object') {
+      options = arg2;
+    }
+
+    assert(targetBundle === bundle.name, 'cross-bundle sound modification is a server-only feature.');
+
+    const soundDef = (bundle.omphalos.sounds || []).find(s => s.name === soundName);
+    assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);
+
+    const key = `__sys_audio:${targetBundle}:${soundName}`;
+    const existing = bundleVars.get(key, {});
+
+    bundleVars.set(key, { ...existing, ...options });
+  }
 };
 
 // =============================================================================

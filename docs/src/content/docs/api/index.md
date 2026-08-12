@@ -1,5 +1,7 @@
 ---
 title: Overview
+sidebar:
+  order: 1
 ---
 
 Each [graphic](/guides/graphics) and [panel](/guides/panels) has a

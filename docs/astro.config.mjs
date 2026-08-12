@@ -12,6 +12,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Omphalos',
+      routeMiddleware: './src/starlightRouteMiddleware.js',
       social: [
         {
           icon: 'github', label: 'GitHub', href: 'https://github.com/OdatNurd/omphalos'

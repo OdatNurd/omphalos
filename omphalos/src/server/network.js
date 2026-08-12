@@ -184,7 +184,7 @@ export function setupSocketIO(io, bundles) {
     const masterPan = getValue(constants.SYSTEM_BUNDLE, 'masterPan', 0.0);
 
     // Fetch the user's per-sound adjustments saved to the target bundle.
-    const soundOverrides = getValue(targetBundle, `audio_settings_${soundName}`, {});
+    const soundOverrides = getValue(targetBundle, `__sys_audio:${targetBundle}:${soundName}`, {});
 
     // Calculate the base levels, utilizing a strict cascade hierarchy:
     // API Options -> Saved Overrides -> Manifest Defaults

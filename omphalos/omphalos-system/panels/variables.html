@@ -20,6 +20,18 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .bundle-name:hover {
+      background-color: var(--omph-bg-hover);
+    }
+
+    /* Ensure the actions container doesn't trigger the collapse toggle */
+    .header-actions {
+      cursor: default;
     }
 
     /* Flexbox row for individual variables. This is designed to (hopefully)
@@ -224,6 +236,10 @@
     // Our local, real-time cache of the server's backend storage.
     let globalState = {};
 
+    // Tracks which bundles are collapsed via Skepsis for persistence across
+    // reloads.
+    let collapsedBundles = undefined;
+
     // -------------------------------------------------------------------------
     // Utilities
     // -------------------------------------------------------------------------
@@ -262,14 +278,24 @@
       // Build the UI grouped by bundle name. WHen we do this we add a data-
       // bundle attribute so that the event handlers know what to target.
       bundles.forEach(bundle => {
+        // Determine the current collapse state for this bundle block
+        const isCollapsed = collapsedBundles !== undefined && collapsedBundles.value[bundle] === true;
+        const toggleIcon = (isCollapsed === true) ? '&#9654;' : '&#9660;';
+
         html += `<div class="bundle-block">`;
-        html += `<div class="bundle-name" style="display: flex; justify-content: space-between; align-items: center;">
-                   <span>${bundle}</span>
-                   <div>
+        html += `<div class="bundle-name" data-bundle="${escapeHTML(bundle)}" style="display: flex; justify-content: space-between; align-items: center;">
+                   <div style="pointer-events: none;">
+                     <span style="display: inline-block; width: 1.2rem; font-size: 0.75rem;">${toggleIcon}</span>
+                     <span>${bundle}</span>
+                   </div>
+                   <div class="header-actions">
                      <button class="btn-small add-btn" data-bundle="${escapeHTML(bundle)}">+ Add</button>
                      <button class="btn-small error del-bundle-btn" data-bundle="${escapeHTML(bundle)}">Del Bundle</button>
                    </div>
                  </div>`;
+
+        // The wrapper for the variables, toggled based on the collapsed state
+        html += `<div class="bundle-content" style="display: ${isCollapsed === true ? 'none' : 'block'};">`;
 
         const vars = globalState[bundle];
         const keys = Object.keys(vars).sort();
@@ -286,9 +312,9 @@
 
             // Format the value. Objects get pretty-printed JSON, primitives get
             // converted to strings.
-            const val = isObj ? `<pre>${JSON.stringify(vars[key], null, 2)}</pre>` : String(vars[key]);
+            const val = (isObj === true) ? `<pre>${JSON.stringify(vars[key], null, 2)}</pre>` : String(vars[key]);
 
-            html += `<div class="var-row ${isObj ? 'is-object' : ''}">`;
+            html += `<div class="var-row ${(isObj === true) ? 'is-object' : ''}">`;
             html += `  <div class="var-row-header">`;
             html += `    <span class="var-key">${key}</span>`;
 
@@ -313,7 +339,7 @@
           });
         }
 
-        html += `</div>`;
+        html += `</div></div>`;
       });
 
       // Inject the fully built string into the DOM.
@@ -504,6 +530,19 @@
         openAddModal(e.target.dataset.bundle);
       } else if (e.target.classList.contains('del-bundle-btn') === true) {
         deleteBundle(e.target.dataset.bundle);
+      } else if (e.target.closest('.bundle-name') !== null && e.target.closest('.header-actions') === null) {
+        // Toggle bundle accordion state if clicking the header (but missing the
+        // action buttons)
+        const header = e.target.closest('.bundle-name');
+        const targetBundle = header.dataset.bundle;
+
+        if (collapsedBundles !== undefined) {
+          const currentState = collapsedBundles.value || {};
+          currentState[targetBundle] = (currentState[targetBundle] === true) ? false : true;
+          collapsedBundles.value = currentState;
+
+          renderState();
+        }
       }
     });
 
@@ -561,6 +600,11 @@
     // later (e.g. if the server restarts). The connection event is guaranteed
     // to trigger after the storage hydration.
     omphalos.event.ioConnect(() => {
+      // Ensure the Skepsis state tracks the accordion toggle persistence
+      if (collapsedBundles === undefined) {
+        collapsedBundles = omphalos.Skepsis('collapsedBundles', {});
+      }
+
       omphalos.event.raiseToBundle(
         omphalos.__sys_constants.MSG_REQUEST_GLOBAL_STATE,
         omphalos.__sys_constants.SYSTEM_DASHBOARD,
