@@ -12,8 +12,8 @@ function omphalos.form.load(formOrFormName)
 ```
 
 :::caution[Client only]
-This item is only present in the API object in `panels` and `graphics`; it is
-not present in the API that is given to the `extension`.
+This item is only present in the API object in [[panels]] and [[graphics]]; it is
+not present in the API that is given to [[extensions]].
 :::
 
 Load the state of a given form from the storage system as saved by a call to

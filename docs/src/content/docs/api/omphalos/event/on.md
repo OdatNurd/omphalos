@@ -19,9 +19,8 @@ the function.
 The return value of both functions is a function that can be used to cancel the
 callback.
 
-This listens for events that are raised by
-[omphalos.event.raise](/api/omphalos/event/raise)
-and [omphalos.event.raiseToBundle](/api/omphalos/event/raisetobundle).
+This listens for events that are raised by [[omphalos.event.raise()]] and
+[[omphalos.event.raiseToBundle()]].
 
 :::note[variable arguments]
 With only two arguments, the `bundle` is inferred to be the current bundle;

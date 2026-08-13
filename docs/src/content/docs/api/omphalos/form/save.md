@@ -12,8 +12,8 @@ function omphalos.saveForm(formOrFormName)
 ```
 
 :::caution[Client only]
-This item is only present in the API object in `panels` and `graphics`; it is
-not present in the API that is given to the `extension`.
+This item is only present in the API object in [[panels]] and [[graphics]]; it is
+not present in the API that is given to [[extensions]].
 :::
 
 Save the state of a given form into the storage system for later retrieval.

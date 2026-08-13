@@ -106,8 +106,8 @@ with loading of the bundle.
 
 ## Adding content
 
-As seen above, the bundle no content to speak of; no server side `extension`
-code, no dashboard `panels` and no overlay `graphics`.
+As seen above, the bundle no content to speak of; no server side [[extension|extensions]]
+code, no dashboard [[panels]] and no overlay [[graphics]].
 
 ### Adding a Panel
 

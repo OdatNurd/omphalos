@@ -18,11 +18,11 @@ Send a named event message to all assets in the current `bundle`; `data` can be
 any desired value, so long as it is `JSON`-encodeable.
 
 To send a message to items in a different bundle, use
-[omphalos.event.raiseToBundle](/api/omphalos/event/raisetobundle) instead.
+[[omphalos.event.raiseToBundle()]] instead.
 
-The message will be transmitted to all `graphics`, `panels` and `extension`
-listeners in the current bundle, ***except*** for the sender, and can be listened
-for via [omphalos.event.on](/api/omphalos/event/on).
+The message will be transmitted to all [[graphic|graphics]], [[panel|panels]]
+and [[extension|extensions]] listeners in the current bundle, ***except*** for
+the sender, and can be listened for via [[omphalos.event.on()]].
 
 :::caution[reserved names]
 Event names that start with `__sys` are reserved by Omphalos for system events;

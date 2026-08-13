@@ -15,17 +15,15 @@ that they can only be delivered to peers that are connected.
 
 ## Generic Events
 
-The [API](/api/api) has an `event` object that supports the
+The [[API|omphalos]] has an `event` object that supports the
 following generic operations :
- - [raise](/api/omphalos/event/raise) to raise an event within your bundle
- - [raiseToBundle](/api/omphalos/event/raisetobundle) to raise an event to
-   an external bundle
- - [on](/api/omphalos/event/on) to listen for an event that has been raised.
+ - [[omphalos.event.raise()]] to raise an event within your bundle
+ - [[omphalos.event.raiseToBundle()]] to raise an event to an external bundle
+ - [[omphalos.event.on()]] to listen for an event that has been raised.
 
 All events are represented by a string name, and can carry an arbitrary payload
 of `JSON-encodable` data. The payload is delivered as-is as the argument to the
-callback of the event handler set by
-[omphalos.event.on](/api/omphalos/event/on).
+callback of the event handler set by [[omphalos.event.on()]].
 
 Events are delivered to everything within the targeted bundle, with the sole
 exception of the bundle member that raises the event.
@@ -44,16 +42,16 @@ general, such as knowing when they are connected or disconnected from the event
 system.
 
 These take the form of specialized versions of the
-[omphalos.event.on](/api/omphalos/event/on) handler which listen for specific
+[[omphalos.event.on()]] handler which listen for specific
 events.
 
 See the API documentation for full details on what is available; the most
 commonly used events are:
-- [ioConnect](/api/omphalos/event/ioconnect) to know when you are connected
-- [ioDisconnect](/api/omphalos/event/iodisconnect) to know if you have become
-  disconnected from the system
-- [peerConnected](/api/omphalos/event/peerconnected) to know if one of the peers
-  in your bundle or in another bundle have connected (e.g. so that you can
-  transmit events to them)
-- [peerDisconnected](/api/omphalos/event/peerdisconnected) to know if one of the
-  peers in your bundle or in another bundle have been disconnected.
+- [[omphalos.event.ioConnect]] to know when you are connected
+- [[omphalos.event.ioDisconnect]] to know if you have become disconnected from
+  the server
+- [[omphalos.event.peerConnected]] to know if one of the peers in your bundle or
+  in another bundle have connected (e.g. so that you can transmit events to
+  them)
+- [[omphalos.event.peerDisconnected]] to know if one of the peers in your bundle
+  or in another bundle have been disconnected.

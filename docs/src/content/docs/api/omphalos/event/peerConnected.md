@@ -30,10 +30,9 @@ This event gets a payload of:
 The `count` is always `>=1`, given that more than one instance of any given
 asset can be loaded at once.
 
-This event is always raised after
-[omphalos.event.ioConnect](/api/omphalos/event/ioconnect) is issued for the
-current asset.
+This event is always raised after [[omphalos.event.ioConnect()]] is issued for
+the current asset.
 
-Invoking this function is equivalent to a call to
-[omphalos.event.on](/api/omphalos/event/on), and thus returns a function you can
-use to cancel the event listener registration as needed.
+Invoking this function is equivalent to a call to [[omphalos.event.on()]], and
+thus returns a function you can use to cancel the event listener registration
+as needed.

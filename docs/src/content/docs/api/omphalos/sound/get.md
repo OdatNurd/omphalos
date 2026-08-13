@@ -15,10 +15,10 @@ given to the sound in the [sound manifest](/guides/manifest/#sounds) for the
 given bundle.
 
 :::caution
-When used in a `panel` or `graphic`, this API only allows for getting the
-playback settings for sounds in the current bundle. Attempting to access data
-for sounds in other bundles will raise an error. Such operations need to be
-carried out in a server `extension`.
+When used in a [[panel|panels]] or [[graphic|graphics]], this API only allows
+for getting the playback settings for sounds in the current bundle. Attempting
+to access data for sounds in other bundles will raise an error. Such operations
+need to be carried out in a server [[extension|extensions]].
 :::
 
 The returned value is an object with the default volume and panning that would

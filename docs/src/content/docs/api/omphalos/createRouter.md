@@ -12,8 +12,8 @@ function omphalos.createRouter()
 ```
 
 :::caution[Server only]
-This item is only present in the API object given to an `extension`; it is not
-available in `panels` and `graphics`.
+This item is only present in the API object given to [[extensions]]; it is not
+available in [[panels]] and [[graphics]].
 :::
 
 Create and return back a new [express router][1] to allow your extension to
