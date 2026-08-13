@@ -1,8 +1,7 @@
 <script>
   import Icon from './Icon.svelte';
 
-  export let type;
-  export let message;
+  let { type, message } = $props();
 
   const style = {
     "message": ["",              "circle-check:solid"],

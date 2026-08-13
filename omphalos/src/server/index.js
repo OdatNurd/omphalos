@@ -222,17 +222,6 @@ async function launchServer() {
   app.use(express.json());
   app.use(compression());
 
-  // The bare top URL is the dashboard; if that is what is provided, do an
-  // immediate redirect instead of serving any content.
-  app.get("/", (req, res) => {
-    log.debug('request for site root; redirecing to dashboard');
-    res.status(302).set({ location: '/dashboard' }).send();
-  });
-
-  // Set up some middleware that will serve static files out of the static
-  // folder so that we don't have to inline the pages in code.
-  app.use(express.static('www'));
-
   // Create a server to serve our content
   const server = http.createServer(app);
 
@@ -291,13 +280,25 @@ async function launchServer() {
   // one of them, serve the main page instead of an error page.
   const spaFile = resolve(config.get('baseDir'), 'www', 'index.html')
   const templ = dom => spaTemplate(dom, bundles, manifest.version);
-  app.get(/^\/(mixer|settings|graphics|dashboard|dashboard\/.*)[\/]?$/u,
-    (req, res) => sendStaticTemplate(req, res, spaFile, spaErrorPage, templ));
 
-  // Our last route is a wildcard; if this happens, serve the page as a SPA page
-  // but use a 404 status. The client side router will display the common error
-  // page, but we still get a status that lets bundle code know they hosed it.
-  app.get('/*', (req, res) => sendStaticTemplate(req, res, spaFile, spaErrorPage, templ, 404));
+  // The bare top URL is the dashboard; serve the SPA directly.
+  app.get("/", (req, res) => {
+    log.debug('request for site root; serving SPA directly');
+    sendStaticTemplate(req, res, spaFile, spaErrorPage, templ);
+  });
+
+  // Set up some middleware that will serve static files out of the static
+  // folder so that we don't have to inline the pages in code. This must be
+  // registered AFTER the SPA route handlers to prevent the raw file from being served.
+  app.use(express.static('www'));
+
+  // Our last route is a wildcard. Since the client now uses a hash-based
+  // router, we need to redirect any unmatched server paths to their hash
+  // equivalents. This ensures both valid legacy links (like /mixer) route correctly,
+  // and invalid links correctly trigger the SPA's 404 component.
+  app.get('/*', (req, res) => {
+    res.redirect(`/#${req.originalUrl}`);
+  });
 
   // Get the server to listen for incoming requests.
   const webPort = config.get('port');

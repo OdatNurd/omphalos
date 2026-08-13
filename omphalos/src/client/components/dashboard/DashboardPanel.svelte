@@ -1,69 +1,72 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import { MSG_RELOAD } from '@odatnurd/omphalos-common/constants';
 
   import Icon from '../Icon.svelte';
 
-  // For sending events to our parent.
-  const dispatch = createEventDispatcher();
-
   // The grid that owns us and our panel component. The grid is a property we're
   // given when it is set up, and the panel represents our component in the
   // DOM when we mount
-  export let grid = null;
-  let panel = null;
+  let {
+    grid = null,
 
-  export let title = 'Untitled';
-  export let content = 'missing.html';
+    title = 'Untitled',
+    content = 'missing.html',
 
-  // The number of active connections for panels of this particular type.
-  export let count = 0;
+    // The number of active connections for panels of this particular type.
+    count = 0,
 
-  // The bundle the panel is from and the name that it has within that bundle;
-  // taken together these are used to construct a unique identifier for this
-  // panel.
-  export let bundle = 'unassigned';
-  export let name = 'unnamed'
+    // The bundle the panel is from and the name that it has within that bundle;
+    // taken together these are used to construct a unique identifier for this
+    // panel.
+    bundle = 'unassigned',
+    name = 'unnamed',
+
+    // Position of the panel; if either option is not provided, the position for
+    // that axis is automatically set; so you can set x, y or both.
+    x = undefined,
+    y = undefined,
+
+    // Initial dimensions of the the panel when it's created
+    width = 1,
+    height = 1,
+
+    // Dimension ranges; no value means no constraints
+    minWidth = undefined,
+    minHeight = undefined,
+    maxWidth = undefined,
+    maxHeight = undefined,
+
+    // If a panel is locked, it won't automatically move around while other
+    // things are being resized or moved. The user can still move and resize;
+    // use the below options if you also want to constrain that.
+    //
+    // This is conveyed in the caption as a pushpin/circle.
+    locked = false,
+
+    // Stop this panel from being resized or moved BY THE USER.
+    //
+    // This is conveyed in the caption as a padlock; unlocked means this can be
+    // moved around, locked means it cannot.
+    noMove = false,
+
+    // When this is true, the panel does not allow you to resize it. We turn this
+    // on whenever the minimum and maximum width are the same value, since that
+    // is an indication that the panel is intended to be a set size.
+    noResize = false,
+
+    // When true, the content area of the panel is blocked; no interaction with
+    // it is possible.
+    blocked = false,
+
+    // Called whenever this panel's pinned/locked state changes, so the parent
+    // can persist the new layout.
+    onupdate = () => {},
+  } = $props();
+
+  let panel = $state(null);
 
   // The ID value of the bundle comes from its name and bundle combination
-  let id = `${name}.${bundle}`;
-
-  // Position of the panel; if either option is not provided, the position for
-  // that axis is automatically set; so you can set x, y or both.
-  export let x = undefined;
-  export let y = undefined;
-
-  // Initial dimensions of the the panel when it's created
-  export let width = 1;
-  export let height = 1;
-
-  // Dimension ranges; no value means no constraints
-  export let minWidth = undefined;
-  export let minHeight = undefined;
-  export let maxWidth = undefined;
-  export let maxHeight = undefined;
-
-  // If a panel is locked, it won't automatically move around while other things
-  // are being resized or moved. The user can still move and resize; use the
-  // below options if you also want to constrain that.
-  //
-  // This is conveyed in the caption as a pushpin/circle.
-  export let locked = false;
-
-  // Stop this panel from being resized or moved BY THE USER.
-  //
-  // This is conveyed in the caption as a padlock; unlocked means this can be
-  // moved around, locked means it cannot.
-  export let noMove = false;
-
-  // When this is true, the panel does not allow you to resize it. We turn this
-  // on whenever the minimum and maximum width are the same value, since that
-  // is an indication that the panel is intended to be a set size.
-  export let noResize = false;
-
-  // When true, the content area of the panel is blocked; no interaction with
-  // it is possible.
-  export let blocked = false;
+  let id = $derived(`${name}.${bundle}`);
 
   // Returns true if this panel cannot be resized because the dimension
   // contraints are all identical.
@@ -94,7 +97,7 @@
     locked = !locked;
 
     grid.update(panel, { locked });
-    dispatch('update');
+    onupdate();
   }
 
   // Toggle the locked state n the panel; when locked, you cannot move or resize
@@ -112,13 +115,13 @@
     }
 
     grid.update(panel, { noResize, noMove });
-    dispatch('update');
+    onupdate();
   }
 
   // Return the primary or error color based on the current connection count;
   // there is one for general state and one for button state, since they require
   // different classes.
-  const state = (c) => (c > 0) ? 'bg-primary text-primary-content' : 'bg-error text-error-content';
+  const panelStateClass = (c) => (c > 0) ? 'bg-primary text-primary-content' : 'bg-error text-error-content';
   const btnState = (c) => (c > 0) ? 'btn-primary' : 'btn-error';
 </script>
 
@@ -132,14 +135,14 @@
                              gs-no-resize={noResize}
                              gs-no-move={noMove}
                              bind:this={panel}>
-  <div class="grid-stack-item-content rounded-tl-lg rounded-br-lg border-neutral-focus border-4">
-    <div class:noMove class="grid-stack-item-title {state(count)} rounded-tl-lg border-neutral-focus border-1 p-1">
+  <div class="grid-stack-item-content rounded-tl-lg rounded-br-lg border-neutral border-4">
+    <div class:noMove class="grid-stack-item-title {panelStateClass(count)} rounded-tl-lg border-neutral border-1 p-1">
       <span>{title}</span>
 
       <div class="flex">
         {#if window.omphalos.config.developerMode}
           <div class="tooltip tooltip-left" data-tip="Reload">
-            <button on:click={reload} class="btn btn-circle btn-xs {btnState(count)}" aria-label="Reload Panel">
+            <button onclick={reload} class="btn btn-circle btn-xs {btnState(count)}" aria-label="Reload Panel">
               <Icon name={'rotate-right'} size="0.75rem" />
             </button>
           </div>
@@ -152,20 +155,20 @@
         </div>
 
         <div class="tooltip tooltip-left" data-tip={locked ? 'Unpin' : 'Pin'}>
-          <button on:click={pin} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
+          <button onclick={pin} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
             <Icon name={locked ? 'circle' : 'thumbtack'} size="0.75rem" />
           </button>
         </div>
 
         <div class="tooltip tooltip-left" data-tip={noMove ? 'Unlock' : 'Lock'}>
-          <button on:click={lock} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
+          <button onclick={lock} class="btn btn-xs btn-circle {btnState(count)}" aria-label="Pin/Unpin this panel">
             <Icon name={noMove ? 'lock' : 'lock-open'} size="0.75rem" />
           </button>
         </div>
       </div>
 
     </div>
-    <div class="panel-content bg-neutral text-neutral-content p-0 m-0 h-full w-full relative rounded-br-lg border-neutral-focus border-1">
+    <div class="panel-content bg-neutral text-neutral-content p-0 m-0 h-full w-full relative rounded-br-lg border-neutral border-1">
       <iframe src={`/bundles/${bundle}/panels/${content}`} {title}> </iframe>
       <div class="blocker" class:blocked></div>
     </div>

@@ -1,10 +1,13 @@
 <script>
   import { Dashboard } from '$components';
 
-  import { navigate } from 'svelte-navigator';
+  import { push } from 'svelte-spa-router';
 
-  export let slug;
-  export let workspaces;
+  import { getWorkspaceList } from '$lib/workspace.js';
+
+  let { params = {} } = $props();
+
+  const workspaces = getWorkspaceList();
 
   // TODO:
   //   All the stuff below needs to happen such that we don't try to render out
@@ -20,12 +23,13 @@
   //
   // This also catches the empty slug, which is not an error but just a shortcut
   // for the first workspace.
-  if (workspaces.indexOf(slug) == -1) {
-    slug = workspaces[0]
-    navigate(`/dashboard/${slug}`);
-  }
+  let slug = $derived(workspaces.indexOf(params.wild) === -1 ? workspaces[0] : params.wild);
 
-  $: console.log(`current workspace is ${slug}`);
+  $effect(() => {
+    if (workspaces.indexOf(params.wild) === -1) {
+      push(`/dashboard/${slug}`);
+    }
+  });
 </script>
 
 {#key slug}

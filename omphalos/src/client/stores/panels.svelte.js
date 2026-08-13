@@ -1,20 +1,18 @@
-import { readable, derived } from 'svelte/store';
-import { connections } from '$stores/connections.js'
+import { connections } from '$stores/connections.svelte.js'
 
 
 // =============================================================================
 
 
-/* Creates and returns a readable store that provides information on all of the
- * graphics that are available across all bundles that present themselves in
- * the workspace provided.
+/* Builds and returns the raw list of panels that are available across all
+ * bundles that present themselves in the workspace provided.
  *
  * The returned object is an array of objects, one object per bundle, which
- * contains the name of the bundle and the graphics objects from inside of it
+ * contains the name of the bundle and the panel objects from inside of it
  * as an array.
  *
  * The array is sorted based on the bundle name. */
-function createRawStore(workspace) {
+function rawPanels(workspace) {
   let result = [];
 
   // Get the information for this workspace from the saved information in the
@@ -56,43 +54,50 @@ function createRawStore(workspace) {
     return { ...panel, ...savedInfo };
   });
 
-  return readable(result);
+  return result;
 }
 
 
 // =============================================================================
 
 
-/* Create a derived store which will provide the raw data from the store above
- * and also combine it with live updates from the connection store. */
-export const makePanelStore = (workspace) => {
-  return derived([createRawStore(workspace), connections], (stores) => {
-    const [raw, update] = stores;
+/* Reactive state which provides the raw panel data for a given workspace
+ * combined with live updates from the connection state.
+ *
+ * This is a class (rather than a bare exported $derived) so that the `list`
+ * field is a real accessor property; that is what allows other modules that
+ * import an instance of this to see reactive updates. */
+class PanelsState {
+  #raw;
 
-    // Construct a derived value which contains the raw panel data and the
-    // updated count from the secondary store.
-    return structuredClone(raw).map(panel => {
-      // Get the list of live updates for the bundle this panel is in; we only
-      // need to try to update this item if there is one.
-      const live = update[panel.bundle];
+  constructor(workspace) {
+    this.#raw = rawPanels(workspace);
+  }
 
-      // Get the list of live updates for this bundle; we only need to do an
-      // update if this bundle actually has any updates
-      if (live !== undefined) {
-        // Get the list of panel updates, and from it the update for this
-        // particlar panel; this may end up being no update.
-        const connections = live.panel ?? {};
-        const newCount = connections?.[panel.name]
+  list = $derived(structuredClone(this.#raw).map(panel => {
+    // Get the list of live updates for the bundle this panel is in; we only
+    // need to try to update this item if there is one.
+    const live = connections.current[panel.bundle];
 
-        if (newCount !== undefined) {
-          panel.count = newCount;
-        }
+    // Get the list of live updates for this bundle; we only need to do an
+    // update if this bundle actually has any updates
+    if (live !== undefined) {
+      // Get the list of panel updates, and from it the update for this
+      // particlar panel; this may end up being no update.
+      const updates = live.panel ?? {};
+      const newCount = updates?.[panel.name]
+
+      if (newCount !== undefined) {
+        panel.count = newCount;
       }
+    }
 
-      return panel;
-    });
-  });
+    return panel;
+  }));
 }
+
+/* Create a reactive panel state object scoped to the given workspace. */
+export const makePanelState = (workspace) => new PanelsState(workspace);
 
 
 // =============================================================================

@@ -1,8 +1,8 @@
 <script>
   import { NavBar, Toaster } from '$components';
 
-  import { Router, Route } from 'svelte-navigator';
-  import { toast } from '$lib/toast.js'
+  import Router from 'svelte-spa-router';
+  import { toast } from '$lib/toast.svelte.js'
 
   import { getWorkspaceList } from '$lib/workspace.js';
 
@@ -22,27 +22,30 @@
     omphalos._playAudioInternal(data.bundle, data.file, options);
   });
 
+  const routes = {
+    '/':            Index,
+    '/dashboard/*': Index,
+    '/graphics':    Graphics,
+    '/mixer':       Mixer,
+    '/settings':    Settings,
+    '*':            Error404,
+  };
+
   // Obtain the full list of workspaces, which we need to pass to the navbar to
-  // generate links and to the dashboard wrapper component so that it can tell
-  // what workspaces are actually valid.
+  // generate links and to tell the dashboard wrapper component what workspaces
+  // are actually valid.
   const workspaces = getWorkspaceList();
 </script>
 
-<Router primary={false}>
-  <div class="flex flex-col h-screen">
-    <Toaster />
-    <NavBar {workspaces} />
+<div class="flex flex-col h-screen">
+  <Toaster />
+  <NavBar {workspaces} />
 
-    <div class="flex flex-1 w-full overflow-hidden p-0 m-0">
-      <div class="bg-base-100 h-full w-full m-0 p-0">
-        <div class="w-full text-base-content m-0">
-          <Route path="dashboard/*slug" component={Index} {workspaces}/>
-          <Route path="graphics"        component={Graphics} />
-          <Route path="mixer"           component={Mixer} />
-          <Route path="settings"        component={Settings} />
-          <Route path="*"               component={Error404} />
-        </div>
+  <div class="flex flex-1 w-full overflow-hidden p-0 m-0">
+    <div class="bg-base-100 h-full w-full m-0 p-0">
+      <div class="w-full text-base-content m-0">
+        <Router {routes} />
       </div>
     </div>
   </div>
-</Router>
+</div>

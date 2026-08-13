@@ -1,23 +1,11 @@
 <script>
-  import { useLocation } from "svelte-navigator";
-  import { link } from 'svelte-navigator';
+  import { link } from 'svelte-spa-router';
+  import active from 'svelte-spa-router/active';
 
-  const location = useLocation();
-
-  // Active state follows the URL of the current location.
-  const isActive = (location) => {
-    if (href === location.pathname) {
-      return 'tab-bordered tab-active';
-    }
-
-    return '';
-  }
-
-  export let href='/';
-  export let label='No Label';
+  let { href = '/', label = 'No Label', children } = $props();
 </script>
 
 
-<a {href} use:link class="tab tab-lg {isActive($location)}" aria-label={label}>
-  <slot></slot>
+<a {href} role="tab" use:link use:active={{ path: href, className: 'tab-active' }} class="tab tab-lg" aria-label={label}>
+  {@render children?.()}
 </a>

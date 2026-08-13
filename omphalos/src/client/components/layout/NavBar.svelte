@@ -1,5 +1,5 @@
 <script>
-  import { toast } from '$lib/toast.js';
+  import { toast } from '$lib/toast.svelte.js';
 
   import Tab from './Tab.svelte';
   import Icon from '../Icon.svelte';
@@ -8,14 +8,15 @@
   const docUrl = (omphalos.config.developerMode)
       ? 'http://localhost:4000'
       : 'https://omphalos.ruinouspileofcrap.com'
-  export let workspaces;
+
+  let { workspaces } = $props();
 </script>
 
 
 <div class="flex navbar bg-neutral text-neutral-content">
   <div class="navbar-start">
     <Logo size={36} />
-    <div class="tabs ml-4">
+    <div role="tablist" class="tabs tabs-border ml-4">
       {#each workspaces as workspace}
         <Tab href="/dashboard/{workspace}" label="Switch to workspace {workspace}">
           {workspace}
@@ -29,7 +30,7 @@
   </div>
 
   <div class="navbar-end">
-    <div class="tabs ml-4">
+    <div role="tablist" class="tabs tabs-border ml-4">
       <Tab href="/graphics" label="Open Graphics Page">
         <Icon name={'layer-group'} size="1.5rem" />
       </Tab>
@@ -39,7 +40,7 @@
       </Tab>
 
       <!-- No tab; this is an external link and not an internal one -->
-      <a target="_blank" rel="nofollow noreferrer" href={docUrl} class="tab tab-lg" aria-label="Open Documentation Site">
+      <a role="tab" target="_blank" rel="nofollow noreferrer" href={docUrl} class="tab tab-lg" aria-label="Open Documentation Site">
         <Icon name={'book'} size="1.5rem" />
       </a>
 

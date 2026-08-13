@@ -25,6 +25,15 @@ export default [
       format: 'iife',
       name: 'app',
     },
+    onwarn(warning, warn) {
+      // Suppress circular dependency warnings stemming from internal Svelte
+      // runtime packages being a dick.
+      if (warning.code === 'CIRCULAR_DEPENDENCY' &&
+          (warning.ids?.some(id => id.includes('node_modules')) === true || warning.message.includes('node_modules') === true)) {
+        return;
+      }
+      warn(warning);
+    },
     plugins: [
       svelte({}),
       $path({
@@ -39,7 +48,7 @@ export default [
         extensions: [".js", ".mjs", ".svelte", ".jsx"]
       }),
       commonjs(),
-      resolve({ browser: true }),
+      resolve({ browser: true, exportConditions: ['svelte'] }),
       postcss(),
       copyStatic("static"),
       watchStaticDir()
