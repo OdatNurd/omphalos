@@ -9,16 +9,20 @@ per-`bundle` way. This is an open ended system that allows for any number of
 variables to be saved and persisted across sessions as well as shared between
 [[panels]], [[graphics]] and [[extensions]].
 
-The [[API|omphalos]] has a `bundleVars` object that supports the
+The [[API|omphalos]] has a `storage` object that supports the
 following operations:
- - [[setting|omphalos.bundleVars.set]] the value
- - [[getting|omphalos.bundleVars.get]] the value
- - [[deleting|omphalos.bundleVars.delete]] the variable
- - [[notification|omphalos.bundleVars.on]] of changes
-
+ - [[setting|omphalos.storage.set]] the value
+ - [[getting|omphalos.storage.get]] the value
+ - [[deleting|omphalos.storage.delete]] the variable
+ - [[notification|omphalos.storage.on]] of changes
 
 The storage systems allows any value to be persisted, with the only
 restriction that it be `JSON-encodable`.
+
+:::caution[reserved names]
+Storage keys that start with `__sys` are reserved by Omphalos for system values;
+you should not use them in your own variables.
+:::
 
 ## Skepsis
 

@@ -1,11 +1,11 @@
 ---
-title: bundleVars.delete
+title: storage.delete
 sidebar:
   label: delete
 ---
 
 ```js
-function omphalos.bundleVars.delete(key);
+function omphalos.storage.delete(key);
 ```
 
 Delete the value of the provided `key` from the persistent storage for this

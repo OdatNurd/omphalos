@@ -1,11 +1,11 @@
 ---
-title: bundleVars.set
+title: storage.set
 sidebar:
   label: set
 ---
 
 ```js
-function omphalos.bundleVars.set(key, value);
+function omphalos.storage.set(key, value);
 ```
 
 Store the provided value into the persistent storage for this bundle under the

@@ -43,7 +43,7 @@ const levels = ['error', 'warn', 'info', 'debug', 'silly'];
  * us an update on this data.
  *
  * The value here is replaced with updates when they occur. */
-let storage = {};
+let localStorage = {};
 
 /* This flag tracks whether we have received our initial storage payload from
  * the server. Before this is true, we lock all writes to prevent client-side
@@ -143,20 +143,20 @@ function updateStorageCache(data) {
 
   const wasHydrated = isHydrated;
 
-  const oldStorage = storage;
-  storage = data;
+  const oldStorage = localStorage;
+  localStorage = data;
   isHydrated = true;
 
   // Fire events on the event bridge so that any local Skepsis listeners can
   // hydrate their UI with the newly arrived server state.
-  for (const [key, value] of Object.entries(storage)) {
+  for (const [key, value] of Object.entries(localStorage)) {
     bridge.emit(`var:${key}`, { newValue: value, oldValue: oldStorage[key] });
   }
 
   // Notify listeners of any keys that existed previously but were removed by
   // the new state, so that they know that the value has been deleted.
   for (const key of Object.keys(oldStorage)) {
-    if (storage[key] === undefined) {
+    if (localStorage[key] === undefined) {
       bridge.emit(`var:${key}`, { newValue: undefined, oldValue: oldStorage[key] });
     }
   }
@@ -183,16 +183,16 @@ function performStorageUpdate(data) {
   log.debug(`${asset.name}:${bundle.name} got storage update: ${JSON.stringify(data)}`);
 
   const { key, value } = data;
-  const oldValue = storage[key];
+  const oldValue = localStorage[key];
 
   if (value !== undefined) {
-    storage[key] = value;
+    localStorage[key] = value;
   } else {
-    delete storage[key]
+    delete localStorage[key]
   }
 
   bridge.emit(`var:${key}`, { newValue: value, oldValue });
-  log.debug(`${asset.name}:${bundle.name} storage is now: ${JSON.stringify(storage)}`);
+  log.debug(`${asset.name}:${bundle.name} storage is now: ${JSON.stringify(localStorage)}`);
 }
 
 
@@ -254,7 +254,7 @@ export function __init_api(manifest, assetConfig, appConfig) {
   socket.on('disconnect', (reason) => {
     log.debug(`connection for ${asset.name}:${manifest.name} lost: ${reason}`);
 
-    // Lock writes to Skepsis and bundleVars until the next refresh arrives
+    // Lock writes to Skepsis and storage until the next refresh arrives
     isHydrated = false;
 
     bridge.emit(`${constants.EVENT_IO_DISCONNECT}.${bundle.name}`);
@@ -547,11 +547,11 @@ export function toast(msg, level, timeout_secs) {
  * The information here is synced with the server on changes, so that those
  * updates can be sent to other membmers of the bundle, allowing them to update
  * themselves. */
-export const bundleVars = {
+export const storage = {
   // Store the value of the given key into the bundle; the value can be anything
   // but cannot be undefined.
   set: (key, value) => {
-    log.silly(`bundleVars.set(${key}, ${value}`);
+    log.silly(`storage.set(${key}, ${value}`);
 
     assert(key !== undefined, 'a key name must be provided')
     assert(value !== undefined, `no value provided for key ${key}`);
@@ -564,8 +564,8 @@ export const bundleVars = {
 
     // Store the key locally, trigger any local listeners, then let everyone
     // else know that the update happened.
-    const oldValue = storage[key];
-    storage[key] = value;
+    const oldValue = localStorage[key];
+    localStorage[key] = value;
 
     bridge.emit(`var:${key}`, { newValue: value, oldValue });
     sendStorageUpdate(key, value);
@@ -575,17 +575,17 @@ export const bundleVars = {
   // object if no key is provided, and provide a default value for a key that
   // does not exist.
   get: (key, defaultValue) => {
-    log.silly(`bundleVars.get(${key}, ${defaultValue}`);
+    log.silly(`storage.get(${key}, ${defaultValue}`);
 
     assert(bundle !== undefined, 'cannot delete a key without a bundle');
 
     // If there is no key, return the object or, return the value of the key.
-    return (key === undefined) ? storage : (storage[key] ?? defaultValue);
+    return (key === undefined) ? localStorage : (localStorage[key] ?? defaultValue);
   },
 
   // Delete the value of a key from the permanent storage.
   delete: (key) => {
-    log.silly(`bundleVars.delete(${key}`);
+    log.silly(`storage.delete(${key}`);
 
     assert(key !== undefined, 'a key name must be provided')
 
@@ -597,8 +597,8 @@ export const bundleVars = {
 
     // Delete the key from our storage, trigger any local listeners, then let
     // everyone else know that it happened.
-    const oldValue = storage[key];
-    delete storage[key]
+    const oldValue = localStorage[key];
+    delete localStorage[key]
 
     bridge.emit(`var:${key}`, { newValue: undefined, oldValue });
     sendStorageUpdate(key);
@@ -643,26 +643,26 @@ export function Skepsis(key, defaultValue) {
     // thing since until the first refresh arrives, we don't know the actual
     // value yet.
     get value() {
-      return bundleVars.get(key, defaultValue);
+      return storage.get(key, defaultValue);
     },
 
     // Change the current value of the variable to the passed in value.
     set value(newValue) {
-      bundleVars.set(key, newValue);
+      storage.set(key, newValue);
     },
 
     // Register a callback any time the value changes.
     on: (callback) => {
-      return bundleVars.on(key, callback);
+      return storage.on(key, callback);
     },
 
     // When the value of the Skepsis is an object, after changing a value this
     // can be used to tell the system that the value changed. WHen the value is
     // not an object, nothing happens.
     update: () => {
-      const current = bundleVars.get(key, defaultValue);
+      const current = storage.get(key, defaultValue);
       if (typeof current === 'object' && current !== null) {
-        bundleVars.set(key, current);
+        storage.set(key, current);
       }
     }
   }
@@ -817,9 +817,9 @@ function saveForm(identifier) {
   // Write the storage out now; this is one write per standard variable plus
   // one extra for the meta storage of the form.
   for (const [key, val] of Object.entries(data.vars)) {
-    bundleVars.set(key, val);
+    storage.set(key, val);
   }
-  bundleVars.set(metaKey, data.meta);
+  storage.set(metaKey, data.meta);
 
   // Now that the set is complete, trigger the post save event.
   //
@@ -860,16 +860,16 @@ function loadForm(identifier) {
   // We can start by pulling the value of the meta key and cloning it.
   const metaKey = `form:${asset.name}:${formName}`;
   const data = {
-    meta: structuredClone(bundleVars.get(metaKey, {})),
+    meta: structuredClone(storage.get(metaKey, {})),
     vars: {}
   };
 
   // Now for values that have the attribute set, we need to fetch their values
-  // from bundleVars directly; this may end up as undefined if no such variable
+  // from storage directly; this may end up as undefined if no such variable
   // exists yet.
   Array.from(form.elements).forEach(ctrl => {
     if (ctrl.dataset.var !== undefined && ctrl.dataset.var !== '') {
-      const rawVal = bundleVars.get(ctrl.dataset.var);
+      const rawVal = storage.get(ctrl.dataset.var);
       data.vars[ctrl.dataset.var] = (typeof rawVal === 'object' && rawVal !== null)
                                       ? structuredClone(rawVal)
                                       : rawVal;
@@ -881,7 +881,7 @@ function loadForm(identifier) {
   bridge.emit(`${constants.EVENT_FORM_PRE_LOAD}.${bundle.name}`, { formName, form, data });
 
   // Apply all values to the DOM now; pulling from values in the meta or from
-  // actual bundleVars as needed. This uses the data as it was returned from the
+  // actual storage as needed. This uses the data as it was returned from the
   // event handler, in case the event handler changed it.
   Array.from(form.elements).forEach(ctrl => {
     let val;
@@ -982,7 +982,7 @@ export const sound = {
     const soundDef = (bundle.omphalos.sounds || []).find(s => s.name === soundName);
     assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);
 
-    const overrides = bundleVars.get(`__sys_audio:${target}:${soundName}`, {});
+    const overrides = storage.get(`__sys_audio:${target}:${soundName}`, {});
     return {
       volume: overrides.volume ?? soundDef.volume ?? 1.0,
       pan: overrides.pan ?? soundDef.pan ?? 0.0
@@ -1016,9 +1016,9 @@ export const sound = {
     assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);
 
     const key = `__sys_audio:${targetBundle}:${soundName}`;
-    const existing = bundleVars.get(key, {});
+    const existing = storage.get(key, {});
 
-    bundleVars.set(key, { ...existing, ...options });
+    storage.set(key, { ...existing, ...options });
   }
 };
 

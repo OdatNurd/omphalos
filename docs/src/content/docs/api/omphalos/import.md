@@ -1,19 +1,19 @@
 ---
-title: omphalos.require
+title: omphalos.import
 sidebar:
-  label: require
+  label: import
   badge:
     variant: note
     text: Server
 ---
 
 ```js
-function omphalos.require(bundleName)
+function omphalos.import(bundleName)
 ```
 
 :::caution[Server only]
-This item is only present in the API object given to an `extension`; it is
-not available in `panels` and `graphics`.
+This item is only present in the API object given to [[extensions]]; it is not
+available in [[panels]] and [[graphics]].
 :::
 
 A function that can be used to load symbols from other bundles; these symbols

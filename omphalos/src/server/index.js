@@ -146,9 +146,9 @@ function makeTemplateAPIObject(app, io) {
     // Mount a router created by createRouter() into the application.
     mount: router => app.use(router),
 
-    // Build a require function that looks up symbols from the list of exported
+    // Build a import function that looks up symbols from the list of exported
     // symbols from other bundles that loaded before us.
-    require: modName => {
+    import: modName => {
       assert(modName !== undefined, 'module name not specified');
       return exportSymbols[modName] ?? {}
     },
@@ -167,9 +167,9 @@ function makeTemplateAPIObject(app, io) {
     // The event bus for this specific extension instance.
     event: eventObj,
 
-    // Manipulating bundle specific persistent sotrage requires that we know the
+    // Manipulating bundle specific persistent storage requires that we know the
     // current bundle, which is not known until the bundle actually loads.
-    bundleVars: {
+    storage: {
       set: undefined,
       get: undefined,
       delete: undefined,

@@ -86,8 +86,8 @@
     });
 
     document.querySelector('#alter-setting').addEventListener('click', () => {
-      omphalos.bundleVars.set('sample', omphalos.bundleVars.get('sample', 0) + 1);
-      omphalos.toast(`Setting value is now: ${omphalos.bundleVars.get('sample')}`)
+      omphalos.storage.set('sample', omphalos.storage.get('sample', 0) + 1);
+      omphalos.toast(`Setting value is now: ${omphalos.storage.get('sample')}`)
     });
   </script>
 </body>

@@ -17,7 +17,7 @@ not present in the API that is given to [[extensions]].
 :::
 
 Load the state of a given form from the storage system as saved by a call to
-[omphalos.form.save][1] and apply it directly to the DOM.
+[[omphalos.form.save()]] and apply it directly to the DOM.
 
 `formOrFormName` can be:
 
@@ -28,7 +28,7 @@ Load the state of a given form from the storage system as saved by a call to
 
 All fields associated with the form will be pulled. Any that have an attribute
 of `data-var` will be loaded directly from storage via a call to
-[omphalos.bundleVars.get][2]. All other values are loaded using their `name`
+[[omphalos.storage.get()]]. All other values are loaded using their `name`
 attribute in an internal meta-key that encodes the name of the form. Form
 fields that have no `name` will be skipped, unless they have the `data-var`
 attribute.
@@ -36,15 +36,10 @@ attribute.
 If a field has no stored value, it is left untouched so that native
 HTML defaults are preserved.
 
-Calls to this function will raise two [events][4] that can be listened for via
-a call to [omphalos.listenFor][3]:
+Calls to this function will raise two [[events]] that can be listened for:
 
-- `EVENT_FORM_PRE_LOAD`, which will trigger prior to the load finishing but
-  after the data has been loaded. You can mutate the payload of the event to
-  control how the load proceeds.
-- `EVENT_FORM_POST_LOAD`, which triggers after the load has completed.
-
-  [1]: /api/omphalos/form/save
-  [2]: /api/omphalos/bundlevars/get
-  [3]: /api/omphalos/listenfor/
-  [4]: /api/omphalos/constants/
+- [[omphalos.event.formPreLoad()]], which will trigger prior to the load
+  finishing but after the data has been loaded. You can mutate the payload of
+  the event to control how the load proceeds.
+- [[omphalos.event.formPostLoad()]], which triggers after the load has
+  completed.

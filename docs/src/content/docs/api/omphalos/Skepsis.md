@@ -8,13 +8,11 @@ sidebar:
 omphalos.Skepsis(key, defaultValue);
 ```
 
-A [Skepsis][1] (as in [omphaloskepsis][2]) is an object that wraps
-a specified bundle variable so that you don't need to constantly
-call [omphalos.bundleVars.get](/api/omphalos/bundlevars/get) to get
-the value, [omphalos.bundleVars.set](/api/omphalos/bundlevars/set) to
-change the value, or
-[omphalos.bundleVars.on](/api/omphalos/bundlevars/on) in order to be
-told when the value changes.
+A [Skepsis][1] (as in [omphaloskepsis][2]) is an object that wraps a specified
+bundle variable so that you don't need to constantly call
+[[omphalos.storage.get()]] to get the value, [[omphalos.storage.set()]] to
+change the value, or [[omphalos.storage.on()]] in order to be told when the
+value changes.
 
 Instead, you can create a `Skepsis`, giving the name of the variable
 that you would like to have access to; the returned object has the

@@ -325,7 +325,7 @@ async function loadBundleExtension(omphalos, manifest, bundleName, bundles) {
     },
 
     // Bundle persistent storage accessors.
-    bundleVars: {
+    storage: {
       // Store the value of the given key into the permanent storage of this
       // bundle. This sends a message to other bundle members to tell them that
       // the value changed, and sends a refresh to the system dashboard so that
@@ -387,27 +387,27 @@ async function loadBundleExtension(omphalos, manifest, bundleName, bundles) {
     Skepsis: (key, defaultValue) => {
       assert(key !== undefined, 'Skepsis requires a key');
 
-      if (bundle_api.bundleVars.get(key) === undefined && defaultValue !== undefined) {
-        bundle_api.bundleVars.set(key, defaultValue);
+      if (bundle_api.storage.get(key) === undefined && defaultValue !== undefined) {
+        bundle_api.storage.set(key, defaultValue);
       }
 
       return {
         get value() {
-          return bundle_api.bundleVars.get(key);
+          return bundle_api.storage.get(key);
         },
 
         set value(newValue) {
-          bundle_api.bundleVars.set(key, newValue);
+          bundle_api.storage.set(key, newValue);
         },
 
         on: (callback) => {
-          return bundle_api.bundleVars.on(key, callback);
+          return bundle_api.storage.on(key, callback);
         },
 
         update: () => {
-          const current = bundle_api.bundleVars.get(key);
+          const current = bundle_api.storage.get(key);
           if (typeof current === 'object' && current !== null) {
-            bundle_api.bundleVars.set(key, current);
+            bundle_api.storage.set(key, current);
           }
         }
       }
