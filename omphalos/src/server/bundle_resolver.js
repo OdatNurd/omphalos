@@ -4,11 +4,16 @@ import { logger } from '#core/logger';
 import jetpack from 'fs-jetpack';
 import semver from 'semver';
 
+import AdmZip from 'adm-zip';
+
 import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
 import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
-import { getBundlePaths } from '@odatnurd/omphalos-common/bundle';
+import { getBundlePaths, getPackedBundles } from '@odatnurd/omphalos-common/bundle';
 
-import { resolve, isAbsolute } from 'path';
+import { executeBundleOps, BUNDLE_OPS_FILE } from '#core/bundle_ops';
+
+import { parse, resolve, isAbsolute, relative, basename } from 'node:path';
+import { utimesSync } from 'node:fs';
 
 
 // =============================================================================
@@ -16,6 +21,13 @@ import { resolve, isAbsolute } from 'path';
 
 /* Get our subsystem logger. */
 const log = logger('resolver');
+
+
+/* An in-memory cache manifest for the archived bundles that we may be called on
+ * to extract. Entries here are the name of the packed bundles, with objects
+ * that contain the timestamp of the file that was extracted and the list of
+ * files that were a part of the overrides (if any) for later use in the UI. */
+let manifestCache = null;
 
 
 // =============================================================================
@@ -169,6 +181,270 @@ function satisfyDependencies(bundles) {
 // =============================================================================
 
 
+/* Get the manifest object. This does a lazy instantiation of the cache object
+ * as needed and ensures that all data in it is ready to go.
+ *
+ * In particular, this converts the date strings that are persisted into the
+ * manifest when it's written out back into Date objects.
+ *
+ * The manifest itself is keyed by bundle name and includes objects that have
+ * the timestamp of the omphalos-bundle file that was unarchived, and a list of
+ * all of the overrides that were applied, if any. */
+function getManifest() {
+  if (manifestCache === null) {
+    const manifestName = resolve(config.get('bundleCacheDir'), 'manifest.json');
+    const rawManifest = jetpack.read(manifestName, 'json') ?? {};
+
+    // Flesh out the cache; the string entries for the extraction time are
+    // converted into Date objects so that they are more useful when the cache
+    // is introspected.
+    //
+    // This also handles the older type of cache file in which we just stored
+    // the extraction time; the newer type stores that and the list of
+    // overrides that were applied (if any) in an array.
+    manifestCache = {};
+    for (const [bundle, data] of Object.entries(rawManifest)) {
+      // Is the data just a string? If so, this is an older cache file.
+      if (typeof data === 'string') {
+        manifestCache[bundle] = {
+          extractTime: new Date(data),
+          overrides: []
+        };
+      } else {
+        manifestCache[bundle] = {
+          extractTime: new Date(data.extractTime),
+          overrides: data.overrides || []
+        };
+      }
+    }
+  }
+
+  return manifestCache;
+}
+
+
+// =============================================================================
+
+
+/* Fetch the manifest entry for the bundle of the the given name. This will be
+ * undefined if the package is not a part of the cache.
+ *
+ * When this returns an object, it is in the form:
+ *  {
+ *    "extractTime": Date,
+ *    "overrides": []
+ *  }
+ *
+ * The time is the timestamp of the last omphalos-bundle to be extracted for
+ * that bundle, and overrides is a list of all of the files that were copied
+ * into the bundle. */
+function getManifestEntry(bundleName) {
+  return getManifest()[bundleName];
+}
+
+
+// =============================================================================
+
+
+/* Add an entry to the manifest cache for the given bundle, specifying the
+ * timestamp of the file that was extracted, and the list of overrides. */
+function setManifestEntry(bundleName, extractTime, overrides) {
+  const manifest = getManifest();
+
+  // Update the in-memory object directly.
+  manifest[bundleName] = {
+    extractTime: extractTime,
+    overrides: overrides || []
+  };
+
+  // Write the manifest out, now.
+  const manifestName = resolve(config.get('bundleCacheDir'), 'manifest.json');
+  jetpack.write(manifestName, manifest, { jsonIndent: 2, atomic: true });
+}
+
+
+// =============================================================================
+
+
+/* This checks to see if there are any overrides in place for the packed bundle
+ * with the given name; if there are, they will be copied over top of the
+ * unpacked bundle in the cache folder.
+ *
+ * Overrides are copied if their modification timestamps are not strictly equal
+ * to the destination file. After copying, destination timestamps are explicitly
+ * synced to perfectly match the override files.
+ *
+ * The opsExecuted parameter tracks if the bundle operations file was processed
+ * on this pass. If it wasn't, but the file exists, a warning is emitted since
+ * operations can only mutate fresh extractions.
+ *
+ * Returns an array of relative paths for every file in the override folder. */
+function copyPackedBundleOverrides(bundleName, opsExecuted) {
+  // The directory that the packed version of this folder got extracted to, and
+  // where its overrides, if any, come from.
+  const bundleDir = resolve(config.get('bundleCacheDir'), bundleName);
+  const overridesDir = resolve(config.get('overrideDir'), bundleName);
+
+  // Check if the override folder exists or not; if not, nothing to do.
+  const checkVal = jetpack.exists(overridesDir);
+  if (checkVal === false) {
+    log.info(`no overrides for packed bundle ${bundleName}`);
+    return [];
+  }
+
+  // It exists; if it's not a 'dir', generate a warning and leave.
+  if (checkVal !== 'dir') {
+    log.warn(`override path for ${bundleName} is not a directory (${overridesDir}`);
+    return [];
+  }
+
+  // If we didn't execute the bundle operations on this pass, but the file
+  // exists, warn the user that their operations are being ignored.
+  if (opsExecuted === false && jetpack.exists(resolve(overridesDir, BUNDLE_OPS_FILE)) === 'file') {
+    log.warn(`operations file ${BUNDLE_OPS_FILE} for ${bundleName} was ignored because the bundle was already extracted`);
+  }
+
+  // Gather all of the relative paths for files in the overrides folder so that
+  // we can apply them to the manifest and iterate over them for copying.
+  //
+  // We explicitly filter out the bundle operations file so it doesn't get
+  // tracked or copied as a normal asset override.
+  const overrideFiles = jetpack.find(overridesDir, { matching: '*' })
+    .filter(p => jetpack.exists(p) === 'file' && basename(p) !== BUNDLE_OPS_FILE)
+    .map(p => relative(overridesDir, p));
+
+  // Copy the contents over using a strict timestamp equality comparison. Any
+  // files in the overrides folder will be copied over to the destination if
+  // they do not exist; if they do, they will be copied only if the timestamps
+  // are not exactly equal.
+  //
+  // This is because the overrides should always be copied, but we only need to
+  // do that if they have changed. This also ensures that we don't have to worry
+  // about how zip files don't store timezone information in their time stamps.
+  log.info(`copying potential overrides for ${bundleName} to the cache folder`);
+
+  let copiedCount = 0;
+
+  for (const relPath of overrideFiles) {
+    const srcPath = resolve(overridesDir, relPath);
+    const dstPath = resolve(bundleDir, relPath);
+
+    const srcInfo = jetpack.inspect(srcPath, { times: true });
+    const dstInfo = jetpack.inspect(dstPath, { times: true });
+
+    // If the destination doesn't exist, or the timestamps are not exact twins,
+    // we copy the file and explicitly sync the metadata.
+    if (dstInfo === undefined || srcInfo.modifyTime.getTime() !== dstInfo.modifyTime.getTime()) {
+      jetpack.copy(srcPath, dstPath, { overwrite: true });
+
+      // Apply the exact modification time of the source file to the destination.
+      // This prevents continuous copying on future warm boots.
+      utimesSync(dstPath, srcInfo.accessTime || srcInfo.modifyTime, srcInfo.modifyTime);
+      copiedCount++;
+    }
+  }
+
+  log.info(`processed ${overrideFiles.length} override(s) for ${bundleName} (${copiedCount} copied)`);
+
+  // Sort the array so the manifest output is deterministic, and then return
+  // the list.
+  overrideFiles.sort();
+  return overrideFiles;
+}
+
+
+// =============================================================================
+
+
+/* Given the absolute path to something that appears to be an .omphalos-bundle
+ * file, prepare it for loading.
+ *
+ * To do that, we extract its contents out into the .cache folder in the config
+ * area, and then copy over it the directory structure of a matching bundle in
+ * the overrides folder.
+ *
+ * The extraction only occurs if we think we need to do it; if the packed bundle
+ * is unchanged and the files have already been extracted, this step is skipped.
+ *
+ * Similarly, when copying overrides, only files out of sync are copied; existing
+ * synced files are left untouched.
+ *
+ * This works by assuming that a file named bob.omphalos-bundle should be
+ * extracted to a folder named .cache/bob, and that overrides/bob is the name of
+ * the folder that contains overrides.
+ *
+ * Note that this is NOT the actual name of the bundle, since that comes from
+ * the package.json file. */
+function preparePackedBundle(bundleFile) {
+  // Get the name of the bundle dir, which is the basename of the file; then
+  // get the modification time of the file.
+  const { name: bundleName } = parse(bundleFile);
+  const { modifyTime } = jetpack.inspect(bundleFile, { times: true });
+
+  log.debug(`preparing packed bundle ${bundleName} for loading`);
+
+  // Get the location that we want to extract to, and the location of the
+  // overrides directory for this bundle.
+  const outputPath = resolve(config.get('bundleCacheDir'), bundleName);
+  const overridesDir = resolve(config.get('overrideDir'), bundleName);
+
+  // Check the manifest in the cache to see if we have extracted this before. If
+  // we have, check to see if the file is newer than the cache entry.
+  //
+  // We must also verify that the cache folder actually exists physically on
+  // disk. If it does not, then no matter what the cache says, we need to
+  // extract.
+  const cacheEntry = getManifestEntry(bundleName);
+  if (cacheEntry !== undefined && cacheEntry.extractTime >= modifyTime && jetpack.exists(outputPath) === 'dir') {
+    log.debug(`packed bundle ${bundleName} is already unpacked; checking overrides`);
+
+    // Copy over the overrides, if any; this also fetches the names of them.
+    // We can then refresh the manifest entry.
+    const overrideFiles = copyPackedBundleOverrides(bundleName, false);
+    setManifestEntry(bundleName, cacheEntry.extractTime, overrideFiles);
+    return;
+  }
+
+  // We need to extract the archive; carry out the action. We want to remove
+  // the existing folder (if any partial state exists), then extract, copy
+  // overrides, and update the manifest.
+  //
+  // On error, remove the extracted folder since it could be in an unknown state
+  // and could cause issues.
+  try {
+    log.info(`extracting ${bundleName} to ${outputPath}`);
+
+    // Get rid of the existing folder, if any.
+    jetpack.remove(outputPath);
+
+    // Create a zip object for the bundle and extract it out.
+    const zip = new AdmZip(bundleFile);
+    zip.extractAllTo(outputPath, true);
+
+    // Execute any commands defined in the bundle operations file before copying
+    // the overrides. This ensures that any operations happen to the base
+    // extracted files, allowing overrides to safely drop into the new or
+    // original paths without being moved out of the way themselves.
+    executeBundleOps(overridesDir, outputPath);
+
+    // Copy the overrides and fetch the list of them; this could be empty. Once
+    // we do that we can update the manifest.
+    const overrideFiles = copyPackedBundleOverrides(bundleName, true);
+    setManifestEntry(bundleName, modifyTime, overrideFiles);
+  }
+  catch (error) {
+    log.error(`error preparing packed bundle: ${error}`);
+
+    // If there is any error, remove any partially set up bundle path, since it
+    // could be in an indeterminate state.
+    jetpack.remove(outputPath);
+  }
+}
+
+
+// =============================================================================
+
+
 /* Using the configuration of the application, find all of the folders that
  * contain bundles, determine which are actually valid, and return back all of
  * the manifests that are valid.
@@ -177,7 +453,6 @@ function satisfyDependencies(bundles) {
  * ones that are actually bundles; those which are well formed, have the
  * required application specific keys, and match version requirements. */
 export function discoverBundles(appManifest) {
-  const bundleDir = config.get('bundleDir');
   const configDir = config.get('configDir');
 
   // Get the list of bundle names that we should skip over loading; this holds
@@ -200,8 +475,20 @@ export function discoverBundles(appManifest) {
   // value.
   let bundles = {};
 
+  // Before we do anything else, we need to find the list of packed bundles and
+  // handle them; this will extract all such packages into folders that allow
+  // for the following bundle discovery to find them.
+  const packedBundles = getPackedBundles(config);
+  for (const packedBundle of packedBundles) {
+    preparePackedBundle(packedBundle);
+  }
+
   // Find all possible bundles, then load and validate their manifest files. We
   // need to pass in the system bundle as the first set of bundles to find.
+  //
+  // This step happens after the packed bundles are prepared so that we can load
+  // them as per normal as a part of this loop. The only thing special about
+  // them is that they are zip files that need to be extracted.
   const sysBundle = resolve(config.get('baseDir'), SYSTEM_BUNDLE);
   for (const thisBundle of getBundlePaths(config, [sysBundle])) {
     try {

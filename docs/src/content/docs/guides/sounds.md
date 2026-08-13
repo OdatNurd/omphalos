@@ -1,10 +1,10 @@
 ---
 title: Sounds
 sidebar:
-  order: 6
+  order: 7
 ---
 
-Bundles can contain sounds in their [[sound manifest|manifest#sounds]] which
+Bundles can contain sounds in their [[sound manifest|bundles#sounds]] which
 allows for playback at any point.
 
 Each sound has an associated `volume` and `pan` setting for how loud it plays

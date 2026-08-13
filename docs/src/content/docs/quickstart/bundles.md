@@ -26,6 +26,15 @@ Bundles must be stored either in the bundle area of the configuration folder or
 at your option, you can configure Omphalos to look in a specific location for
 your bundle.
 
+:::caution
+There is a helper tool being developed that makes it easier to create and
+manage your bundle; this is not yet documented since it is a work in progress
+and not actually released yet.
+
+As such, the following should probably be removed from the documentation, or at
+least re-contextualized.
+:::
+
 
 ### Creating the base bundle
 

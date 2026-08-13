@@ -1,7 +1,7 @@
 ---
 title: Panels
 sidebar:
-  order: 4
+  order: 5
 ---
 
 This page would discuss panels, which are simple `html` pages that you write
@@ -14,14 +14,6 @@ layout.
 When the HTML for panels loads, it has default CSS rules applied for simple
 consistency; you are of course free to override any and all style rules as you
 see fit; the defaults are just to give a base to work from.
-
-```css
-body {
-  background: darkseagreen;
-  color: darkslateblue;
-  font-size: 32px;
-}
-```
 
 When panels load, [[omphalos.config]] is set to the configuration under which
 Omphalos is currently running. This is the same configuration as is loaded from

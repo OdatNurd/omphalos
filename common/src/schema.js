@@ -71,6 +71,11 @@ export const isValidBundleManifest = joker.validator({
     "?graphicPath": "string",
     "?soundPath": "string",
 
+    // When bundling up a package, this is an optional list of files and folders
+    // that should be placed into the bundle. The contents of the panels,
+    // graphics and sound paths are always included.
+    "?includeFiles[]": "string",
+
     // A list of user interface panels that should be presented for this bundle.
     // Sizes are in columns and rows. If a panel is locked, it will not be
     // automatically moved, though it can still be moved manually. All panels

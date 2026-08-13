@@ -1,7 +1,7 @@
 ---
 title: Storage
 sidebar:
-  order: 7
+  order: 8
 ---
 
 Omphalos allows for persistent storage, which is saved on the server in a

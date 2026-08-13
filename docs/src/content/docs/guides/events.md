@@ -1,7 +1,7 @@
 ---
 title: Events
 sidebar:
-  order: 8
+  order: 9
 ---
 
 Omphalos allows [panels](/guides/panels), [graphics](/guides/graphics) and

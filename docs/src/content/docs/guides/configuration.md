@@ -1,7 +1,7 @@
 ---
 title: Configuration
 sidebar:
-  order: 9
+  order: 10
 ---
 
 This page would talk about the configuration file in more detail. It should
@@ -30,6 +30,9 @@ from and bundles which should be ignored and not loaded if they are found.
 A list of extra paths that contain bundles to load. This should be either a list
 of absolute paths, or paths that are relative to the installation location of
 Omphalos.
+
+The paths here are either paths to bundle directories (directories containing
+`package.json` files), or paths to `omphalos-bundle` archive files.
 
 ### ignore
 

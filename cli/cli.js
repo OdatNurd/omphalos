@@ -55,13 +55,12 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
     log.error("Error: Missing bundle path.");
-    log.info("Usage: node tools/create_bundle.js <path-to-bundle> [--wrap]");
+    log.info("Usage: node tools/create_bundle.js <path-to-bundle>");
     process.exit(1);
   }
 
   // Pull the args out
   const rawBundlePath = args[0];
-  const shouldWrap = args.includes('--wrap');
 
   // Get the absolute path of the bundle, then pull the base name, which is the
   // name of the bundle.
@@ -155,7 +154,8 @@ async function main() {
   const output = fs.createWriteStream(outputFilePath);
 
   const archive = new ZipArchive({
-    zlib: { level: 9 }
+    zlib: { level: 9 },
+    forceLocalTime: true,
   });
 
   // When the output stream closes, the bundle is complete; set up to remove
@@ -187,14 +187,8 @@ async function main() {
   // Set up the pipe to send the output through.
   archive.pipe(output);
 
-  // All paths that we add should be prefixed possibly; if --wrap was given,
-  // then assume the top level of the bundle is a folder by the bundle's name;
-  // otherwise, just use an empty string and all paths will appear in the same
-  // structure as the folder itself.
-  const prefix = shouldWrap === true ? `${bundleDirName}/` : '';
-
   // Add the package.json file; here we can just use the string.
-  archive.append(manifestString, { name: `${prefix}package.json` });
+  archive.append(manifestString, { name: `package.json` });
   log.info(`  -> Added package.json (devDependencies stripped)`);
 
   // This small helper checks to see if the folder provided exists, and if so
@@ -203,7 +197,7 @@ async function main() {
   const addDirectoryIfItExists = (dirName, label) => {
     const fullPath = join(absoluteBundlePath, dirName);
     if (jetpack.exists(fullPath) === 'dir') {
-      archive.directory(fullPath, `${prefix}${dirName}`);
+      archive.directory(fullPath, `${dirName}`);
       log.info(`  -> Added ${label} directory: ${dirName}`);
     }
   };
@@ -217,7 +211,7 @@ async function main() {
   // the archive as well.
   const tempNodeModules = join(tempDirPath, 'node_modules');
   if (jetpack.exists(tempNodeModules) === 'dir') {
-    archive.directory(tempNodeModules, `${prefix}node_modules`);
+    archive.directory(tempNodeModules, `node_modules`);
     log.info(`  -> Added clean node_modules directory`);
   }
 
@@ -227,7 +221,7 @@ async function main() {
   if (manifest.omphalos.extension !== undefined) {
     const extPath = join(absoluteBundlePath, manifest.omphalos.extension);
     if (jetpack.exists(extPath) === 'file') {
-      archive.file(extPath, { name: `${prefix}${manifest.omphalos.extension}` });
+      archive.file(extPath, { name: `${manifest.omphalos.extension}` });
       log.info(`  -> Added extension file: ${manifest.omphalos.extension}`);
     } else {
       log.warn(`[WARNING] Extension file '${manifest.omphalos.extension}' is declared but not found.`);
@@ -242,10 +236,10 @@ async function main() {
     const pathType = jetpack.exists(fullExtraPath);
 
     if (pathType === 'dir') {
-      archive.directory(fullExtraPath, `${prefix}${extraPath}`);
+      archive.directory(fullExtraPath, `${extraPath}`);
       log.info(`  -> Added extra directory: ${extraPath}`);
     } else if (pathType === 'file') {
-      archive.file(fullExtraPath, { name: `${prefix}${extraPath}` });
+      archive.file(fullExtraPath, { name: `${extraPath}` });
       log.info(`  -> Added extra file: ${extraPath}`);
     } else {
       log.warn(`[WARNING] Extra include '${extraPath}' was not found.`);

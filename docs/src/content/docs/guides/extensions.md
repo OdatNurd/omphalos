@@ -1,10 +1,10 @@
 ---
 title: Extensions
 sidebar:
-  order: 5
+  order: 6
 ---
 
-Bundles can contain an optional [[extension|manifest#extension]] endpoint which
+Bundles can contain an optional [[extension|bundles#extension]] endpoint which
 allows them have server side code running. This can be useful, for example, to
 make requests of a remote API and distribute results, etc.
 
@@ -30,7 +30,7 @@ initially loaded.
 
 Bundles can optionally export symbols that allow other bundles to access their
 code. This can be used to create bundles as libraries that can be leveraged by
-other bundles using [[omphalos.require()]].
+other bundles using [[omphalos.import()]].
 
 ```js title="Symbol Exports"
 export const symbols = {

@@ -110,5 +110,8 @@
         "name": "sample"
       }
     ]
+  },
+  "devDependencies": {
+    "@odatnurd/omph": "workspace:*"
   }
 }

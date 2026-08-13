@@ -1,7 +1,7 @@
 ---
 title: Logging
 sidebar:
-  order: 10
+  order: 11
 ---
 
 This page would talk about logging, log rolling, levels and provide more details

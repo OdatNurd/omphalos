@@ -26,6 +26,13 @@ application and execute it in a terminal (possibly via [PM2][1]).
 When running in this mode, you would open the dashboard in your web browser of
 choice and work from there.
 
+
+## Docker Mode
+
+In this mode, things work the same as they otherwise might as in the Server
+Mode, but instead the application is bundled as a [Docker][5] image so that no
+development tools are needed.
+
 ## Application Mode
 
 Since not everyone is a developer (or wants to be), the plan is to bundle the
@@ -41,3 +48,4 @@ the background when not needed, or at least out of your taskbar.
   [1]: https://pm2.keymetrics.io/
   [2]: https://www.electronjs.org/
   [3]: https://nwjs.io/
+  [4]: https://docs.docker.com/get-docker/

@@ -1,15 +1,31 @@
 ---
-title: Bundle Manifest
+title: Bundles
 sidebar:
   order: 2
 ---
 
-This would talk about the contents of the `package.json` and include information
-on the fields that can be present and what they're for. This would also have to
-link to the documentation in the other sections as appropriate.
+This would talk about Bundles and the  the contents of the `package.json` and
+include information on the fields that can be present and what they're for.
+This would also have to link to the documentation in the other sections as
+appropriate.
 
 This either needs to talk about dependencies, or we need another page for it;
 decide when you write this one.
+
+## Bundle Types
+
+This would discuss that there are two different types of bundles that Omphalos
+supports:
+
+  1. **Normal** bundles, which are folders that represent a normal `nodejs`
+     package, with a manifest as per the below.
+  2. **Archived** bundles, which are zip files with the `omphalos-bundle`
+     extension; these bundles are extracted as needed for loading.
+
+## Manifest
+
+Every bundle, despite the type, must include a `package.json` manifest file that
+properly declares the bundle.
 
 ## omphalos
 
@@ -43,6 +59,23 @@ versions are required. Omphalos ***DOES NOT*** install these dependencies, it
 just ensures that bundles will only load if all of their dependencies are found
 and load successfully.
 
+### includeFiles
+
+* optional
+
+```
+  "includeFiles": [
+    "file.txt",
+    "dirNameHere"
+  ]
+```
+
+A list of extra files and/or folders to be included in a packed
+`omphalos-bundle` file when using the `@odatnurd/omph` command line
+tool to package a bundle up.
+
+A bundle always includes the contents of the [[panelPath|bundles#[[panelpath]],
+[[graphicPath|bundles#graphicpath]] and [[soundPath|bundles#soundpath]].
 
 ### extension
 

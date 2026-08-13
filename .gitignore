@@ -18,3 +18,6 @@ TODO.md
 # Generated repomixfiles
 omphalos-codebase.md
 omphalos-docs.md
+
+# A bundle that we use for testing; not a part of the repo at all.
+my-omphalos-bundle/

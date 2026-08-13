@@ -63,6 +63,29 @@ export const config = convict({
     default: ''
   },
 
+  // The location that bundles stored as omphalos-bundle files are extracted to
+  // when the system starts. This path is automatically scanned for bundles
+  // after the extraction pass, so that we can seamlessly load compressed
+  // bundles without any extra logic.
+  bundleCacheDir: {
+    doc: 'the folder that omphalos-bundle files are extracted to; set at runtime',
+    format: '*',
+    default: ''
+  },
+
+  // The location from which overrides to bundles that are installed as
+  // omphalos-bundle files are sourced.
+  //
+  // All such bundle files, whether they are actively extracted this session or
+  // not, cause a scan in this folder for a folder named after the bundle. If
+  // one exists, the files here are recursively copied over top of the extracted
+  // files.
+  overrideDir: {
+    doc: 'the folder that contains bundle override files; set at runtime',
+    format: '*',
+    default: ''
+  },
+
   // The core system and bundles can both persist data into a key-value storage
   // mechanism; this stores the name of the file used for that.
   storageFile: {
@@ -156,18 +179,45 @@ export const config = convict({
  * should be there when it is created are there. An example of this is the
  * configuration file sample.
  *
- * When the folder already exists, this does nothing. */
+ * This will automatically upgrade the bootstrap files inside the folder when the
+ * application version changes. */
 function boostrapConfigFolder(baseDir, configPath) {
-  // We don't need to do anything if the config folder already exists.
+  const sourcePath = resolve(baseDir, 'bootstrap', APP_NAME);
+  const versionFile = resolve(configPath, '.bootstrap_version');
+
+  // We need the current app version to know if we should run the bootstrap.
+  const appManifest = jetpack.read(resolve(baseDir, 'package.json'), 'json');
+
+  // If the config folder exists, check to see if it has already been
+  // bootstrapped for the current version of the application or not.
+
+  // If it has, then we can leave. WHen the file is missing or the version
+  // mismatches (including if the current version is older), we fall through to
+  // let the bootstrap happen. This way on downgrade the example configs revert
+  // back, but any folders that are no longer needed are left alone (which is
+  // the good upgrade path).
   if (existsSync(configPath) === true) {
-    return;
+    const lastVersion = jetpack.read(versionFile);
+    if (lastVersion === appManifest.version) {
+      return;
+    }
   }
 
   // Create the config folder with the permissions that we want, and then
   // bootstrap the files over. We need to create the folder ourselves or Jetpack
   // won't give it the appropriate permissions.
+  //
+  // Should the folder already exist, this will have no effect.
   jetpack.dir(configPath, { mode: 0o700 });
-  jetpack.copy(resolve(baseDir, 'bootstrap', APP_NAME), configPath, { overwrite: true });
+
+  // Bootstrap the files over. Jetpack natively merges directories, and the
+  // overwrite flag will safely clobber the READMEs and .example files with the
+  // latest versions. The user should not be touching those.
+  jetpack.copy(sourcePath, configPath, { overwrite: true });
+
+  // Stamp the configuration folder with the current version so we don't waste
+  // time doing this again until the next upgrade.
+  jetpack.write(versionFile, appManifest.version);
 }
 
 
@@ -228,6 +278,8 @@ boostrapConfigFolder(baseDir, configDir);
 config.set('baseDir', baseDir);
 config.set('configDir', configDir)
 config.set('bundleDir', resolve(configDir, 'bundles'));
+config.set('bundleCacheDir', resolve(configDir, '.cache'));
+config.set('overrideDir', resolve(configDir, 'overrides'));
 config.set('storageFile', resolve(configDir, STORAGE_FILE));
 
 /* If the configuration file exists, load it. */

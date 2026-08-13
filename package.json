@@ -16,8 +16,13 @@
   },
   "scripts": {
     "repomix": "pnpm dlx repomix -c",
+    "app:build:dev": "pnpm --filter omphalos-app run build:dev",
+    "app:start:srv": "pnpm --filter omphalos-app run start:srv",
+    "app:start:srv:watch": "pnpm --filter omphalos-app run start:srv:watch",
     "app:dev": "pnpm --filter omphalos-app run dev",
     "app:dev:watch": "pnpm --filter omphalos-app run dev:watch",
+    "app:dev:docs": "concurrently --kill-others --names \"client,server,docs\" \"pnpm app:build:dev\" \"pnpm app:start:srv\" \"pnpm docs:dev\"",
+    "app:dev:docs:watch": "concurrently --kill-others --names \"client,server,docs\" \"pnpm app:build:dev\" \"pnpm app:start:srv:watch\" \"pnpm docs:dev\"",
     "docs:dev": "pnpm --filter omphalos-docs run dev",
     "docs:build": "pnpm --filter omphalos-docs run build",
     "docs:preview": "pnpm --filter omphalos-docs run preview",
@@ -32,7 +37,8 @@
     }
   },
   "devDependencies": {
+    "@odatnurd/create-omphalos-bundle": "workspace:*",
     "@odatnurd/omph": "workspace:*",
-    "@odatnurd/create-omphalos-bundle": "workspace:*"
+    "concurrently": "^10.0.5"
   }
 }

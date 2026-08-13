@@ -30,6 +30,7 @@
   "dependencies": {
     "@axel669/event-bridge": "^1.0.2",
     "@axel669/joker": "^0.3.6",
+    "adm-zip": "^0.6.0",
     "compression": "^1.8.1",
     "convict": "^6.2.5",
     "dotenv": "^16.6.1",
@@ -54,7 +55,7 @@
     "@rollup/plugin-node-resolve": "^15.3.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/typography": "^0.5.20",
-    "concurrently": "^10.0.3",
+    "concurrently": "^10.0.5",
     "daisyui": "^5.7.16",
     "postcss": "^8.5.16",
     "rollup": "^4.62.2",

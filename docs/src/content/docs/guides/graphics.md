@@ -1,7 +1,7 @@
 ---
 title: Graphics
 sidebar:
-  order: 3
+  order: 4
 ---
 
 This page would discuss graphics, which are simple `html` pages that you write
@@ -15,14 +15,6 @@ link here or whatever.
 When the HTML for graphics loads, it has default CSS rules applied for simple
 consistency; you are of course free to override any and all style rules as you
 see fit; the defaults are just to give a base to work from.
-
-```css
-body {
-  background: darkorchid;
-  color: white;
-  font-size: 32px;
-}
-```
 
 When graphics load, [[omphalos.config]] is set to the configuration under which
 Omphalos is currently running. This is the same configuration as is loaded from
