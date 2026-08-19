@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= it.name %></title>
+</head>
+<body>
+  <p>
+    Sample panel.
+  </p>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // Network Lifecycle Events
+    // -------------------------------------------------------------------------
+    omphalos.event.ioConnect(() => {
+      omphalos.log.debug('Socket connected to server');
+    });
+
+    omphalos.event.ioDisconnect(() => {
+      omphalos.log.debug('Socket disconnected from server');
+    });
+  </script>
+</body>
+</html>

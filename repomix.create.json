@@ -1,0 +1,18 @@
+{
+  "output": {
+    "filePath": "omphalos-create.md",
+    "style": "markdown"
+  },
+  "include": [
+    "create-bundle/**/*",
+    "common/**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "omphalos-*.md"
+    ]
+  }
+}

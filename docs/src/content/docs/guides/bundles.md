@@ -216,8 +216,7 @@ all of the graphic files should be relative to.
       "size": {
         "width": 1280,
         "height": 720,
-      },
-      "singleInstance": false
+      }
     }
   ]
 ```
@@ -233,10 +232,9 @@ The HTML file that provides the content for this graphic.
 
 #### name
 
-* optional
+* required
 
-The internal name for this graphic; if this is not given, it will be set the
-same as the file that represents the overlay.
+The internal name for this graphic.
 
 #### size
 
@@ -245,20 +243,12 @@ same as the file that represents the overlay.
 The size of this graphic; this is purely informational and is displayed in the
 dashboard only.
 
-#### singleInstance
-
-* optional
-
-If this is set to `true`, the system, will only allow a single instance of this
-overlay to be served; other attempts will fail.
-
-
 ### soundPath
 
 * optional (defaults to `'sounds'` if not specified)
 
 ```json
-  "soundsPath": "sounds",
+  "soundPath": "sounds",
 ```
 
 When using sounds, this specifies the folder inside of the bundle layout that

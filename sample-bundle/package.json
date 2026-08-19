@@ -92,6 +92,7 @@
     "graphicPath": "overlays",
     "graphics": [
       {
+        "name": "test-overlay",
         "file": "the_overlay.html",
         "size": {
           "width": 960,
@@ -99,7 +100,7 @@
         }
       }
     ],
-    "soundsPath": "sounds",
+    "soundPath": "sounds",
     "sounds": [
       {
         "file": "click.ogg",

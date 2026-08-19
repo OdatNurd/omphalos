@@ -114,12 +114,11 @@ export const isValidBundleManifest = joker.validator({
     // The name of the file in the graphic is relative to the panelPath.
     "?graphics[]": {
       "file": "string",
-      "?name": "string",
+      "name": "string",
       "size": {
         "width": "int",
         "height": "int"
-      },
-      "?singleInstance": "bool"
+      }
     },
 
     // A list of sound drop files that are contained in this bundle. The names

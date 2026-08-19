@@ -1,0 +1,18 @@
+{
+  "output": {
+    "filePath": "omphalos-cli.md",
+    "style": "markdown"
+  },
+  "include": [
+    "cli/**/*",
+    "common/**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "omphalos-*.md"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "@odatnurd/omph",
+  "name": "@odatnurd/omphalos-cli",
   "version": "0.1.0",
   "type": "module",
   "description": "Omphalos command line tool for bundle management",
@@ -14,16 +14,41 @@
   "engines": {
     "node": ">=20.x"
   },
+  "scripts": {
+    "build": "rollup -c"
+  },
   "bin": {
-    "omph": "./cli.js"
+    "omphalos": "./src/omphalos.js"
+  },
+  "publishConfig": {
+    "bin": {
+      "omphalos": "./bin/omphalos.js"
+    }
+  },
+  "files": [
+    "bin",
+    "templates"
+  ],
+  "imports": {
+    "#commands/*": "./src/commands/*/index.js",
+    "#helpers": "./src/lib/helpers.js",
+    "#logging": "./src/lib/logging.js",
+    "#middleware": "./src/lib/middleware.js"
   },
   "dependencies": {
     "@axel669/joker": "^0.3.2",
+    "acorn": "^8.11.3",
     "archiver": "^8.0.0",
+    "es-module-lexer": "^1.4.1",
+    "eta": "^4.6.0",
     "fs-jetpack": "^5.1.0",
-    "semver": "^7.3.8"
+    "play-sound": "^1.1.6",
+    "semver": "^7.3.8",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@odatnurd/omphalos-common": "workspace:*"
+    "@odatnurd/omphalos-common": "workspace:*",
+    "@rollup/plugin-node-resolve": "^15.3.1",
+    "rollup": "^4.62.2"
   }
 }

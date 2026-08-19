@@ -5,6 +5,7 @@ build
 *.sublime-*
 cache
 www
+bin
 
 TODO.md
 
@@ -16,8 +17,7 @@ TODO.md
 *.omphalos-bundle
 
 # Generated repomixfiles
-omphalos-codebase.md
-omphalos-docs.md
+omphalos-*.md
 
 # A bundle that we use for testing; not a part of the repo at all.
 my-omphalos-bundle/
