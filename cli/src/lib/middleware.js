@@ -17,7 +17,7 @@ import { Eta } from 'eta';
 // running from src or bin.
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const templatePath = join(__dirname, '..', 'templates/');
+const templatePath = join(__dirname, basename(__dirname) === 'bin' ? '..' : '../..', 'templates/');
 
 
 // =============================================================================
