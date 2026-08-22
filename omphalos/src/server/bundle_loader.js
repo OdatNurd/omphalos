@@ -1,7 +1,11 @@
 import { config } from '#core/config';
 import { logger } from '#core/logger';
 
-import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE, EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED, MSG_TRIGGER_SOUND } from '@odatnurd/omphalos-common/constants';
+import { SYSTEM_BUNDLE,
+         MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE,  MSG_TRIGGER_SOUND,
+         EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED,
+         getAudioTypeInfo
+       } from '@odatnurd/omphalos-common/constants';
 
 import { assert } from '#api/assert';
 
@@ -189,11 +193,7 @@ function setupAssetRoutes(manifest, bundleName, assetType, router) {
     // Attempt to loosely validate that sound files provided are of a type that
     // modern browsers actually support natively.
     if (assetType === 'sound') {
-      const parts = asset.file.split('.');
-      const ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
-      const validAudioExts = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'webm'];
-
-      if (validAudioExts.includes(ext) === false) {
+      if (getAudioTypeInfo(asset.file).valid === false) {
         log.warn(`sound file '${asset.file}' has an extension that may not be playable in browsers`);
       }
     }

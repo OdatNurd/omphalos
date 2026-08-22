@@ -4,6 +4,8 @@ import jetpack from 'fs-jetpack';
 import { join, extname } from 'path';
 import { parse } from 'acorn';
 
+import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
+
 
 // =============================================================================
 
@@ -74,7 +76,6 @@ async function handleValidate({ bundlePath, manifest }) {
   // ---------------------------------------------------------------------------
   // SOUNDS
   // ---------------------------------------------------------------------------
-  const validAudioExts = ['.wav', '.mp3', '.ogg', '.aac', '.flac', '.webm', '.m4a'];
   const sounds = omph.sounds || [];
   const soundIds = new Set();
 
@@ -94,8 +95,7 @@ async function handleValidate({ bundlePath, manifest }) {
       errorCount++;
     }
 
-    const ext = extname(s.file).toLowerCase();
-    if (validAudioExts.includes(ext) === false) {
+    if (getAudioTypeInfo(s.file).valid === false) {
       log.warn(`sound '${s.name}' references file '${s.file}' which does not appear to be a common web-capable audio format.`);
       warningCount++;
     }

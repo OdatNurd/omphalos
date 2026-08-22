@@ -2,7 +2,11 @@
   import { Content, Icon } from '$components';
   import { onMount, onDestroy } from 'svelte';
 
-  import { SYSTEM_BUNDLE, MSG_STORAGE_UPDATE, MSG_REQUEST_GLOBAL_STATE, MSG_GLOBAL_STORAGE_REFRESH, MSG_GLOBAL_STORAGE_UPDATE } from '@odatnurd/omphalos-common/constants';
+  import { SYSTEM_BUNDLE,
+           MSG_STORAGE_UPDATE, MSG_REQUEST_GLOBAL_STATE,
+           MSG_GLOBAL_STORAGE_REFRESH, MSG_GLOBAL_STORAGE_UPDATE,
+           getAudioTypeInfo
+         } from '@odatnurd/omphalos-common/constants';
 
   import { sounds } from '$stores/sounds.svelte.js';
 
@@ -65,28 +69,6 @@
     collapsedBundles = currentState;
 
     updateStorage(SYSTEM_BUNDLE, 'mixerCollapsedBundles', currentState);
-  };
-
-  // Helper to parse file extensions into readable type tags with badge coloring
-  const getFileTypeInfo = (filename) => {
-    const parts = (filename || '').split('.');
-    const ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
-
-    const types = {
-      'mp3': { label: 'MP3', color: 'badge-info' },
-      'wav': { label: 'WAV', color: 'badge-info' },
-      'ogg': { label: 'Ogg Vorbis', color: 'badge-info' },
-      'aac': { label: 'AAC', color: 'badge-info' },
-      'flac': { label: 'FLAC', color: 'badge-info' },
-      'm4a': { label: 'M4A', color: 'badge-info' },
-      'webm': { label: 'WebM', color: 'badge-info' }
-    };
-
-    if (ext === '') {
-      return { label: 'Unknown', color: 'badge-error' };
-    }
-
-    return types[ext] || { label: ext.toUpperCase(), color: 'badge-error' };
   };
 
   // Helper to format raw pan floats into readable UI strings
@@ -328,7 +310,7 @@
           <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 h-full w-full relative rounded-br-lg border-neutral border-1">
 
             {#each bundle.sounds as sound (sound.name)}
-              {@const typeInfo = getFileTypeInfo(sound.file)}
+              {@const typeInfo = getAudioTypeInfo(sound.file)}
               <!-- Per Graphic; Covers the entire shiboodle -->
               <div class="flex flex-col px-4 mt-2 py-2 bg-secondary text-secondary-content">
 

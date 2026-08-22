@@ -5,6 +5,14 @@
   logs: true;
 }
 
+/* The mixer uses these colors, but they're not in the mixer source, they come
+ * from @odatnurd/omphalos/common/constants; for the colors of file types based
+ * on whether or not they appear to be valid extensions.
+ *
+ * We specify them here so that Tailwind knows to generate them. Could also
+ * point this at the actual file, but that makes this brittle, so... */
+@source inline("badge-info badge-error");
+
 /* Make the tooltips in Daisy actually work. */
 .tooltip::before {
   z-index: 1;

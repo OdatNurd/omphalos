@@ -85,3 +85,63 @@ export const MSG_PLAY_SOUND = '__sys_play_sound';
 
 
 // =============================================================================
+
+
+/* The list of web playable audio extensions that we support; this includes the
+ * mapping for what their extension is, what label they should have in the UI,
+ * and what color their badge should be. */
+export const SUPPORTED_AUDIO_TYPES = {
+  mp3:  { label: 'MP3',        color: 'badge-info' },
+  wav:  { label: 'WAV',        color: 'badge-info' },
+  ogg:  { label: 'Ogg Vorbis', color: 'badge-info' },
+  aac:  { label: 'AAC',        color: 'badge-info' },
+  flac: { label: 'FLAC',       color: 'badge-info' },
+  m4a:  { label: 'M4A',        color: 'badge-info' },
+  webm: { label: 'WebM',       color: 'badge-info' }
+};
+
+/* As a convenience, pull the keys from the audio type arrays to get the list of
+ * (dotless) extensions, so that validation is easier. */
+export const SUPPORTED_AUDIO_EXTENSIONS = Object.keys(SUPPORTED_AUDIO_TYPES);
+
+
+// =============================================================================
+
+
+/* Given a filename or extension string, return whether or not it is valid,
+ * what its extension string is (if any), the label to use for it in the UI,
+ * and the badge color to apply to it in the UI.
+ *
+ * The returned object is of the form:
+ *
+ *   {
+ *     "valid": bool,
+ *     "ext": string,
+ *     "label": string,
+ *     "color": string
+ *   } */
+export function getAudioTypeInfo(filename) {
+  // Get the extension from the filename. You would think we should use the node
+  // path mechanism for this, but this code needs to be accessed via code in the
+  // UI as well, so this file can't include node modules.
+  const parts = (filename || '').split('.');
+  const ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
+
+  // If there is not an extension, then we can return a placeholder.
+  if (ext === '') {
+    return { valid: false, ext: '', label: 'Unknown', color: 'badge-error' };
+  }
+
+  // Find the entry, and if so, we can return it back.
+  const match = SUPPORTED_AUDIO_TYPES[ext];
+  if (match !== undefined) {
+    return { valid: true, ext, ...match };
+  }
+
+  // Our fallback is to say we're not valid, but to provide a label that says
+  // what the extension is, at least.
+  return { valid: false, ext, label: ext.toUpperCase(), color: 'badge-error' };
+}
+
+
+// =============================================================================
