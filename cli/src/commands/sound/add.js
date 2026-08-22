@@ -1,24 +1,45 @@
+import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
+
 import { log } from '#logging';
 
-import { ensureAssetDoesNotExist, createNumberRangeValidator, wrappedHandler } from '#helpers';
+import { getNewAssetPath, ensureAssetDoesNotExist, createNumberRangeValidator, wrappedHandler } from '#helpers';
+
+import { basename } from 'node:path';
+import jetpack from 'fs-jetpack';
 
 
 // =============================================================================
 
 
 /* Add a new sound to the bundle. */
-async function handleSoundAdd({ name, file, volume, pan,  manifest }) {
+async function handleSoundAdd({ name, file: srcFile, destFile, volume, pan,  manifest, bundlePath }) {
   ensureAssetDoesNotExist(name, 'sound', manifest);
 
-  log.info(`[NOT YET IMPLEMENTED] Adding sound: ${name} from ${file}`);
+  // If there is not a destination file, then just take the basename of the
+  // source file that we were given and use that.
+  if (destFile === undefined) {
+    destFile = basename(srcFile);
+  }
+
+  // The source file should exist.
+  if (jetpack.exists(srcFile) !== 'file') {
+    throw new Error(`sound file '${srcFile}' does not exist or is not a file`);
+  }
+
+  // The destination file must not exist.
+  const destPath = getNewAssetPath(destFile, 'sound', manifest, bundlePath)
+
+  // Get the audio type; if it is not valid, then generate a warning/
+  const audioType = getAudioTypeInfo(srcFile);
+
+  log.info(`[NOT YET IMPLEMENTED] Adding sound: ${name} from ${srcFile}`);
+  log.info(`file is of type ${audioType.label}`);
+  log.info(`destination in bundle is ${JSON.stringify(destPath, null, 2)}`);
   log.info(`Volume: ${volume}`);
   log.info(`Pan: ${pan}`);
-
-  // Should validate that the name is not in use, that the file exists, warn if
-  // the file is not a web audio format, and that the volume and pan are in
-  // the correct range.
-  //
-  // The file gets copied into the sounds folder in the bundle.
+  if (audioType.valid === false) {
+    log.warn(`audio file '${destPath.relative}' does not appear to be a web supported audio file`);
+  }
 }
 
 
@@ -32,6 +53,7 @@ export const addCommand = {
     return yargs
       .positional('name', { type: 'string', describe: 'Sound identifier name' })
       .positional('file', { type: 'string', describe: 'Path to source audio file' })
+      .option('dest-file', { type: 'string', describe: 'Bundle path for asset'})
       .option('volume', {
         type: 'number',
         default: 1.0,

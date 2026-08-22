@@ -1,21 +1,32 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
+import { getRequiredAsset, ensureAssetDoesNotExist, getNewAssetPath,
+         getRequiredAssetPath, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Move an existing graphic within the bundle. */
-async function handleGraphicMv({ name, newName, file, manifest }) {
+async function handleGraphicMv({ name, newName, file, manifest, bundlePath }) {
   const graphic = getRequiredAsset(name, 'graphic', manifest);
   if (newName !== undefined) {
     ensureAssetDoesNotExist(newName, 'graphic', manifest);
   }
 
+  let sourcePath = undefined;
+  let destPath = undefined;
+
+  if (file !== undefined) {
+    sourcePath = getRequiredAssetPath(graphic.file, 'graphic', manifest, bundlePath)
+    destPath = getNewAssetPath(file, 'graphic', manifest, bundlePath)
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Moving graphic: ${name}`);
   log.info(`New name: ${newName}`);
-  log.info(`New file: ${file}`);
+  if (file !== undefined) {
+    log.info(`moving file ${JSON.stringify(sourcePath)} to ${JSON.stringify(destPath)}`)
+  }
 }
 
 

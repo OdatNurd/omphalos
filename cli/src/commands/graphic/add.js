@@ -1,29 +1,26 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { ensureAssetDoesNotExist, validateSizeSpecifier, getNewAssetPath, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Add a new graphic to the bundle. */
-async function handleGraphicAdd({ name, size, file: newFile, template, manifest }) {
+async function handleGraphicAdd({ name, size, file: newFile, template, manifest, bundlePath }) {
+  // The filename to add is either given, or inferred from the name of the
+  // graphic.
+  let file = newFile ?? name;
+
   ensureAssetDoesNotExist(name, 'graphic', manifest);
-
-  let file = newFile ?? `${name}.html`;
-  const ext = extname(file);
-
-  // If the user specifies a file but omits the extension entirely, infer .html
-  if (ext === '') {
-    file += '.html';
-  }
+  const outputPath = getNewAssetPath(file, 'graphic', manifest, bundlePath)
 
   const result = template.render('graphic.html', { name });
   // console.log(result);
 
   log.info(`[NOT YET IMPLEMENTED] Adding graphic: ${name}`);
-  log.info(`Resolved file path: ${file}`);
+  log.info(`Resolved file path: ${JSON.stringify(outputPath, null, 2)}`);
   log.info(`Size: ${size.width}x${size.height}px`);
 }
 

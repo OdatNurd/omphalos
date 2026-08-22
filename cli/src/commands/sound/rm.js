@@ -1,17 +1,24 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, wrappedHandler } from '#helpers';
+import { getAssetPath, getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Remove a sound from the bundle. */
-async function handleSoundRm({ name, deleteFile, manifest }) {
+async function handleSoundRm({ name, delete: deleteFile, manifest, bundlePath }) {
   const sound = getRequiredAsset(name, 'sound', manifest);
 
+  let deletePath = undefined;
+  if (deleteFile === true) {
+    deletePath = getAssetPath(sound.file, 'sound', manifest, bundlePath);
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Removing sound: ${name}`);
-  log.info(`Delete file: ${deleteFile}`);
+  if (deleteFile === true) {
+    log.info(`Delete file: ${JSON.stringify(deletePath, null, 2)}`);
+  }
 }
 
 

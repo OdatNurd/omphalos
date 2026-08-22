@@ -1,17 +1,24 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, wrappedHandler } from '#helpers';
+import { getAssetPath, getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Remove a panel from the bundle. */
-async function handlePanelRm({ name, delete: deleteFile, manifest }) {
+async function handlePanelRm({ name, delete: deleteFile, manifest, bundlePath }) {
   const panel = getRequiredAsset(name, 'panel', manifest);
 
+  let deletePath = undefined;
+  if (deleteFile === true) {
+    deletePath = getAssetPath(panel.file, 'panel', manifest, bundlePath);
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Removing panel: ${name}`);
-  log.info(`Delete file: ${deleteFile}`);
+  if (deleteFile === true) {
+    log.info(`Delete file: ${JSON.stringify(deletePath, null, 2)}`);
+  }
 }
 
 

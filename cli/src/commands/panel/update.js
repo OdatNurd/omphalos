@@ -1,24 +1,25 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Update information for an existing panel. */
-async function handlePanelUpdate({ name, file, title, locked, fullbleed, manifest }) {
+async function handlePanelUpdate({ name, file, title, locked, fullbleed, manifest, bundlePath }) {
   const panel = getRequiredAsset(name, 'panel', manifest);
 
   log.info(`[NOT YET IMPLEMENTED] Updating panel: ${name}`);
 
+  let newPath = undefined;
   if (file !== undefined) {
-    let updatedFile = file;
-    if (extname(updatedFile) === '') {
-      updatedFile += '.html';
-    }
-    log.info(`Would scaffold new file: ${updatedFile}`);
+    newPath = getNewAssetPath(file, 'panel', manifest, bundlePath);
+  }
+
+  if (newPath !== undefined) {
+    log.info(`Would scaffold new file: ${JSON.stringify(newPath, null, 2)}`);
   }
 
   if (title !== undefined) {

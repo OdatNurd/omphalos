@@ -23,6 +23,19 @@ const templatePath = join(__dirname, basename(__dirname) === 'bin' ? '..' : '../
 // =============================================================================
 
 
+/* Helper function for commands that modify the manifest to save it back to
+ * disk.
+ *
+ * Given the manifest and manifest path, atomically write the new manifest
+ * back. */
+export function saveManifest(manifestPath, manifest) {
+  jetpack.write(manifestPath, manifest, { atomic: true });
+}
+
+
+// =============================================================================
+
+
 /* A yargs middleware for loading up the package.json file from the current
  * directory, validating that it is structured correctly as an Omphalos bundle,
  * and then push into the args that are given to all commands a reference to
@@ -75,22 +88,13 @@ export function loadManifestMiddleware(argv) {
   argv.bundleName = bundleName;
   argv.manifestPath = packageJsonPath;
 
+  // Inject a parameterless closure to easily save the manifest back to disk
+  // after mutating the injected manifest object.
+  argv.saveManifest = () => saveManifest(packageJsonPath, manifest);
+
   // Inject the template system so that any commands that need it can access
   // it.
   argv.template = new Eta({ views: templatePath });
-}
-
-
-// =============================================================================
-
-
-/* Helper function for commands that modify the manifest to save it back to
- * disk.
- *
- * Given the manifest and manifest path, atomically write the new manifest
- * back. */
-export function saveManifest(manifestPath, manifest) {
-  jetpack.write(manifestPath, manifest, { atomic: true });
 }
 
 

@@ -3,6 +3,9 @@ import semver from 'semver';
 import { join } from 'node:path';
 import { log } from '#logging';
 
+import { extname } from 'node:path';
+import jetpack from 'fs-jetpack';
+
 
 // =============================================================================
 
@@ -152,9 +155,13 @@ export const ensureAssetDoesNotExist = (name, type, manifest) => {
 /* Helper function to calculate both the relative and absolute paths for an
  * asset file within a bundle.
  *
- * It uses the manifest to look up the configured base folder for the given
+ * If the type is panel or graphic, and the filename given doesn't have an
+ * extension on it, the extension .html will be added. For other types, this is
+ * not done becuse it is not possible to infer.
+ *
+ * This uses the manifest to look up the configured base folder for the given
  * asset type, applying defaults if they are not explicitly defined. */
-export const getAssetPath = (fileName, type, manifest, bundlePath) => {
+export const getAssetPath = (filename, type, manifest, bundlePath) => {
   const typeDefaults = {
     'panel': { key: 'panelPath', fallback: 'panels' },
     'graphic': { key: 'graphicPath', fallback: 'graphics' },
@@ -170,7 +177,13 @@ export const getAssetPath = (fileName, type, manifest, bundlePath) => {
   // default.
   const baseDir = manifest.omphalos[typeInfo.key] ?? typeInfo.fallback;
 
-  const relative = join(baseDir, fileName);
+  // Infer an extension, if one is not given; assumign this is a type for which
+  // we can do that.
+  if ((type === 'panel' || type === 'graphic') && extname(filename) === '') {
+    filename += '.html';
+  }
+
+  const relative = join(baseDir, filename);
   const absolute = join(bundlePath, relative);
 
   return {
@@ -178,6 +191,44 @@ export const getAssetPath = (fileName, type, manifest, bundlePath) => {
     absolute
   };
 };
+
+
+// =============================================================================
+
+
+/* Helper function to get the asset path for an asset of the given type, which
+ * must exist.
+ *
+ * The return value is as getAssetPath. An error is thrown if the desired path
+ * does not already exist on disk. */
+export const getRequiredAssetPath = (filename, type, manifest, bundlePath) => {
+  const assetPath = getAssetPath(filename, type, manifest, bundlePath);
+
+  if (jetpack.exists(assetPath.absolute) !== 'file') {
+    throw new Error(`${type} asset path '${assetPath.relative}' does not exist, or is not a file`);
+  }
+
+  return assetPath;
+}
+
+
+// =============================================================================
+
+
+/* Helper function to get the asset path for an asset that is about to be
+ * created, which must not exist.
+ *
+ * The return value is as getAssetPath. An error is thrown if the desired path
+ * does already exists on disk. */
+export const getNewAssetPath = (filename, type, manifest, bundlePath) => {
+  const assetPath = getAssetPath(filename, type, manifest, bundlePath);
+
+  if (jetpack.exists(assetPath.absolute) !== false) {
+    throw new Error(`${type} asset path '${assetPath.relative}' already exists`);
+  }
+
+  return assetPath;
+}
 
 
 // =============================================================================

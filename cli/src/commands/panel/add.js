@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -9,22 +9,19 @@ import { ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '
 
 /* Add a new panel to the bundle. */
 async function handlePanelAdd({ name, file: newFile, size, minSize, maxSize, title,
-                                workspace, locked, fullbleed, manifest, template }) {
+                                workspace, locked, fullbleed, manifest, bundlePath, template }) {
+  // The filename to add is either given, or inferred from the name of the
+  // graphic.
+  let file = newFile ?? name;
+
   ensureAssetDoesNotExist(name, 'panel', manifest);
-
-  let file = newFile ?? `${name}.html`;
-  const ext = extname(file);
-
-  // If the user specifies a file but omits the extension entirely, infer .html
-  if (ext === '') {
-    file += '.html';
-  }
+  const outputPath = getNewAssetPath(file, 'panel', manifest, bundlePath)
 
   const result = template.render('panel.html', { name });
-  console.log(result);
+  // console.log(result);
 
   log.info(`[NOT YET IMPLEMENTED] Adding panel: ${name}`);
-  log.info(`Resolved file path: ${file}`);
+  log.info(`Resolved file path: ${JSON.stringify(outputPath, null, 2)}`);
   log.info(`Size: ${size.width}x${size.height}`);
   if (minSize !== undefined) {
     log.info(`Min size: ${minSize.width}x${minSize.height}`);
@@ -36,7 +33,6 @@ async function handlePanelAdd({ name, file: newFile, size, minSize, maxSize, tit
   log.info(`Workspace: ${workspace}`);
   log.info(`Locked: ${locked}`);
   log.info(`Fullbleed: ${fullbleed}`);
-  log.info(`Intended behavior: Validate manifest, scaffold HTML stub, inject panel object, save manifest.`);
 }
 
 

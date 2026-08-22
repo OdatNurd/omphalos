@@ -1,9 +1,7 @@
 import { log } from '#logging';
-import { join } from 'path';
-import jetpack from 'fs-jetpack';
 import playSound from 'play-sound';
 
-import { getRequiredAsset, wrappedHandler } from '#helpers';
+import { getRequiredAsset, getRequiredAssetPath, wrappedHandler } from '#helpers';
 
 // Initialize the player instance
 const player = playSound();
@@ -18,30 +16,10 @@ const player = playSound();
  * This uses the play-sound package, which just tries to use an appropriate
  * command line tool. This is largely untested code I ripped from an example. */
 async function handlePlay({ name, raw, bundlePath, manifest }) {
-  const sound = getRequiredAsset(name, 'sound', manifest);
-
-  const omph = manifest.omphalos;
+  const soundConfig = getRequiredAsset(name, 'sound', manifest);
+  const assetPath = getRequiredAssetPath(soundConfig.file, 'sound', manifest, bundlePath);
 
   const targetName = name;
-  const sounds = omph.sounds !== undefined ? omph.sounds : [];
-
-  // Find the requested sound in the manifest, and get cranky if it is not
-  // found.
-  const soundConfig = sounds.find(s => s.name === targetName);
-  if (soundConfig === undefined) {
-    log.error(`Sound '${targetName}' was not found in the manifest.`);
-    process.exit(1);
-  }
-
-  // Resolve the physical file path so we can pass it out.
-  const sPath = omph.soundPath ?? 'sounds';
-  const fullPath = join(bundlePath, sPath, soundConfig.file);
-
-  // The file must exist for us to be happy.
-  if (jetpack.exists(fullPath) !== 'file') {
-    log.error(`The file for sound '${targetName}' (${soundConfig.file}) does not exist in '${sPath}/'.`);
-    process.exit(1);
-  }
 
   // Pull volume and panning.
   const vol = soundConfig.volume !== undefined ? soundConfig.volume : 1.0;
@@ -60,7 +38,7 @@ async function handlePlay({ name, raw, bundlePath, manifest }) {
   // The play-sound library uses callbacks, so we wrap it in a Promise to keep
   // the CLI alive until the track finishes playing.
   await new Promise((resolve, reject) => {
-    player.play(fullPath, (err) => {
+    player.play(assetPath.absolute, (err) => {
       if (err !== null && err !== undefined) {
         log.error(`failed to play sound: ${err.message || err}`);
         reject(err);

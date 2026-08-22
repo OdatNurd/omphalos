@@ -1,17 +1,24 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, wrappedHandler } from '#helpers';
+import { getAssetPath, getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Remove an existing graphic from the bundle. */
-async function handleGraphicRm({ name, delete: deleteFile, manifest }) {
+async function handleGraphicRm({ name, delete: deleteFile, manifest, bundlePath }) {
   const graphic = getRequiredAsset(name, 'graphic', manifest);
 
+  let deletePath = undefined;
+  if (deleteFile === true) {
+    deletePath = getAssetPath(graphic.file, 'graphic', manifest, bundlePath);
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Removing graphic: ${name}`);
-  log.info(`Delete file: ${deleteFile}`);
+  if (deleteFile === true) {
+    log.info(`Delete file: ${JSON.stringify(deletePath, null, 2)}`);
+  }
 }
 
 

@@ -1,24 +1,25 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Update the entry for a graphic in the bundle manifest. */
-async function handleGraphicUpdate({ name, file, size, manifest }) {
+async function handleGraphicUpdate({ name, file, size, manifest, bundlePath }) {
   const graphic = getRequiredAsset(name, 'graphic', manifest);
 
   log.info(`[NOT YET IMPLEMENTED] Updating graphic: ${name}`);
 
+  let newPath = undefined;
   if (file !== undefined) {
-    let updatedFile = file;
-    if (extname(updatedFile) === '') {
-      updatedFile += '.html';
-    }
-    log.info(`Would scaffold new file: ${updatedFile}`);
+    newPath = getNewAssetPath(file, 'graphic', manifest, bundlePath);
+  }
+
+  if (newPath !== undefined) {
+    log.info(`Would scaffold new file: ${JSON.stringify(newPath, null, 2)}`);
   }
 }
 

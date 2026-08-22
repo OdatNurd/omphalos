@@ -1,6 +1,7 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
+import { getRequiredAssetPath, getNewAssetPath, getRequiredAsset,
+         ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,15 +9,27 @@ import { getRequiredAsset, ensureAssetDoesNotExist, wrappedHandler } from '#help
 
 /* Move an existing sound file to a different name within the bundle, either a
  * path change or a name change, or both. */
-async function handleSoundMv({ name, newName, file, manifest }) {
+async function handleSoundMv({ name, newName, file, manifest, bundlePath }) {
   const sound = getRequiredAsset(name, 'sound', manifest);
   if (newName !== undefined) {
-    ensureAssetDoesNotExist(name, 'sound', manifest);
+    ensureAssetDoesNotExist(newName, 'sound', manifest);
+  }
+
+  let sourcePath = undefined;
+  let destPath = undefined;
+
+  if (file !== undefined) {
+    sourcePath = getRequiredAssetPath(sound.file, 'sound', manifest, bundlePath);
+    destPath = getNewAssetPath(file, 'sound', manifest, bundlePath);
   }
 
   log.info(`[NOT YET IMPLEMENTED] Moving sound: ${name}`);
-  log.info(`New name: ${newName}`);
-  log.info(`New file: ${file}`);
+  if (newName !== undefined) {
+    log.info(`New name: ${newName}`);
+  }
+  if (file !== undefined) {
+    log.info(`moving file ${JSON.stringify(sourcePath)} to ${JSON.stringify(destPath)}`);
+  }
 }
 
 
