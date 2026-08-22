@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,8 @@ import { validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 /* Alter the size of a graphic's entry in the bundle manifest. */
 async function handleGraphicResize({ name, size, manifest }) {
+  const graphic = getRequiredAsset(name, 'graphic', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Resizing graphic: ${name}`);
   log.info(`New size: ${size.width}x${size.height}px`);
 }

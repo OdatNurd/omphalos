@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,8 @@ import { wrappedHandler } from '#helpers';
 
 /* Remove a panel from the bundle. */
 async function handlePanelRm({ name, delete: deleteFile, manifest }) {
+  const panel = getRequiredAsset(name, 'panel', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Removing panel: ${name}`);
   log.info(`Delete file: ${deleteFile}`);
 }

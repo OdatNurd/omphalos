@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -9,6 +9,11 @@ import { wrappedHandler } from '#helpers';
 /* Move an existing sound file to a different name within the bundle, either a
  * path change or a name change, or both. */
 async function handleSoundMv({ name, newName, file, manifest }) {
+  const sound = getRequiredAsset(name, 'sound', manifest);
+  if (newName !== undefined) {
+    ensureAssetDoesNotExist(name, 'sound', manifest);
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Moving sound: ${name}`);
   log.info(`New name: ${newName}`);
   log.info(`New file: ${file}`);

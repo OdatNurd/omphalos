@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -9,6 +9,8 @@ import { validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 /* Add a new graphic to the bundle. */
 async function handleGraphicAdd({ name, size, file: newFile, template, manifest }) {
+  ensureAssetDoesNotExist(name, 'graphic', manifest);
+
   let file = newFile ?? `${name}.html`;
   const ext = extname(file);
 
@@ -18,7 +20,7 @@ async function handleGraphicAdd({ name, size, file: newFile, template, manifest 
   }
 
   const result = template.render('graphic.html', { name });
-  console.log(result);
+  // console.log(result);
 
   log.info(`[NOT YET IMPLEMENTED] Adding graphic: ${name}`);
   log.info(`Resolved file path: ${file}`);

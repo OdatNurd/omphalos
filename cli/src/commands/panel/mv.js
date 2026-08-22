@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,11 @@ import { wrappedHandler } from '#helpers';
 
 /* Move a panel of a given name within the bundle. */
 async function handlePanelMv({ name, newName, file, manifest }) {
+  const panel = getRequiredAsset(name, 'panel', manifest);
+  if (newName !== undefined) {
+    ensureAssetDoesNotExist(newName, 'panel', manifest);
+  }
+
   log.info(`[NOT YET IMPLEMENTED] Moving panel: ${name}`);
   log.info(`New name: ${newName}`);
   log.info(`New file: ${file}`);

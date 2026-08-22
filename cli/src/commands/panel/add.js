@@ -1,14 +1,17 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Add a new panel to the bundle. */
-async function handlePanelAdd({ name, file: newFile, size, title, workspace, locked, fullbleed, manifest, template }) {
+async function handlePanelAdd({ name, file: newFile, size, minSize, maxSize, title,
+                                workspace, locked, fullbleed, manifest, template }) {
+  ensureAssetDoesNotExist(name, 'panel', manifest);
+
   let file = newFile ?? `${name}.html`;
   const ext = extname(file);
 
@@ -23,6 +26,12 @@ async function handlePanelAdd({ name, file: newFile, size, title, workspace, loc
   log.info(`[NOT YET IMPLEMENTED] Adding panel: ${name}`);
   log.info(`Resolved file path: ${file}`);
   log.info(`Size: ${size.width}x${size.height}`);
+  if (minSize !== undefined) {
+    log.info(`Min size: ${minSize.width}x${minSize.height}`);
+  }
+  if (maxSize !== undefined) {
+    log.info(`Max size: ${maxSize.width}x${maxSize.height}`);
+  }
   log.info(`Title: ${title}`);
   log.info(`Workspace: ${workspace}`);
   log.info(`Locked: ${locked}`);
@@ -52,6 +61,18 @@ export const addCommand = {
         describe: 'Size of the panel in WxH format (e.g. 1920x1080)',
         coerce: validateSizeSpecifier,
         demandOption: true
+      })
+      .option('min-size', {
+        type: 'string',
+        describe: 'Minimum size of the panel in WxH format (e.g. 1920x1080)',
+        coerce: validateSizeSpecifier,
+        demandOption: false
+      })
+      .option('max-size', {
+        type: 'string',
+        describe: 'Maximum size of the panel in WxH format (e.g. 1920x1080)',
+        coerce: validateSizeSpecifier,
+        demandOption: false
       })
       .option('title', {
         describe: 'Human-readable title for the dashboard widget',

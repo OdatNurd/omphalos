@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,8 @@ import { wrappedHandler } from '#helpers';
 
 /* Remove a sound from the bundle. */
 async function handleSoundRm({ name, deleteFile, manifest }) {
+  const sound = getRequiredAsset(name, 'sound', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Removing sound: ${name}`);
   log.info(`Delete file: ${deleteFile}`);
 }

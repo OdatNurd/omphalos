@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,8 @@ import { wrappedHandler } from '#helpers';
 
 /* Remove an existing graphic from the bundle. */
 async function handleGraphicRm({ name, delete: deleteFile, manifest }) {
+  const graphic = getRequiredAsset(name, 'graphic', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Removing graphic: ${name}`);
   log.info(`Delete file: ${deleteFile}`);
 }

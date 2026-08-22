@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -8,6 +8,8 @@ import { validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 /* Update one of the sizes for a panel. */
 async function handlePanelResize({ name, size, minSize, maxSize, manifest }) {
+  const panel = getRequiredAsset(name, 'panel', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Resizing panel: ${name}`);
   log.info(`Size: ${size.width}x${size.height}`);
   if (minSize !== undefined) {

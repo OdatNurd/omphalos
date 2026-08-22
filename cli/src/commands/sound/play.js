@@ -3,7 +3,7 @@ import { join } from 'path';
 import jetpack from 'fs-jetpack';
 import playSound from 'play-sound';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, wrappedHandler } from '#helpers';
 
 // Initialize the player instance
 const player = playSound();
@@ -18,6 +18,8 @@ const player = playSound();
  * This uses the play-sound package, which just tries to use an appropriate
  * command line tool. This is largely untested code I ripped from an example. */
 async function handlePlay({ name, raw, bundlePath, manifest }) {
+  const sound = getRequiredAsset(name, 'sound', manifest);
+
   const omph = manifest.omphalos;
 
   const targetName = name;

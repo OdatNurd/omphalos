@@ -1,15 +1,20 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { getRequiredAsset, createNumberRangeValidator, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
 
 
 /* Update the volume and pan for a sound. */
-async function handleSoundUpdate({ name, volume, pan }) {
+async function handleSoundUpdate({ name, volume, pan, file, manifest }) {
+  const sound = getRequiredAsset(name, 'sound', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Updating sound properties for: ${name}`);
 
+  if (file !== undefined) {
+    log.info(`New file: ${file}`);
+  }
   if (volume !== undefined) {
     log.info(`New volume: ${volume}`);
   }
@@ -28,8 +33,19 @@ export const updateCommand = {
   builder: yargs => {
     return yargs
       .positional('name', { type: 'string', describe: 'Sound name' })
-      .option('volume', { type: 'number', describe: 'New volume' })
-      .option('pan', { type: 'number', describe: 'New pan' });
+      .option('file', { type: 'string', describe: 'Modify the file for this sound' })
+      .option('volume', {
+        type: 'number',
+        default: 1.0,
+        describe: 'Default volume (0.0 - 1.0)',
+        coerce: createNumberRangeValidator(0.0, 1.0)
+      })
+      .option('pan', {
+        type: 'number',
+        default: 0.0,
+        describe: 'Default pan (-1.0 - 1.0)',
+        coerce: createNumberRangeValidator(-1.0, 1.0)
+      });
   },
   handler: wrappedHandler(handleSoundUpdate, 1)
 };

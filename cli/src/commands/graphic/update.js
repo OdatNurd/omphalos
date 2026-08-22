@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -9,6 +9,8 @@ import { validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 /* Update the entry for a graphic in the bundle manifest. */
 async function handleGraphicUpdate({ name, file, size, manifest }) {
+  const graphic = getRequiredAsset(name, 'graphic', manifest);
+
   log.info(`[NOT YET IMPLEMENTED] Updating graphic: ${name}`);
 
   if (file !== undefined) {
@@ -17,10 +19,6 @@ async function handleGraphicUpdate({ name, file, size, manifest }) {
       updatedFile += '.html';
     }
     log.info(`Would scaffold new file: ${updatedFile}`);
-  }
-
-  if (size !== undefined) {
-    log.info(`New size: ${size.width}x${size.height}px`);
   }
 }
 
@@ -34,12 +32,7 @@ export const updateCommand = {
   builder: yargs => {
     return yargs
       .positional('name', { type: 'string', describe: 'Graphic identifier' })
-      .option('file', { type: 'string', describe: 'Scaffold a new HTML file for this graphic' })
-      .option('size', {
-        type: 'string',
-        describe: 'New size of the graphic in WxH format (e.g. 800x600)',
-        coerce: validateSizeSpecifier
-      });
+      .option('file', { type: 'string', describe: 'Scaffold a new HTML file for this graphic' });
   },
   handler: wrappedHandler(handleGraphicUpdate, 1)
 };
