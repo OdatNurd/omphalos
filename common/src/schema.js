@@ -59,6 +59,7 @@ const panelItem = {
   "?fullbleed": "bool"
 }
 
+
 /* The details for a specific graphic within the bundle.
  *
  * The sizes are in pixels and are informational only.
@@ -153,7 +154,6 @@ export const isValidBundle = joker.validator({
   }
 });
 
-
 /* All panels must follow the appropriate schema.
  *
  * This helper is for independent item validation outside of the manifest as a
@@ -162,6 +162,7 @@ export const isValidPanel = joker.validator({
   itemName: 'panel',
   root: panelItem
 });
+export const maskPanel = joker.mask({ root: panelItem });
 
 
 /* All graphics must follow the appropriate schema.
@@ -172,6 +173,7 @@ export const isValidGraphic = joker.validator({
   itemName: 'graphic',
   root: graphicItem
 });
+export const maskGraphic = joker.mask({ root: graphicItem });
 
 
 /* All sounds must follow the appropriate schema.
@@ -182,6 +184,7 @@ export const isValidSound = joker.validator({
   itemName: 'sound',
   root: soundItem
 });
+export const maskSound = joker.mask({ root: soundItem });
 
 
 /* All asset ID's must follow the appropriate schema,
@@ -207,6 +210,7 @@ export const isValidAssetId = joker.validator({
  * for other uses.
  *
  * This passes the resulting object through the schema validators to ensure that
+ * the structure is valid, and
  * the developer was smart enough to make schema changes in all places at once;
  * if that fails, an error is raised. */
 export function defaultBundleManifest(name, version, omphalosRange, cliVersion="latest") {
@@ -235,5 +239,91 @@ export function defaultBundleManifest(name, version, omphalosRange, cliVersion="
   return manifest;
 }
 
+
+// =============================================================================
+
+
+/* Create and return a new panel object for inclusion in the bundle. Named args
+ * are used directly in the object; the options are for optional values.
+ *
+ * The resulting object is passed through the validator before returning. */
+export function defaultPanelAsset(name, file, title, size, options = {}) {
+  const panel = { name, file, title, size };
+
+  // Inject optional fields.
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined) {
+      panel[key] = value;
+    }
+  }
+
+  // Verify that the object is valid.
+  const valid = isValidPanel(panel);
+  if (valid !== true) {
+    throw new Error(valid.map(e => e.message).join(', '));
+  }
+
+  // Return back the object, masking away any fields that are not supposed to
+  // be present.
+  return maskPanel(panel);
+}
+
+
+// =============================================================================
+
+
+/* Create and return a new graphic object for inclusion in the bundle. Named
+ * args are used directly in the object; the options are for optional values.
+ *
+ * The resulting object is passed through the validator before returning. */
+export function defaultGraphicAsset(name, file, size, options = {}) {
+  const graphic = { name, file, size };
+
+  // Inject optional fields.
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined) {
+      graphic[key] = value;
+    }
+  }
+
+  // Verify that the object is valid.
+  const valid = isValidGraphic(graphic);
+  if (valid !== true) {
+    throw new Error(valid.map(e => e.message).join(', '));
+  }
+
+  // Return back the object, masking away any fields that are not supposed to
+  // be present.
+  return maskGraphic(graphic);
+}
+
+
+// =============================================================================
+
+
+/* Create and return a new sound object for inclusion in the bundle. Named args
+ * are used directly in the object; the options are for optional values.
+ *
+ * The resulting object is passed through the validator before returning. */
+export function defaultSoundAsset(name, file, options = {}) {
+  const sound = { name, file };
+
+  // Inject optional fields.
+  for (const [key, value] of Object.entries(options)) {
+    if (value !== undefined) {
+      sound[key] = value;
+    }
+  }
+
+  // Verify that the object is valid.
+  const valid = isValidSound(sound);
+  if (valid !== true) {
+    throw new Error(valid.map(e => e.message).join(', '));
+  }
+
+  // Return back the object, masking away any fields that are not supposed to
+  // be present.
+  return maskSound(sound);
+}
 
 // =============================================================================

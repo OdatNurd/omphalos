@@ -27,8 +27,16 @@ const templatePath = join(__dirname, basename(__dirname) === 'bin' ? '..' : '../
  * disk.
  *
  * Given the manifest and manifest path, atomically write the new manifest
- * back. */
+ * back.
+ *
+ * This will validate the bundle structure strictly before attempting the
+ * write. */
 export function saveManifest(manifestPath, manifest) {
+  const valid = isValidBundle(manifest);
+  if (valid !== true) {
+    throw new Error(`refusing to save corrupted manifest:\n` + valid.map(e => `  - ${e.message}`).join('\n'));
+  }
+
   jetpack.write(manifestPath, manifest, { atomic: true });
 }
 
