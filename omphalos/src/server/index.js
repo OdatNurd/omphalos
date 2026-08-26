@@ -71,6 +71,7 @@ function spaTemplate(dom, bundles, version) {
     name: sys_constants.SYSTEM_DASHBOARD,
     version,
     "omphalos": {
+      "name": sys_constants.SYSTEM_DASHBOARD,
       "compatibleRange": `~${version}`,
       "panelPath": "panels",
       "graphicPath": "graphics",
@@ -144,7 +145,13 @@ function makeTemplateAPIObject(app, io) {
     createRouter: options => express.Router(options),
 
     // Mount a router created by createRouter() into the application.
-    mount: router => app.use(router),
+    mount: (path, router) => {
+      if (router !== undefined) {
+        app.use(path, router);
+      } else {
+        app.use(path);
+      }
+    },
 
     // Build a import function that looks up symbols from the list of exported
     // symbols from other bundles that loaded before us.

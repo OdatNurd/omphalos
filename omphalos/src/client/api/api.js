@@ -139,7 +139,7 @@ function reloadAsset(req) {
  * This update always contains a complete set of keys and values, and will
  * replace the entire storage as a whole. */
 function updateStorageCache(data) {
-  log.debug(`${asset.name}:${bundle.name} got storage refresh: ${JSON.stringify(data)}`);
+  log.debug(`${asset.name}:${bundle.omphalos.name} got storage refresh: ${JSON.stringify(data)}`);
 
   const wasHydrated = isHydrated;
 
@@ -165,7 +165,7 @@ function updateStorageCache(data) {
   // and this is our first state payload), we are now fully ready. We fire the
   // connect event here so developers know the API state is entirely usable.
   if (wasHydrated === false) {
-    bridge.emit(`${constants.EVENT_IO_CONNECT}.${bundle.name}`);
+    bridge.emit(`${constants.EVENT_IO_CONNECT}.${bundle.omphalos.name}`);
   }
 }
 
@@ -180,7 +180,7 @@ function updateStorageCache(data) {
  * The incoming object will contain the key, and optionally also a value; no
  * value indicates a delete. */
 function performStorageUpdate(data) {
-  log.debug(`${asset.name}:${bundle.name} got storage update: ${JSON.stringify(data)}`);
+  log.debug(`${asset.name}:${bundle.omphalos.name} got storage update: ${JSON.stringify(data)}`);
 
   const { key, value } = data;
   const oldValue = localStorage[key];
@@ -192,7 +192,7 @@ function performStorageUpdate(data) {
   }
 
   bridge.emit(`var:${key}`, { newValue: value, oldValue });
-  log.debug(`${asset.name}:${bundle.name} storage is now: ${JSON.stringify(localStorage)}`);
+  log.debug(`${asset.name}:${bundle.omphalos.name} storage is now: ${JSON.stringify(localStorage)}`);
 }
 
 
@@ -205,10 +205,10 @@ function performStorageUpdate(data) {
  * The key is the storage key to update, and the value is the new value which
  * may be undefined to indidate that the key should be deleted. */
 function sendStorageUpdate(key, value) {
-  log.debug(`${asset.name}:${bundle.name} sending storage update: '${key}'=>${JSON.stringify(value)}`);
+  log.debug(`${asset.name}:${bundle.omphalos.name} sending storage update: '${key}'=>${JSON.stringify(value)}`);
 
   sendMessageToBundle(constants.MSG_STORAGE_UPDATE, constants.SYSTEM_DASHBOARD,
-                      { bundle: bundle.name, key, value,  });
+                      { bundle: bundle.omphalos.name, key, value,  });
 }
 
 // =============================================================================
@@ -246,18 +246,18 @@ export function __init_api(manifest, assetConfig, appConfig) {
   // after the hydration of the variables happens, to make sure that when the
   // event is received, variables are ready.
   socket.on('connect', () => {
-    log.debug(`connection for ${asset.name}:${manifest.name} established on ${socket.id}`);
+    log.debug(`connection for ${asset.name}:${bundle.omphalos.name} established on ${socket.id}`);
   });
 
   // When the socket disconnects, we need to update our internal state, lock
   // the variable updates, and notify any listeners.
   socket.on('disconnect', (reason) => {
-    log.debug(`connection for ${asset.name}:${manifest.name} lost: ${reason}`);
+    log.debug(`connection for ${asset.name}:${bundle.omphalos.name} lost: ${reason}`);
 
     // Lock writes to Skepsis and storage until the next refresh arrives
     isHydrated = false;
 
-    bridge.emit(`${constants.EVENT_IO_DISCONNECT}.${bundle.name}`);
+    bridge.emit(`${constants.EVENT_IO_DISCONNECT}.${bundle.omphalos.name}`);
   });
 
   // Dispatch incoming messages. They should have a structure of:
@@ -434,7 +434,7 @@ function sendMessageToBundle(event, bundleName, data) {
 function sendMessage(event, data) {
   assert(event !== undefined, 'message not specified');
 
-  sendMessageToBundle(event, bundle.name, data);
+  sendMessageToBundle(event, bundle.omphalos.name, data);
 }
 
 
@@ -462,7 +462,7 @@ function listenFor(event, bundleName, listener) {
   // has only two arguments, infer the bundle and use it as the listener.
   if (listener === undefined) {
     listener = bundleName;
-    bundleName = bundle.name;
+    bundleName = bundle.omphalos.name;
   }
 
   // Count this as an event listened for in this bundle.
@@ -470,7 +470,7 @@ function listenFor(event, bundleName, listener) {
 
   // If this is not our bundle and this is the first listen on it, we need to
   // join that bundle's messaging group.
-  if (bundleName !== bundle.name && listens[bundleName] === 1) {
+  if (bundleName !== bundle.omphalos.name && listens[bundleName] === 1) {
     log.debug(`joining ${bundleName}; listening for ${event} outside our bundle`);
     join(socket, bundleName);
   }
@@ -491,7 +491,7 @@ function listenFor(event, bundleName, listener) {
     // If this is not our bundle and this was our last listen, we can leave the
     // messaging group now.
     listens[bundleName]--;
-    if (bundleName !== bundle.name && listens[bundleName] === 0) {
+    if (bundleName !== bundle.omphalos.name && listens[bundleName] === 0) {
       log.debug(`leaving ${bundleName}; no remaining events outside our bundle`);
       part(socket, bundleName);
     }
@@ -700,7 +700,7 @@ export const event = {
 
 // Dynamically generate the strictly local event wrapper functions
 for (const [fnName, rawEvent] of Object.entries(localClientEvents)) {
-  const wrapper = (listener) => listenFor(rawEvent, bundle.name, listener);
+  const wrapper = (listener) => listenFor(rawEvent, bundle.omphalos.name, listener);
 
   // Our wrapper has a property for the content of the event string, so that you
   // can raise the event manually if needed, based on the handler.
@@ -763,7 +763,7 @@ function saveForm(identifier) {
   // Emit the pre-save lifecycle hook now so that the bundle author can mutate
   // the DOM as needed prior to us doing our form scrape (e.g. they may want to
   // take rich components and update hidden form elements with them).
-  bridge.emit(`${constants.EVENT_FORM_PRE_SAVE}.${bundle.name}`, { formName, form });
+  bridge.emit(`${constants.EVENT_FORM_PRE_SAVE}.${bundle.omphalos.name}`, { formName, form });
 
   // When form fields have a data-var attribute set, their values go directly
   // to the bundleVar of the same name, and are placed in the "vars" object.
@@ -826,7 +826,7 @@ function saveForm(identifier) {
   // We structureClone the data so post-save listeners receive an isolated
   // duplicate and cannot mutate the live references we just committed to
   // storage.
-  bridge.emit(`${constants.EVENT_FORM_POST_SAVE}.${bundle.name}`, {
+  bridge.emit(`${constants.EVENT_FORM_POST_SAVE}.${bundle.omphalos.name}`, {
     formName,
     form,
     data: structuredClone(data)
@@ -878,7 +878,7 @@ function loadForm(identifier) {
 
   // Trigger the pre-load lifecycle hook, passing the data in; this can be
   // mutated by the handler if needs be.
-  bridge.emit(`${constants.EVENT_FORM_PRE_LOAD}.${bundle.name}`, { formName, form, data });
+  bridge.emit(`${constants.EVENT_FORM_PRE_LOAD}.${bundle.omphalos.name}`, { formName, form, data });
 
   // Apply all values to the DOM now; pulling from values in the meta or from
   // actual storage as needed. This uses the data as it was returned from the
@@ -913,7 +913,7 @@ function loadForm(identifier) {
 
   // Lastly, trigger the post-load lifecycle hook, which allows the asset to
   // know what just happened.
-  bridge.emit(`${constants.EVENT_FORM_POST_LOAD}.${bundle.name}`, { formName, form, data });
+  bridge.emit(`${constants.EVENT_FORM_POST_LOAD}.${bundle.omphalos.name}`, { formName, form, data });
 }
 
 // =============================================================================
@@ -952,7 +952,7 @@ export const sound = {
   // If the bundle is omitted, it will automatically default to the bundle of
   // the asset invoking the function.
   play: (soundName, arg2, arg3) => {
-    let targetBundle = bundle.name;
+    let targetBundle = bundle.omphalos.name;
     let options = {};
 
     if (typeof arg2 === 'string') {
@@ -976,8 +976,8 @@ export const sound = {
   // This returns either the currently system configured values in the dashboard
   // mixer or, if that is not present yet, the defaults from the bundle.
   get: (soundName, bundleName) => {
-    const target = bundleName || bundle.name;
-    assert(target === bundle.name, 'cross-bundle sound inspection is a server-only feature.');
+    const target = bundleName || bundle.omphalos.name;
+    assert(target === bundle.omphalos.name, 'cross-bundle sound inspection is a server-only feature.');
 
     const soundDef = (bundle.omphalos.sounds || []).find(s => s.name === soundName);
     assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);
@@ -1000,7 +1000,7 @@ export const sound = {
   //   set(soundName, options)
   //   set(soundName, bundleName, options)
   set: (soundName, arg2, arg3) => {
-    let targetBundle = bundle.name;
+    let targetBundle = bundle.omphalos.name;
     let options = {};
 
     if (typeof arg2 === 'string') {
@@ -1010,7 +1010,7 @@ export const sound = {
       options = arg2;
     }
 
-    assert(targetBundle === bundle.name, 'cross-bundle sound modification is a server-only feature.');
+    assert(targetBundle === bundle.omphalos.name, 'cross-bundle sound modification is a server-only feature.');
 
     const soundDef = (bundle.omphalos.sounds || []).find(s => s.name === soundName);
     assert(soundDef !== undefined, `sound '${soundName}' not found in manifest.`);

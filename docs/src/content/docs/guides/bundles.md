@@ -32,6 +32,20 @@ properly declares the bundle.
 The manifest must include an `omphalos` key to indicate to the application that
 this package is intended to be a bundle.
 
+
+### name
+
+* required
+* alphanumeric, dashes, and underscores only
+
+```json
+  "name": "my-bundle",
+```
+
+The `name` of the bundle; this is used in various places internally, and is
+disconnected from the `name` field in the top level `package.json` file.
+
+
 ### compatibleRange
 
 * required

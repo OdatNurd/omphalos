@@ -50,21 +50,21 @@ function detectDependencyLoop(node, stack=undefined) {
 
   for (const manifest of Object.values(node)) {
     // If this bundle is already in the visited stack, we have hit a loop.
-    if (stack.has(manifest.name)) {
+    if (stack.has(manifest.omphalos.name)) {
       return stack
     }
 
     // Add ourselves to the visited stack and then recurse into our children.
     // if they report a loop, we can signal it back right now without further
     // searching.
-    stack.add(manifest.name);
+    stack.add(manifest.omphalos.name);
     const result = detectDependencyLoop(manifest.omphalos.deps, stack);
     if (result !== null) {
       return result;
     }
 
     // Our children are clean, so unwind the stack before we leave.
-    stack.delete(manifest.name);
+    stack.delete(manifest.omphalos.name);
   }
 
   // No loop was found if we get here.
@@ -125,16 +125,16 @@ function satisfyDependencies(bundles) {
       // string; if it is an object, then the version has already been verified
       // in a prior loop, so we don't need to check it again; it must be valid
       // in that case.
-      if (depName === bundle.name || dep === undefined ||
+      if (depName === bundle.omphalos.name || dep === undefined ||
              (typeof neededVersion === "string" && semver.satisfies(dep.version, neededVersion) === false)) {
         log.error(
-          (depName === bundle.name)
-            ? `${bundle.name} is listed as a dependency of itself`
+          (depName === bundle.omphalos.name)
+            ? `${bundle.omphalos.name} is listed as a dependency of itself`
             : (dep === undefined)
-                ? `${bundle.name} depends on ${depName}, which was not found or not loaded`
-                : `${bundle.name} requires ${depName}:${neededVersion}; not satified by ${dep.version}`
+                ? `${bundle.omphalos.name} depends on ${depName}, which was not found or not loaded`
+                : `${bundle.omphalos.name} requires ${depName}:${neededVersion}; not satified by ${dep.version}`
         );
-        delete bundles[bundle.name];
+        delete bundles[bundle.omphalos.name];
         return satisfyDependencies(bundles);
       } else {
         // Update the reference on this dependency to point to the manifest
@@ -517,19 +517,19 @@ export function discoverBundles(appManifest) {
       // Now that we know that the manifest is nominally correct, announce what
       // bundle this manifest included, since logs up until now have only
       // included the path, which may not match.
-      log.info(`loaded bundle manifest for '${manifest.name}' from ${shortPath}`)
+      log.info(`loaded bundle manifest for '${manifest.omphalos.name}' from ${shortPath}`)
 
       // If this is a bundle we can ignore, do so now. This happens after the
       // prior validation because it requires that there be a name.
-      if (ignoredBundles.includes(manifest.name)) {
-        log.info(`skipping ${manifest.name}; this bundle is ignored`)
+      if (ignoredBundles.includes(manifest.omphalos.name)) {
+        log.info(`skipping ${manifest.omphalos.name}; this bundle is ignored`)
         continue;
       }
 
       // If the bundle claims the system bundle name but is not located in the
       // explicit system bundle path, then refuse to load it; if we let it
       // through it will cause a collision that kicks the bundle out entirely.
-      if (manifest.name === SYSTEM_BUNDLE && thisBundle !== sysBundle) {
+      if (manifest.omphalos.name === SYSTEM_BUNDLE && thisBundle !== sysBundle) {
         log.error(`bundle at ${shortPath} is attempting to use the reserved system bundle name '${SYSTEM_BUNDLE}'; skipping`);
         continue;
       }
@@ -537,31 +537,31 @@ export function discoverBundles(appManifest) {
       // If we are loading the physical system bundle directory, its manifest
       // must declare the correct name; otherwise various things will break due
       // to message routing.
-      if (thisBundle === sysBundle && manifest.name !== SYSTEM_BUNDLE) {
-        log.error(`the core bundle at ${shortPath} must be named '${SYSTEM_BUNDLE}'; found '${manifest.name}'`);
+      if (thisBundle === sysBundle && manifest.omphalos.name !== SYSTEM_BUNDLE) {
+        log.error(`the core bundle at ${shortPath} must be named '${SYSTEM_BUNDLE}'; found '${manifest.omphalos.name}'`);
         continue;
       }
 
       // If this bundle's required application version is not satisfied, this
       // bundle can't be loaded.
       if (semver.satisfies(appManifest.version, manifest.omphalos.compatibleRange) !== true) {
-        throw new Error(`bundle ${manifest.name} cannot run in this application version; requires ${manifest.omphalos.compatibleRange}`)
+        throw new Error(`bundle ${manifest.omphalos.name} cannot run in this application version; requires ${manifest.omphalos.compatibleRange}`)
       }
 
       // If this bundle already exists in the list of known bundles, then there
       // is more than one bundle with the same name but in different locations.
       // In such a case, don't load this bundle, and also don't load the other
       // one.
-      if (bundles[manifest.name] !== undefined) {
-        log.error(`duplicate bundle '${manifest.name}'; cannot load`);
+      if (bundles[manifest.omphalos.name] !== undefined) {
+        log.error(`duplicate bundle '${manifest.omphalos.name}'; cannot load`);
 
         // Mark this entry in the list as a duplicate.
-        if (bundles[manifest.name].omphalos.duplicate !== true) {
-          log.error(`'${manifest.name}' first seen at: ${bundles[manifest.name].omphalos.location}`);
-          bundles[manifest.name].omphalos.duplicate = true;
+        if (bundles[manifest.omphalos.name].omphalos.duplicate !== true) {
+          log.error(`'${manifest.omphalos.name}' first seen at: ${bundles[manifest.omphalos.name].omphalos.location}`);
+          bundles[manifest.omphalos.name].omphalos.duplicate = true;
         }
 
-        log.error(`'${manifest.name}' also found at: ${thisBundle}`)
+        log.error(`'${manifest.omphalos.name}' also found at: ${thisBundle}`)
       } else {
         // This is a valid manifest; store it's manifest location inside of the
         // omphalos key so that the server code knows where to find any assets
@@ -584,7 +584,7 @@ export function discoverBundles(appManifest) {
             graphic.name = graphic.file;
           }
           if (graphicNames.has(graphic.name)) {
-            throw new Error(`bundle '${manifest.name}' contains duplicate graphic name: '${graphic.name}'`);
+            throw new Error(`bundle '${manifest.omphalos.name}' contains duplicate graphic name: '${graphic.name}'`);
           }
           graphicNames.add(graphic.name);
         }
@@ -596,7 +596,7 @@ export function discoverBundles(appManifest) {
         const panelNames = new Set();
         for (const panel of panels) {
           if (panelNames.has(panel.name)) {
-            throw new Error(`bundle '${manifest.name}' contains duplicate panel name: '${panel.name}'`);
+            throw new Error(`bundle '${manifest.omphalos.name}' contains duplicate panel name: '${panel.name}'`);
           }
           panelNames.add(panel.name);
           if (panel.workspace === undefined) {
@@ -610,7 +610,7 @@ export function discoverBundles(appManifest) {
         const soundNames = new Set();
         for (const sound of sounds) {
           if (soundNames.has(sound.name)) {
-            throw new Error(`bundle '${manifest.name}' contains duplicate sound name: '${sound.name}'`);
+            throw new Error(`bundle '${manifest.omphalos.name}' contains duplicate sound name: '${sound.name}'`);
           }
           soundNames.add(sound.name);
           if (sound.volume === undefined) {
@@ -622,7 +622,7 @@ export function discoverBundles(appManifest) {
         }
 
         // Save it now.
-        bundles[manifest.name] = manifest;
+        bundles[manifest.omphalos.name] = manifest;
       }
     }
     catch (err) {
@@ -680,7 +680,7 @@ export function getBundleLoadOrder(node, out_load_order=undefined, depth=0) {
     // but we only need to record ourselves once.
     if (manifest.visited !== true) {
       manifest.visited = true;
-      out_load_order.push(manifest.name)
+      out_load_order.push(manifest.omphalos.name)
     }
   }
 

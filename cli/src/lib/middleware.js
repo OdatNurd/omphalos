@@ -50,7 +50,6 @@ export function saveManifest(manifestPath, manifest) {
  * the manifest, the location of the file, and the name of the bundle. */
 export function loadManifestMiddleware(argv) {
   const absoluteBundlePath = process.cwd();
-  const bundleName = basename(absoluteBundlePath);
   const packageJsonPath = join(absoluteBundlePath, 'package.json');
 
   // The folder has to contain a package.json file or we are mad.
@@ -68,12 +67,9 @@ export function loadManifestMiddleware(argv) {
     process.exit(1);
   }
 
-  // Omphalos always treats the folder name as the bundle name. If the package
-  // name differs, we should warn the user so that they're not confused by any
-  // messaging.
-  if (manifest.name !== bundleName) {
-    log.warn(`[WARNING] The package.json name ('${manifest.name}') does not match the folder name ('${bundleName}'). Omphalos will use the folder name as the bundle name.`);
-  }
+  // The canonical bundle name comes from the omphalos manifest key, which is
+  // the single source of truth used everywhere else in the system.
+  const bundleName = manifest.omphalos.name;
 
   // Inject the validated manifest and paths directly into the yargs argv object
   // for commands to deal with.

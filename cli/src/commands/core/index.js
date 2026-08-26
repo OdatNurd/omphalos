@@ -1,4 +1,4 @@
-import { packCommand } from './pack.js';
+import { bundleCommand } from './bundle.js';
 import { listCommand } from './list.js';
 import { validateCommand } from './validate.js';
 import { versionCommand } from './version.js';
@@ -10,7 +10,7 @@ import { pathCommand } from './path.js';
 
 
 const commands = [
-  packCommand,
+  bundleCommand,
   listCommand,
   validateCommand,
   versionCommand,

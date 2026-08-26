@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "omphalos": {
+    "name": "omphalos-system",
     "compatibleRange": "~0.1.0",
     "graphics": [
       {

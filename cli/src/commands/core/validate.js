@@ -27,7 +27,7 @@ async function handleValidate({ bundlePath, manifest }) {
   const gPath = omph.graphicPath ?? 'graphics';
   const sPath = omph.soundPath ?? 'sounds';
 
-  log.info(`validating bundle assets for '${manifest.name}'...`);
+  log.info(`validating bundle assets for '${manifest.omphalos.name}'...`);
 
   // ---------------------------------------------------------------------------
   // PANELS

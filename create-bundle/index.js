@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+
+import fs from 'node:fs';
 import prompts from 'prompts';
 import semver from 'semver';
 
-import { defaultBundleManifest } from '@odatnurd/omphalos-common/schema';
+import { isValidAssetId, defaultBundleManifest } from '@odatnurd/omphalos-common/schema';
 
 
 // =============================================================================
@@ -56,7 +57,8 @@ function getPackageManager() {
  *
  * An example of this would be:
  *     {
- *       bundleName: 'my-omohalos-bundle',
+ *       packageName: 'my-omphalos-package',
+ *       bundleName: 'my-omphalos-package',
  *       initGit: true,
  *       installDeps: true,
  *       pkgManager: 'pnpm'
@@ -70,13 +72,31 @@ async function getConfiguration() {
   const questions = [
     {
       type: 'text',
-      name: 'bundleName',
-      message: 'Bundle name:',
+      name: 'packageName',
+      message: 'Package name:',
       initial: 'my-omphalos-bundle',
       validate: (value) => {
         const trimmed = value.trim();
         if (trimmed.length === 0) {
+          return 'Package name cannot be empty.';
+        }
+        return true;
+      }
+    },
+    {
+      type: 'text',
+      name: 'bundleName',
+      message: 'Bundle name:',
+      // Default to the answer from the previous prompt (packageName); we throw
+      // off any potential scope to end up with just the base name.
+      initial: prev => prev.split('/').pop(),
+      validate: (value) => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) {
           return 'Bundle name cannot be empty.';
+        }
+        if (isValidAssetId(trimmed) !== true) {
+          return 'Bundle Name contains invalid characters';
         }
         if (fs.existsSync(trimmed) === true) {
           return 'Directory already exists. Please choose a different name.';
@@ -146,24 +166,25 @@ async function main() {
   // Ask the user all of the related questions; if this ends us up with a bundle
   // that does not exist, then we should bail out.
   const config = await getConfiguration();
-  if (config.bundleName === undefined) {
+  if (config.packageName === undefined || config.bundleName === undefined) {
     return;
   }
 
-  // Get the appropriate bundle name from the user's input, and its name as a
+  // Get the appropriate package name from the user's input, and its name as a
   // path, and then make the folder.
   //
   //  The configuration function validates that this does not already  exist
+  const packageName = config.packageName.trim();
   const bundleName = config.bundleName.trim();
   const targetDir = join(process.cwd(), bundleName);
 
-  fs.mkdirSync(targetDir, { recursive: true });
-
-  // Set up the package.json file content.
-  const packageJson = defaultBundleManifest(bundleName, config.version,
+  // Set up the package.json file content using the specified bundle name.
+  const packageJson = defaultBundleManifest(packageName, bundleName, config.version,
                                             config.omphalosVersion, cliVersion);
 
-  // Write the package.json out to disk.
+  // Ensure that the target directory exists, and then write our manifest out
+  // to disk.
+  fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(
     join(targetDir, 'package.json'),
     JSON.stringify(packageJson, null, 2) + '\n'

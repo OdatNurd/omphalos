@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 /* Bundles can optionally export an object named symbols; if they do, those
  * symbols will be available to other bundles that wish to import them through
  * the omphalos.import() function. */
@@ -17,6 +19,10 @@ export function main(omphalos) {
   // capture the omphalos object for logging.
   symbols["exported"] = () => omphalos.log.info('I am an exported function');
 
+  // =========================================================================
+  // SKEPSIS API DEMONSTRATION
+  // =========================================================================
+
   // Create a Skepsis instance to track the global click count. This will pull
   // the existing value or default to 69 if it is not already set.
   const clickCount = omphalos.Skepsis('clickCount', 69);
@@ -26,6 +32,10 @@ export function main(omphalos) {
   clickCount.on((newValue, oldValue, key) => {
     omphalos.log.debug(`Skepsis reactive trigger: ${key} changed from ${oldValue} to ${newValue}`);
   });
+
+  // =========================================================================
+  // EVENT API DEMONSTRATION
+  // =========================================================================
 
   // Listen for peer connection and disconnection events
   omphalos.event.peerConnected((data) => {
@@ -49,6 +59,10 @@ export function main(omphalos) {
     omphalos.toast(`Server received a click message (${clickCount.value} times); sent clack`, 'info', 3);
   });
 
+  // =========================================================================
+  // IMPORT API DEMONSTRATION
+  // =========================================================================
+
   // Try to import a symbol from another omphalos bundle; this will give you
   // object list of symbols from that bundle, which may be empty if that
   // bundle exports no symbols.
@@ -58,4 +72,25 @@ export function main(omphalos) {
   } else {
     omphalos.log.warn('Attempt to import a symbol failed.');
   }
+
+  // =========================================================================
+  // MOUNT API DEMONSTRATION
+  // =========================================================================
+
+  // Create a custom router to serve files from an "images" directory
+  // in the root of the bundle without needing to import express.
+  const router = omphalos.createRouter();
+
+  router.get('/images/:imageName', (req, res) => {
+    const imagePath = resolve(omphalos.bundle.omphalos.location, 'images', req.params.imageName);
+    res.sendFile(imagePath);
+  });
+
+  // By passing this router to omphalos.mount(), the Omphalos loader will
+  // automatically prefix the path with `/bundles/sample-bundle`.
+  //
+  // Files in the "sample-bundle/images" folder  will be accessible in the
+  // browser via the link:
+  //     http://localhost:<port>/bundles/sample-bundle/images/:imageName
+  omphalos.mount(router);
 }

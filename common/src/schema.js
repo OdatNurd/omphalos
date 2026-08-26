@@ -92,6 +92,12 @@ const soundItem = {
  * a manifest that includes an omphalos key with the following structure; if
  * not it will not be considered as a valid bundle and will not be loaded. */
 const omphalosManifest = {
+  // The canonical identifier for this bundle, used throughout the system for
+  // URL routing, HTML attributes, event names, and storage keys. Must be a
+  // valid asset identifier (alphanumeric, dashes, underscores only — no scoped
+  // npm names or path separators).
+  "name": "assetid",
+
   // What versions of omphalos are compatible with this bundle? If the version
   // of omphalos is not compatible, this bundle won't load.
   "compatibleRange": "semrange",
@@ -210,20 +216,21 @@ export const isValidAssetId = joker.validator({
  * for other uses.
  *
  * This passes the resulting object through the schema validators to ensure that
- * the structure is valid, and
- * the developer was smart enough to make schema changes in all places at once;
- * if that fails, an error is raised. */
-export function defaultBundleManifest(name, version, omphalosRange, cliVersion="latest") {
+ * the structure is valid, and if that fails, an error is raised. */
+export function defaultBundleManifest(pkgName, bundleName, version, omphalosRange, cliVersion="latest") {
   const manifest = {
-    name,
+    name: pkgName,
     version,
     private: true,
     type: "module",
     omphalos: {
+      "name": bundleName,
       "compatibleRange": omphalosRange,
     },
     scripts: {
-      "bundle": "omphalos pack",
+      "bundle": "omphalos bundle",
+      "contents": "omphalos list",
+      "validate": "omphalos validate",
     },
     devDependencies: {
       "@odatnurd/omphalos-cli": cliVersion,

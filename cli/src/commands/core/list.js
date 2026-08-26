@@ -12,6 +12,7 @@ async function handleList({ sort, bundlePath, bundleName, manifest }) {
   const omph = manifest.omphalos;
 
   // Header information first; this part is easy.
+  log.info(`Package:   ${manifest.name}`);
   log.info(`Bundle:    ${bundleName} (v${manifest.version})`);
   log.info(`Location:  ${bundlePath}`);
   log.info(`Engine:    ${omph.compatibleRange}`);

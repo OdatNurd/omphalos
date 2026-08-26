@@ -299,6 +299,9 @@ async function loadBundleExtension(omphalos, manifest, bundleName, bundles) {
     log: logger(bundleName),
     bundle: structuredClone(manifest),
 
+    // Mount a router scoped to this bundle's base URL.
+    mount: router => omphalos.mount(`/bundles/${bundleName}`, router),
+
     // The event bus for this specific extension instance.
     event: {
       ...omphalos.event,
@@ -531,7 +534,7 @@ async function loadBundle(omphalos, manifest, bundles) {
   let router = null;
 
   // Alias the name of the bundle for simplicity.
-  const bundleName = manifest.name;
+  const bundleName = manifest.omphalos.name;
   log.info(`loading bundle ${bundleName}`);
 
   // console.dir(manifest, { depth: null });

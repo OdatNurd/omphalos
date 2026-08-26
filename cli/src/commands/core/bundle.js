@@ -35,7 +35,7 @@ function formatBytes(bytes, decimals = 2) {
 /* Pack the current bundle into a zipped bundle file, pulling in all needed
  * files, which includes the additional files specified, as well as any node
  * dependencies (if any). */
-async function handlePack({ bundleName, absoluteBundlePath, manifest }) {
+async function handleBundle({ bundleName, bundlePath, manifest }) {
   // Our loader logic applies default paths for things that are missing, so we
   // replicate that here.
   manifest.omphalos.panelPath ??= 'panels';
@@ -132,7 +132,7 @@ async function handlePack({ bundleName, absoluteBundlePath, manifest }) {
   // This small helper checks to see if the folder provided exists, and if so it
   // pulls it into the archive.
   const addDirectoryIfItExists = (dirName, label) => {
-    const fullPath = join(absoluteBundlePath, dirName);
+    const fullPath = join(bundlePath, dirName);
     if (jetpack.exists(fullPath) === 'dir') {
       archive.directory(fullPath, `${dirName}`);
       log.info(`  -> Added ${label} directory: ${dirName}`);
@@ -158,7 +158,7 @@ async function handlePack({ bundleName, absoluteBundlePath, manifest }) {
   // remember at the moment if the validator double checks this or not, but just
   // in case it doesn't, handle the case where the file might be missing.
   if (manifest.omphalos.extension !== undefined) {
-    const extPath = join(absoluteBundlePath, manifest.omphalos.extension);
+    const extPath = join(bundlePath, manifest.omphalos.extension);
     if (jetpack.exists(extPath) === 'file') {
       archive.file(extPath, { name: `${manifest.omphalos.extension}` });
       log.info(`  -> Added extension file: ${manifest.omphalos.extension}`);
@@ -171,7 +171,7 @@ async function handlePack({ bundleName, absoluteBundlePath, manifest }) {
   // of the omphalos manifest.
   for (let i = 0; i < extraFiles.length; i++) {
     const extraPath = extraFiles[i];
-    const fullExtraPath = join(absoluteBundlePath, extraPath);
+    const fullExtraPath = join(bundlePath, extraPath);
     const pathType = jetpack.exists(fullExtraPath);
 
     if (pathType === 'dir') {
@@ -193,11 +193,11 @@ async function handlePack({ bundleName, absoluteBundlePath, manifest }) {
 // =============================================================================
 
 
-export const packCommand = {
-  command: 'pack',
+export const bundleCommand = {
+  command: 'bundle',
   describe: 'Package an Omphalos bundle into an archive from the current directory',
   builder: yargs => yargs,
-  handler: wrappedHandler(handlePack, 1)
+  handler: wrappedHandler(handleBundle, 1)
 };
 
 

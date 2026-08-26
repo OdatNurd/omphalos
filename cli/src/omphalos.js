@@ -45,7 +45,7 @@ if (pkg.author !== undefined) {
 }
 
 const cli = yargs(hideBin(process.argv))
-  .scriptName('omph')
+  .scriptName('omphalos')
   .usage('$0 <command> [options]')
   .version(`${pkg.name} version ${pkg.version}${authorString}`);
 

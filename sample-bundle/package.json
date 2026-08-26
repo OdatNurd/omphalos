@@ -1,9 +1,18 @@
 {
-  "name": "sample-bundle",
+  "name": "@odatnurd/sample-bundle",
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "bundle": "omphalos bundle",
+    "contents": "omphalos list",
+    "validate": "omphalos validate"
+  },
   "omphalos": {
+    "name": "sample-bundle",
     "compatibleRange": "~0.1.0",
+    "includeFiles": [
+      "images"
+    ],
     "extension": "server/extension_entry.mjs",
     "panelPath": "ui",
     "panels": [

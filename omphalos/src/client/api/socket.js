@@ -20,10 +20,10 @@ export function getClientSocket(log, asset, bundle, listens) {
   // immediately on connection.
   const getAuth = () => {
     return {
-      bundle: bundle.name,
+      bundle: bundle.omphalos.name,
       name:   asset.name,
       type:   asset.type,
-      rooms: Array.from(new Set([bundle.name, ...Object.keys(listens)]))
+      rooms: Array.from(new Set([bundle.omphalos.name, ...Object.keys(listens)]))
     }
   }
 
@@ -57,7 +57,7 @@ export function getClientSocket(log, asset, bundle, listens) {
   // When the socket disconnects, update the authorization headers to account
   // for any bundles we should be joined with for messaging when we reconnect.
   socket.on('disconnect', reason => {
-    log.debug(`connection for ${asset.name}:${bundle.name} lost: ${reason}`);
+    log.debug(`connection for ${asset.name}:${bundle.omphalos.name} lost: ${reason}`);
     socket.auth = getAuth();
   })
 
