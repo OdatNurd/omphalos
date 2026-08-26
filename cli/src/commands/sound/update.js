@@ -2,7 +2,7 @@ import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 
 import { log } from '#logging';
 
-import { getAssetPath, getRequiredAsset, createNumberRangeValidator, wrappedHandler } from '#helpers';
+import { getAssetPath, getRequiredAsset, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
 import jetpack from 'fs-jetpack';
 
 
@@ -48,7 +48,11 @@ export const updateCommand = {
   describe: 'Update sound properties (volume, pan) or replace the audio file',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Sound name' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Sound name',
+        coerce: validateAssetIdentifier,
+      })
       .option('file', { type: 'string', describe: 'Path to an external audio file to overwrite the current asset' })
       .option('volume', {
         type: 'number',

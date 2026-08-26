@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getAssetPath, getRequiredAsset, wrappedHandler } from '#helpers';
+import { getAssetPath, getRequiredAsset, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -30,7 +30,11 @@ export const rmCommand = {
   describe: 'Remove a panel from the manifest',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Panel name' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Panel name',
+        coerce: validateAssetIdentifier,
+      })
       .option('delete', { type: 'boolean', default: false, describe: 'Physically delete file' });
   },
   handler: wrappedHandler(handlePanelRm, 1)

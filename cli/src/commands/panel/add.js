@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getNewAssetPath, ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler, validateAssetIdentifier } from '#helpers';
 
 
 // =============================================================================
@@ -46,7 +46,8 @@ export const addCommand = {
     return yargs
       .positional('name', {
         describe: 'The programmatic identifier of the new panel',
-        type: 'string'
+        type: 'string',
+        coerce: validateAssetIdentifier,
       })
       .positional('file', {
         describe: 'Relative path to the HTML file (infers .html)',

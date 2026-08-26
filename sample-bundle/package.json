@@ -113,6 +113,6 @@
     ]
   },
   "devDependencies": {
-    "@odatnurd/omph": "workspace:*"
+    "@odatnurd/omphalos-cli": "workspace:*"
   }
 }

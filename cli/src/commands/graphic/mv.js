@@ -1,7 +1,7 @@
 import { log } from '#logging';
 
 import { getRequiredAsset, ensureAssetDoesNotExist, getNewAssetPath,
-         getRequiredAssetPath, wrappedHandler } from '#helpers';
+         validateAssetIdentifier, getRequiredAssetPath, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -38,7 +38,11 @@ export const mvCommand = {
   describe: 'Rename a graphic identifier or physically move its file',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Current graphic identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Current graphic identifier',
+        coerce: validateAssetIdentifier,
+      })
       .positional('newName', { type: 'string', describe: 'New graphic identifier' })
       .option('file', { type: 'string', describe: 'Move the physical file to a new relative path' });
   },

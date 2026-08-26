@@ -2,7 +2,7 @@ import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 
 import { log } from '#logging';
 
-import { getNewAssetPath, ensureAssetDoesNotExist, createNumberRangeValidator, wrappedHandler } from '#helpers';
+import { getNewAssetPath, ensureAssetDoesNotExist, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 import { basename } from 'node:path';
 import jetpack from 'fs-jetpack';
@@ -51,7 +51,11 @@ export const addCommand = {
   describe: 'Add a web-ready audio file asset',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Sound identifier name' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Sound identifier name',
+        coerce: validateAssetIdentifier,
+      })
       .positional('file', { type: 'string', describe: 'Path to source audio file' })
       .option('dest-file', { type: 'string', describe: 'Bundle path for asset'})
       .option('volume', {

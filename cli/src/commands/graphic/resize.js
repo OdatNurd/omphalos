@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -23,7 +23,11 @@ export const resizeCommand = {
   describe: 'Adjust the expected dimensions of a graphic',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Graphic name' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Graphic name',
+        coerce: validateAssetIdentifier,
+      })
       .option('size', {
         type: 'string',
         describe: 'New size of the graphic in WxH format (e.g. 800x600)',

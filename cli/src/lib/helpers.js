@@ -1,5 +1,7 @@
 import semver from 'semver';
 
+import { isValidAssetId } from '@odatnurd/omphalos-common/schema';
+
 import { join } from 'node:path';
 import { log } from '#logging';
 
@@ -33,6 +35,24 @@ export const validateSemamticVersion = value => {
   if (semver.valid(value) === null) {
     throw new Error(`'${value}' is not a valid semantic version`);
   }
+  return value;
+};
+
+
+// =============================================================================
+
+
+/* Helper function for use in a yargs command as a 'coerce' function.
+ *
+ * Validates that the value provided is a valid asset identifier (alphanumeric,
+ * dashes, and underscores only). */
+export const validateAssetIdentifier = value => {
+  const valid = isValidAssetId(value);
+
+  if (valid !== true) {
+    throw new Error(`'${value}' is not a valid asset identifier`);
+  }
+
   return value;
 };
 

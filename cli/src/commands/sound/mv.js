@@ -1,7 +1,7 @@
 import { log } from '#logging';
 
 import { getRequiredAssetPath, getNewAssetPath, getRequiredAsset,
-         ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
+         validateAssetIdentifier, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -41,7 +41,11 @@ export const mvCommand = {
   describe: 'Rename a sound identifier or physically move its audio file',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Current sound identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Current sound identifier',
+        coerce: validateAssetIdentifier,
+      })
       .positional('newName', { type: 'string', describe: 'New sound identifier' })
       .option('file', { type: 'string', describe: 'Move the physical audio file to a new relative path' });
   },

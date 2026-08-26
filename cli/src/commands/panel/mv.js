@@ -1,7 +1,7 @@
 import { log } from '#logging';
 
 import { getRequiredAssetPath, getNewAssetPath, getRequiredAsset,
-         ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
+         validateAssetIdentifier, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -38,7 +38,11 @@ export const mvCommand = {
   describe: 'Rename a panel identifier or physically move its file',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Current panel identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Current panel identifier',
+        coerce: validateAssetIdentifier,
+      })
       .positional('newName', { type: 'string', describe: 'New panel identifier' })
       .option('file', { type: 'string', describe: 'Move the physical file to a new relative path' });
   },

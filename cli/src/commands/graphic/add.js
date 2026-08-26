@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { ensureAssetDoesNotExist, validateSizeSpecifier, getNewAssetPath, wrappedHandler } from '#helpers';
+import { ensureAssetDoesNotExist, validateSizeSpecifier, validateAssetIdentifier, getNewAssetPath, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -33,7 +33,11 @@ export const addCommand = {
   describe: 'Add a new graphic with an HTML stub',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Graphic programmatic identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Graphic programmatic identifier' ,
+        coerce: validateAssetIdentifier,
+      })
       .positional('file', { type: 'string', describe: 'Relative path to HTML file (infers .html)' })
       .option('size', {
         type: 'string',

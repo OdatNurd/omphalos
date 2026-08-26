@@ -3,8 +3,6 @@ import { resolve, isAbsolute } from 'node:path';
 
 import semver from 'semver';
 
-import { isValidPackageManifest, isValidBundleManifest } from './schema.js';
-
 import { logger } from './logger.js';
 
 // Things to abstract:

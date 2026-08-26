@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getRequiredAsset, validateAssetIdentifier, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -29,7 +29,11 @@ export const resizeCommand = {
   describe: 'Adjust panel dimensions and min/max limits',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Panel name' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Panel name',
+        coerce: validateAssetIdentifier,
+      })
       .option('size', {
         type: 'string',
         describe: 'New size of the panel in WxH format (e.g. 1920x1080)',

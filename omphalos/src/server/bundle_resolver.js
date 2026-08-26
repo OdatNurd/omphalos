@@ -7,7 +7,7 @@ import semver from 'semver';
 import AdmZip from 'adm-zip';
 
 import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
-import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
+import { isValidBundle } from '@odatnurd/omphalos-common/schema';
 import { getBundlePaths, getPackedBundles } from '@odatnurd/omphalos-common/bundle';
 
 import { executeBundleOps, BUNDLE_OPS_FILE } from '#core/bundle_ops';
@@ -507,10 +507,11 @@ export function discoverBundles(appManifest) {
         throw new Error(`${shortPath} does not contain a package.json`)
       }
 
-      // Validate that the "normal" node package keys are present and valid.
-      const validPkg = isValidPackageManifest(manifest);
-      if (validPkg !== true) {
-        throw new Error(validPkg.map(e => e.message).join(', '))
+      // In order to be a valid bundle, the manifest needs to have the required
+      // extra application specific keys.
+      const validBundle = isValidBundle(manifest);
+      if (validBundle !== true){
+        throw new Error(validBundle.map(e => e.message).join(', '))
       }
 
       // Now that we know that the manifest is nominally correct, announce what
@@ -523,13 +524,6 @@ export function discoverBundles(appManifest) {
       if (ignoredBundles.includes(manifest.name)) {
         log.info(`skipping ${manifest.name}; this bundle is ignored`)
         continue;
-      }
-
-      // In order to be a valid bundle, the manifest needs to have the required
-      // extra application specific keys.
-      const validBundle = isValidBundleManifest(manifest.omphalos);
-      if (validBundle !== true){
-        throw new Error(validBundle.map(e => e.message).join(', '))
       }
 
       // If the bundle claims the system bundle name but is not located in the

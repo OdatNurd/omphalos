@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -44,7 +44,11 @@ export const updateCommand = {
   describe: 'Update properties or scaffold a new file for an existing panel',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Panel identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Panel identifier',
+        coerce: validateAssetIdentifier,
+      })
       .option('file', { type: 'string', describe: 'Scaffold a new HTML file for this panel' })
       .option('title', { type: 'string', describe: 'Update human-readable title' })
       .option('locked', { type: 'boolean', describe: 'Set locked state' })

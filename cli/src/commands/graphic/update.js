@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -32,7 +32,11 @@ export const updateCommand = {
   describe: 'Update properties or scaffold a new file for an existing graphic',
   builder: yargs => {
     return yargs
-      .positional('name', { type: 'string', describe: 'Graphic identifier' })
+      .positional('name', {
+        type: 'string',
+        describe: 'Graphic identifier',
+        coerce: validateAssetIdentifier,
+      })
       .option('file', { type: 'string', describe: 'Scaffold a new HTML file for this graphic' });
   },
   handler: wrappedHandler(handleGraphicUpdate, 1)

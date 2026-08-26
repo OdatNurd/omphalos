@@ -71,7 +71,7 @@ and load successfully.
 ```
 
 A list of extra files and/or folders to be included in a packed
-`omphalos-bundle` file when using the `@odatnurd/omph` command line
+`omphalos-bundle` file when using the `@odatnurd/omphalos-cli` command line
 tool to package a bundle up.
 
 A bundle always includes the contents of the [[panelPath|bundles#[[panelpath]],
@@ -140,6 +140,7 @@ The HTML file that provides the content for this panel.
 #### name
 
 * required
+* alphanumeric, dashes, and underscores only
 
 The internal name for this panel.
 
@@ -233,6 +234,7 @@ The HTML file that provides the content for this graphic.
 #### name
 
 * required
+* alphanumeric, dashes, and underscores only
 
 The internal name for this graphic.
 
@@ -281,6 +283,7 @@ The underlying sound file itself.
 #### name
 
 * required
+* alphanumeric, dashes, and underscores only
 
 The internal name for this sound; this is what is used to play the sound when
 using [[omphalos.sound.play()]].

@@ -1,7 +1,7 @@
 import { log } from '#logging';
 import playSound from 'play-sound';
 
-import { getRequiredAsset, getRequiredAssetPath, wrappedHandler } from '#helpers';
+import { getRequiredAsset, getRequiredAssetPath, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 // Initialize the player instance
 const player = playSound();
@@ -61,7 +61,8 @@ export const playCommand = {
     return yargs
       .positional('name', {
         type: 'string',
-        describe: 'Sound name to play'
+        describe: 'Sound name to play',
+        coerce: validateAssetIdentifier,
       })
       .option('raw', {
         alias: 'r',

@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@odatnurd/create-omphalos-bundle": "workspace:*",
-    "@odatnurd/omph": "workspace:*",
+    "@odatnurd/omphalos-cli": "workspace:*",
     "concurrently": "^10.0.5"
   }
 }

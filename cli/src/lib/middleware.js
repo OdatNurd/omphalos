@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { isValidPackageManifest, isValidBundleManifest } from '@odatnurd/omphalos-common/schema';
+import { isValidBundle } from '@odatnurd/omphalos-common/schema';
 import { join, basename, dirname } from 'node:path';
 import url from 'node:url';
 
@@ -53,9 +53,9 @@ export function loadManifestMiddleware(argv) {
 
   // Load and validate manifest; this does just the main package.json part
   const manifest = jetpack.read(packageJsonPath, 'json');
-  const validPkg = isValidPackageManifest(manifest);
+  const validPkg = isValidBundle(manifest);
   if (validPkg !== true) {
-    log.error(`Invalid package manifest in ${absoluteBundlePath}:`);
+    log.error(`Invalid bundle manifest in ${absoluteBundlePath}:`);
     log.error(validPkg.map(e => `  - ${e.message}`).join('\n'));
     process.exit(1);
   }
@@ -65,20 +65,6 @@ export function loadManifestMiddleware(argv) {
   // messaging.
   if (manifest.name !== bundleName) {
     log.warn(`[WARNING] The package.json name ('${manifest.name}') does not match the folder name ('${bundleName}'). Omphalos will use the folder name as the bundle name.`);
-  }
-
-  // If the manifest doesn't have an omphalos object, this is not a bundle.
-  if (manifest.omphalos === undefined) {
-    log.error(`package.json in ${bundleName} is missing the 'omphalos' configuration key.`);
-    process.exit(1);
-  }
-
-  // Verify that the bundle looks correct.
-  const validBundle = isValidBundleManifest(manifest.omphalos);
-  if (validBundle !== true) {
-    log.error(`Invalid omphalos manifest in ${bundleName}:`);
-    log.error(validBundle.map(e => `  - ${e.message}`).join('\n'));
-    process.exit(1);
   }
 
   // Inject the validated manifest and paths directly into the yargs argv object
