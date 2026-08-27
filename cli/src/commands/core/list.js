@@ -27,6 +27,8 @@ async function handleList({ sort, filter, bundlePath, bundleName, manifest }) {
   // DETAILS
   // ---------------------------------------------------------------------------
   if (filter === undefined || filter === 'details') {
+    const defaultBadge = { badge: 'DEFAULT' };
+
     logDetails([
       { header: 'Bundle Details'},
       ['package', manifest.name],
@@ -34,6 +36,9 @@ async function handleList({ sort, filter, bundlePath, bundleName, manifest }) {
       ['location', bundlePath],
       ['engine', omph.compatibleRange],
       ['extension', omph.extension !== undefined ? omph.extension : '(None)'],
+      ['panel path', pPath, omph.panelPath === undefined ? defaultBadge : {}],
+      ['graphic path', gPath, omph.graphicPath === undefined ? defaultBadge : {}],
+      ['sound path', sPath, omph.soundPath === undefined ? defaultBadge : {}],
       ['panels', omph?.panels?.length],
       ['graphics', omph?.graphics?.length],
       ['sounds', omph?.sounds?.length],

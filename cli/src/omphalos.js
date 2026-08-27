@@ -44,6 +44,7 @@ if (pkg.author !== undefined) {
   }
 }
 
+log.info('');
 const cli = yargs(hideBin(process.argv))
   .scriptName('omphalos')
   .usage('$0 <command> [options]')

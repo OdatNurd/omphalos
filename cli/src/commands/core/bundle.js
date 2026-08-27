@@ -1,4 +1,4 @@
-import { log } from '#logging';
+import { log, logDetails } from '#logging';
 import { wrappedHandler } from '#helpers';
 
 import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
@@ -64,8 +64,21 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
   // Check if we have production dependencies to install before we can pack
   // things up.
   const hasDependencies = manifest.dependencies !== undefined && Object.keys(manifest.dependencies).length > 0;
-  let tempDirPath = null;
+  const outputFileName = `${bundleName}.omphalos-bundle`;
 
+  // Display initial intent
+  logDetails([
+    { header: 'Packaging Bundle' },
+    ['bundle', `${manifest.omphalos.name} (${manifest.version})`],
+    ['omphalos', manifest.omphalos.compatibleRange],
+    ['output file', outputFileName],
+    ['production deps', hasDependencies === true ? 'Yes' : 'None']
+  ]);
+  log.info('');
+
+  // If we have dependencies, then we need to temporarily create a version of
+  // the package so we can install them.
+  let tempDirPath = null;
   if (hasDependencies === true) {
     // Create a temporary directory for us to install any dependencies into.
     tempDirPath = fs.mkdtempSync(join(os.tmpdir(), 'omphalos-bundle-'));
@@ -79,7 +92,7 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
     log.info(`Installing production dependencies in temporary directory...`);
     try {
       await execAsync('npm install --omit=dev --no-package-lock', { cwd: tempDirPath });
-      log.info(`Dependencies installed successfully.`);
+      log.info(`Dependencies installed successfully.\n`);
     } catch (err) {
       log.error(`Failed to install dependencies:`, err);
       jetpack.remove(tempDirPath);
@@ -88,7 +101,6 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
   }
 
   // Get ready to create the bundle archive now.
-  const outputFileName = `${bundleName}.omphalos-bundle`;
   const outputFilePath = resolve(process.cwd(), outputFileName);
   const output = fs.createWriteStream(outputFilePath);
 
@@ -97,11 +109,23 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
     forceLocalTime: true,
   });
 
-  // When the output stream closes, the bundle is complete; set up to remove the
-  // temporary path and all of its files, forcefully.
+  // Track what we actually pack so we can render it cleanly later,
+  // and stash any warnings so they don't interleave with our tables.
+  const archiveContents = [];
+  const archiveWarnings = [];
+
+  // When the output stream closes, the bundle is complete. This is the only
+  // time we can get the true final filesize.
   output.on('close', () => {
     const sizeStr = formatBytes(archive.pointer());
-    log.info(`[SUCCESS] Bundle created: ${outputFileName} (${sizeStr})`);
+
+    log.info('');
+    logDetails([
+      { header: 'Bundle Complete' },
+      ['file', outputFileName, { badge: 'SUCCESS' }],
+      ['final size', sizeStr]
+    ]);
+
     if (tempDirPath !== null) {
       try {
         jetpack.remove(tempDirPath);
@@ -128,24 +152,28 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
   // Set up the pipe to send the output through.
   archive.pipe(output);
 
+  // ---------------------------------------------------------------------------
+  // QUEUE ARCHIVE ASSETS
+  // ---------------------------------------------------------------------------
+
   // Add the package.json file; here we can just use the string.
   archive.append(manifestString, { name: `package.json` });
-  log.info(`  -> Added package.json (devDependencies stripped)`);
+  archiveContents.push(['package.json', 'Manifest (stripped devDependencies)']);
 
   // This small helper checks to see if the folder provided exists, and if so it
-  // pulls it into the archive.
+  // pulls it into the archive and records it for our log display.
   const addDirectoryIfItExists = (dirName, label) => {
     const fullPath = join(bundlePath, dirName);
     if (jetpack.exists(fullPath) === 'dir') {
       archive.directory(fullPath, `${dirName}`);
-      log.info(`  -> Added ${label} directory: ${dirName}`);
+      archiveContents.push([dirName, label]);
     }
   };
 
-  // All panels could have panels, graphics or sounds in them.
-  addDirectoryIfItExists(manifest.omphalos.panelPath, DEFAULT_PANEL_PATH);
-  addDirectoryIfItExists(manifest.omphalos.graphicPath, DEFAULT_GRAPHIC_PATH);
-  addDirectoryIfItExists(manifest.omphalos.soundPath, DEFAULT_SOUND_PATH);
+  // All bundles could have panels, graphics or sounds in them.
+  addDirectoryIfItExists(manifest.omphalos.panelPath, 'Panels directory');
+  addDirectoryIfItExists(manifest.omphalos.graphicPath, 'Graphics directory');
+  addDirectoryIfItExists(manifest.omphalos.soundPath, 'Sounds directory');
 
   // If there is a node_modules folder that we created, we should pull that into
   // the archive as well.
@@ -153,20 +181,18 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
     const tempNodeModules = join(tempDirPath, 'node_modules');
     if (jetpack.exists(tempNodeModules) === 'dir') {
       archive.directory(tempNodeModules, `node_modules`);
-      log.info(`  -> Added clean node_modules directory`);
+      archiveContents.push(['node_modules', 'Production dependencies']);
     }
   }
 
-  // If there is an extension script defined, then include it as well. I can't
-  // remember at the moment if the validator double checks this or not, but just
-  // in case it doesn't, handle the case where the file might be missing.
+  // If there is an extension script defined, then include it as well.
   if (manifest.omphalos.extension !== undefined) {
     const extPath = join(bundlePath, manifest.omphalos.extension);
     if (jetpack.exists(extPath) === 'file') {
       archive.file(extPath, { name: `${manifest.omphalos.extension}` });
-      log.info(`  -> Added extension file: ${manifest.omphalos.extension}`);
+      archiveContents.push([manifest.omphalos.extension, 'Extension script']);
     } else {
-      log.warn(`Extension file '${manifest.omphalos.extension}' is declared but not found.`);
+      archiveWarnings.push(`Extension file '${manifest.omphalos.extension}' is declared but not found.`);
     }
   }
 
@@ -179,16 +205,35 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
 
     if (pathType === 'dir') {
       archive.directory(fullExtraPath, `${extraPath}`);
-      log.info(`  -> Added extra directory: ${extraPath}`);
+      archiveContents.push([extraPath, 'Extra directory']);
     } else if (pathType === 'file') {
       archive.file(fullExtraPath, { name: `${extraPath}` });
-      log.info(`  -> Added extra file: ${extraPath}`);
+      archiveContents.push([extraPath, 'Extra file']);
     } else {
-      log.warn(`Extra include '${extraPath}' was not found.`);
+      archiveWarnings.push(`Extra include '${extraPath}' was not found.`);
     }
   }
 
-  // Finalize the zip file.
+  // ---------------------------------------------------------------------------
+  // FINALIZE AND RENDER
+  // ---------------------------------------------------------------------------
+
+  // Dump out the nicely formatted table of everything we just queued up
+  logDetails([
+    { header: 'Archive Contents' },
+    ...archiveContents
+  ]);
+
+  // Spit out any warnings immediately after the table
+  if (archiveWarnings.length > 0) {
+    log.info('');
+    for (let i = 0; i < archiveWarnings.length; i++) {
+      log.warn(archiveWarnings[i]);
+    }
+  }
+
+  // Finalize the zip file. This kicks off the actual compression stream,
+  // which will eventually trigger the output.on('close') event we wired up above.
   await archive.finalize();
 }
 

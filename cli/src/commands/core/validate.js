@@ -1,4 +1,4 @@
-import { log } from '#logging';
+import { log, logDetails } from '#logging';
 import { wrappedHandler } from '#helpers';
 
 import { join, extname } from 'node:path';
@@ -31,63 +31,114 @@ async function handleValidate({ bundlePath, manifest }) {
   const gPath = omph.graphicPath ?? DEFAULT_GRAPHIC_PATH;
   const sPath = omph.soundPath ?? DEFAULT_SOUND_PATH;
 
-  log.info(`validating bundle assets for '${manifest.omphalos.name}'...`);
+  // We will collect every step of the validation into a single massive array.
+  // This allows logDetails to perfectly align the badge columns across the
+  // entire report.
+  const validationLog = [
+    { header: `Validating: ${manifest.omphalos.name}` }
+  ];
+
+  // ---------------------------------------------------------------------------
+  // MANIFEST
+  // ---------------------------------------------------------------------------
+  validationLog.push('', { header: 'Manifest' });
+
+  // If the CLI reached this handler, the yargs middleware already successfully
+  // validated the omphalos block against the JSON schema. We can safely report
+  // it as passing to reassure the user.
+  validationLog.push(['schema', 'package.json', { badge: 'OK' }]);
 
   // ---------------------------------------------------------------------------
   // PANELS
   // ---------------------------------------------------------------------------
+  validationLog.push('', { header: 'Panels' });
   const panels = omph.panels || [];
   const panelIds = new Set();
 
-  for (let i = 0; i < panels.length; i++) {
-    const p = panels[i];
+  if (panels.length === 0) {
+    validationLog.push('  (None)');
+  }
+
+  for (const p of panels) {
+    const issues = [];
+    let isError = false;
 
     if (panelIds.has(p.name)) {
-      log.error(`duplicate panel identifier detected: '${p.name}'. Panel names must be unique.`);
+      issues.push(`Duplicate panel identifier detected. Panel names must be unique.`);
+      isError = true;
       errorCount++;
     }
     panelIds.add(p.name);
 
     const fullPath = join(bundlePath, pPath, p.file);
     if (jetpack.exists(fullPath) !== 'file') {
-      log.error(`panel '${p.name}' references file '${p.file}' which does not exist in '${pPath}/'.`);
+      issues.push(`References file '${p.file}' which does not exist in '${pPath}/'.`);
+      isError = true;
       errorCount++;
+    }
+
+    validationLog.push([p.name, p.file, { badge: isError === true ? 'ERROR' : 'OK' }]);
+
+    for (const issue of issues) {
+      validationLog.push(`    -> ${issue}`);
     }
   }
 
   // ---------------------------------------------------------------------------
   // GRAPHICS
   // ---------------------------------------------------------------------------
+  validationLog.push('', { header: 'Graphics' });
   const graphics = omph.graphics || [];
   const graphicIds = new Set();
 
-  for (let i = 0; i < graphics.length; i++) {
-    const g = graphics[i];
+  if (graphics.length === 0) {
+    validationLog.push('  (None)');
+  }
+
+  for (const g of graphics) {
+    const issues = [];
+    let isError = false;
 
     if (graphicIds.has(g.name)) {
-      log.error(`duplicate graphic identifier detected: '${g.name}'. Graphic names must be unique.`);
+      issues.push(`Duplicate graphic identifier detected. Graphic names must be unique.`);
+      isError = true;
       errorCount++;
     }
     graphicIds.add(g.name);
 
     const fullPath = join(bundlePath, gPath, g.file);
     if (jetpack.exists(fullPath) !== 'file') {
-      log.error(`graphic '${g.name}' references file '${g.file}' which does not exist in '${gPath}/'.`);
+      issues.push(`References file '${g.file}' which does not exist in '${gPath}/'.`);
+      isError = true;
       errorCount++;
+    }
+
+    validationLog.push([g.name, g.file, { badge: isError === true ? 'ERROR' : 'OK' }]);
+
+    for (const issue of issues) {
+      validationLog.push(`    -> ${issue}`);
     }
   }
 
   // ---------------------------------------------------------------------------
   // SOUNDS
   // ---------------------------------------------------------------------------
+  validationLog.push('', { header: 'Sounds' });
   const sounds = omph.sounds || [];
   const soundIds = new Set();
 
-  for (let i = 0; i < sounds.length; i++) {
-    const s = sounds[i];
+  if (sounds.length === 0) {
+    validationLog.push('  (None)');
+  }
+
+  for (const s of sounds) {
+    const issues = [];
+    let isError = false;
+    let isWarn = false;
 
     if (soundIds.has(s.name)) {
-      log.error(`duplicate sound identifier detected: '${s.name}'. Sound names must be unique.`);
+      issues.push(`Duplicate sound identifier detected. Sound names must be unique.`);
+      isError = true;
       errorCount++;
     }
     soundIds.add(s.name);
@@ -95,24 +146,42 @@ async function handleValidate({ bundlePath, manifest }) {
     const fullPath = join(bundlePath, sPath, s.file);
 
     if (jetpack.exists(fullPath) !== 'file') {
-      log.error(`sound '${s.name}' references file '${s.file}' which does not exist in '${sPath}/'.`);
+      issues.push(`References file '${s.file}' which does not exist in '${sPath}/'.`);
+      isError = true;
       errorCount++;
     }
 
     if (getAudioTypeInfo(s.file).valid === false) {
-      log.warn(`sound '${s.name}' references file '${s.file}' which does not appear to be a common web-capable audio format.`);
+      issues.push(`References file '${s.file}' which does not appear to be a common web-capable audio format.`);
+      isWarn = true;
       warningCount++;
+    }
+
+    // Determine highest severity badge
+    const badge = isError === true ? 'ERROR' : (isWarn === true ? 'WARN' : 'OK');
+    validationLog.push([s.name, s.file, { badge }]);
+
+    for (const issue of issues) {
+      validationLog.push(`    -> ${issue}`);
     }
   }
 
   // ---------------------------------------------------------------------------
   // EXTENSION SCRIPT
   // ---------------------------------------------------------------------------
-  if (omph.extension !== undefined) {
+  validationLog.push('', { header: 'Extension Script' });
+
+  if (omph.extension === undefined) {
+    validationLog.push('  (None)');
+  } else {
+    const issues = [];
+    let isError = false;
+    let isWarn = false;
     const extFullPath = join(bundlePath, omph.extension);
 
     if (jetpack.exists(extFullPath) !== 'file') {
-      log.error(`extension script '${omph.extension}' does not exist.`);
+      issues.push(`Extension script '${omph.extension}' does not exist.`);
+      isError = true;
       errorCount++;
     } else {
       let hasMain = false;
@@ -122,20 +191,18 @@ async function handleValidate({ bundlePath, manifest }) {
       let hasSymbols = false;
       let symbolsIsObject = false;
 
-      // Here we are using parsing the Javascript into an AST so that we can
+      // Here we are parsing the Javascript into an AST so that we can
       // verify that the main function is exported, and takes a single argument,
       // and that if symbols are exported, that it is an object literal.
       try {
         const source = jetpack.read(extFullPath, 'utf8');
         const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
 
-        for (let i = 0; i < ast.body.length; i++) {
-          const node = ast.body[i];
-
+        for (const node of ast.body) {
           // Examine only nodes that are being exported.
           if (node.type === 'ExportNamedDeclaration') {
-            // This handles standard inline declarations: e.g., export function
-            // main(api) {}
+
+            // This handles standard inline declarations: e.g., export function main(api) {}
             if (node.declaration !== null && node.declaration !== undefined) {
               if (node.declaration.type === 'FunctionDeclaration') {
                 if (node.declaration.id.name === 'main') {
@@ -152,9 +219,7 @@ async function handleValidate({ bundlePath, manifest }) {
 
               // This handles variable declarations.
               if (node.declaration.type === 'VariableDeclaration') {
-                for (let j = 0; j < node.declaration.declarations.length; j++) {
-                  const dec = node.declaration.declarations[j];
-
+                for (const dec of node.declaration.declarations) {
                   if (dec.id.name === 'main') {
                     hasMain = true;
                     if (dec.init !== null && dec.init !== undefined) {
@@ -179,9 +244,7 @@ async function handleValidate({ bundlePath, manifest }) {
 
             // This handles detached specifiers, such as export { main, symbols }
             if (Array.isArray(node.specifiers) === true) {
-              for (let j = 0; j < node.specifiers.length; j++) {
-                const spec = node.specifiers[j];
-
+              for (const spec of node.specifiers) {
                 // We will assume that we are good, since it would take a deeper
                 // tree walk to validate in this case.
                 if (spec.exported.name === 'main') {
@@ -202,38 +265,49 @@ async function handleValidate({ bundlePath, manifest }) {
 
         // Apply our rules against the flags we gathered
         if (hasMain === false) {
-          log.error(`extension script '${omph.extension}' must export a 'main' function.`);
+          issues.push(`Script must export a 'main' function.`);
+          isError = true;
           errorCount++;
         } else if (mainHasArgs === false) {
-          log.error(`extension script '${omph.extension}' exports 'main', but the function does not take any arguments.`);
+          issues.push(`Exports 'main', but the function does not take any arguments.`);
+          isError = true;
           errorCount++;
         } else if (mainArgCountUnknown === false && mainArgCount > 1) {
-          log.warn(`extension script '${omph.extension}' exports 'main' with ${mainArgCount} arguments, but Omphalos will only provide one (the API).`);
+          issues.push(`Exports 'main' with ${mainArgCount} arguments, but Omphalos will only provide one (the API).`);
+          isWarn = true;
           warningCount++;
         }
 
         if (hasSymbols === true && symbolsIsObject === false) {
-          log.error(`extension script '${omph.extension}' exports 'symbols' but it does not appear to be an object literal.`);
+          issues.push(`Exports 'symbols' but it does not appear to be an object literal.`);
+          isError = true;
           errorCount++;
         }
 
       } catch (err) {
-        log.error(`failed to parse extension script '${omph.extension}': ${err.message}`);
+        issues.push(`Failed to parse extension script: ${err.message}`);
+        isError = true;
         errorCount++;
       }
+    }
+
+    const badge = isError === true ? 'ERROR' : (isWarn === true ? 'WARN' : 'OK');
+    validationLog.push(['script', omph.extension, { badge }]);
+
+    for (const issue of issues) {
+      validationLog.push(`    -> ${issue}`);
     }
   }
 
   // ---------------------------------------------------------------------------
   // SUMMARY
   // ---------------------------------------------------------------------------
-  log.info('');
+  validationLog.push('', { header: 'Summary' });
+  validationLog.push(['errors', errorCount, { badge: errorCount === 0 ? 'OK' : 'ERROR' }]);
+  validationLog.push(['warnings', warningCount, { badge: warningCount === 0 ? 'OK' : 'WARN' }]);
 
-  if (errorCount === 0 && warningCount === 0) {
-    log.info(`validation passed with 0 errors and 0 warnings.`);
-  } else {
-    log.info(`validation finished with ${errorCount} error(s) and ${warningCount} warning(s).`);
-  }
+  // Output the perfectly aligned table
+  logDetails(validationLog);
 
   if (errorCount > 0) {
     process.exit(1);

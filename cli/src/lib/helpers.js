@@ -131,8 +131,8 @@ export const coerceByPrefix = choices => {
 
     // Try to find a prefix match for the input; if we do, return it. Otherwise
     // just return whatever the arg was and the error will get handled for us.
-    const match = choices.find(c => c.startsWith(arg));
-    return match !== undefined ? match : arg;
+    const matches = choices.filter(c => c.startsWith(arg));
+    return matches.length === 1 ? matches[0]: arg;
   }
 }
 
@@ -169,9 +169,9 @@ export const createNumberRangeValidator = (min, max) => {
  * Returns the asset object if found, or null if it does not exist. */
 export const getAsset = (name, type, manifest) => {
   const typeMap = {
-    'panel': DEFAULT_PANEL_PATH,
-    'graphic': DEFAULT_GRAPHIC_PATH,
-    'sound': DEFAULT_SOUND_PATH
+    'panel': 'panels',
+    'graphic': 'graphics',
+    'sound': 'sounds'
   };
 
   const manifestKey = typeMap[type];
@@ -239,9 +239,9 @@ export const ensureAssetDoesNotExist = (name, type, manifest) => {
  * path. */
 export const getAssetPath = (filename, type, manifest, bundlePath) => {
   const typeDefaults = {
-    'panel': { key: 'panelPath', fallback: 'panels' },
-    'graphic': { key: 'graphicPath', fallback: 'graphics' },
-    'sound': { key: 'soundPath', fallback: 'sounds' }
+    'panel': { key: 'panelPath', fallback: DEFAULT_PANEL_PATH },
+    'graphic': { key: 'graphicPath', fallback: DEFAULT_GRAPHIC_PATH },
+    'sound': { key: 'soundPath', fallback: DEFAULT_SOUND_PATH }
   };
 
   const typeInfo = typeDefaults[type];
