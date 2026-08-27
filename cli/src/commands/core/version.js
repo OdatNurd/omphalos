@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { wrappedHandler } from '#helpers';
+import { coerceByPrefix, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -19,9 +19,12 @@ export const versionCommand = {
   command: 'version [bump]',
   describe: 'View or bump the bundle version',
   builder: yargs => {
+    const versionOptions = ['major', 'minor', 'patch'];
+
     return yargs.positional('bump', {
       type: 'string',
-      choices: ['major', 'minor', 'patch'],
+      choices: versionOptions,
+      coerce: coerceByPrefix(versionOptions),
       describe: 'Optional semver bump type'
     });
   },

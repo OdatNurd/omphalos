@@ -26,7 +26,7 @@ export const enforce = (argName, validator) => {
       return validator(value);
     }
     catch (error) {
-      throw new Error(`${argName}: ${error.message}`);
+      throw new Error(`Invalid values:\n  Argument: ${argName}, Given: "${value}", Error: ${error.message}`);
     }
   }
 }
@@ -56,7 +56,7 @@ export const validateSemanticRange = value => {
  * returns it as a string; otherwise it throws an error. */
 export const validateSemamticVersion = value => {
   if (semver.valid(value) === null) {
-    throw new Error(`'${value}' is not a valid semantic version`);
+    throw new Error(`not a valid semantic version`);
   }
   return value;
 };
@@ -73,7 +73,7 @@ export const validateAssetIdentifier = value => {
   const valid = isValidAssetId(value);
 
   if (valid !== true) {
-    throw new Error(`'${value}' is not a valid asset identifier`);
+    throw new Error(`not a valid asset identifier`);
   }
 
   return value;
@@ -93,14 +93,14 @@ export const validateSizeSpecifier = value => {
   const match = value.match(/^\s*(\d+)\s*x\s*(\d+)\s*$/i);
 
   if (match === null) {
-    throw new Error(`'${value}' is not a valid size specifier`);
+    throw new Error(`not a valid size specifier`);
   }
 
   const width = parseInt(match[1], 10);
   const height = parseInt(match[2], 10);
 
   if (width === 0 || height === 0) {
-    throw new Error(`'${value}' is not a valid size specifier: dimensions cannot be zero`);
+    throw new Error(`not a valid size specifier: dimensions cannot be zero`);
   }
 
   return {
@@ -116,6 +116,33 @@ export const validateSizeSpecifier = value => {
 /* Higher-order helper function for use in a yargs command as a 'coerce'
  * function generator.
  *
+ * Returns a validation function that chooses the first match in the given
+ * choces array that can be prefix matched by the input. This allows the user
+ * to use the shortest unique prefix to choose options.
+ *
+ * If there is no match, or if the argument is not a string, the value passed
+ * to coerce will be returned directly. */
+export const coerceByPrefix = choices => {
+  return (arg) => {
+    // If the argument is not a string, just return without doing anything.
+    if (typeof arg !== 'string') {
+      return arg;
+    }
+
+    // Try to find a prefix match for the input; if we do, return it. Otherwise
+    // just return whatever the arg was and the error will get handled for us.
+    const match = choices.find(c => c.startsWith(arg));
+    return match !== undefined ? match : arg;
+  }
+}
+
+
+// =============================================================================
+
+
+/* Higher-order helper function for use in a yargs command as a 'coerce'
+ * function generator.
+ *
  * Returns a validation function that ensures a parsed float falls inclusively
  * within the specified min and max bounds. */
 export const createNumberRangeValidator = (min, max) => {
@@ -123,7 +150,7 @@ export const createNumberRangeValidator = (min, max) => {
     const parsed = parseFloat(value);
 
     if (isNaN(parsed) === true) {
-      throw new Error(`'${value}' is not a valid number`);
+      throw new Error(`not a valid number`);
     }
 
     if (parsed < min || parsed > max) {

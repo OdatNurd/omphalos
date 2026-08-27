@@ -1,5 +1,6 @@
 import { log, logTree, logDetails } from '#logging';
-import { wrappedHandler } from '#helpers';
+
+import { coerceByPrefix, wrappedHandler } from '#helpers';
 
 import { parse } from 'node:path';
 
@@ -172,19 +173,24 @@ export const listCommand = {
   command: 'list',
   describe: 'Display a tabular summary of bundle assets, panels, and sounds',
   builder: yargs => {
+    const sortChoices = ['name', 'workspace'];
+    const filterChoices = ['details', 'panels', 'graphics', 'sounds'];
+
     return yargs
       .option('sort', {
         alias: 's',
         describe: 'Sort panels by "name" or group by "workspace"',
         type: 'string',
-        choices: ['name', 'workspace'],
-        default: 'name'
+        choices: sortChoices,
+        default: sortChoices[0],
+        coerce: coerceByPrefix(sortChoices)
       })
       .option('filter', {
         alias: 'f',
         describe: 'Filter output to a specific asset category',
         type: 'string',
-        choices: ['details', 'panels', 'graphics', 'sounds']
+        choices: filterChoices,
+        coerce: coerceByPrefix(filterChoices)
       });
   },
   handler: wrappedHandler(handleList, 1)
