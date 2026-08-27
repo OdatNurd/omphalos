@@ -203,7 +203,13 @@ export const ensureAssetDoesNotExist = (name, type, manifest) => {
  * not done becuse it is not possible to infer.
  *
  * This uses the manifest to look up the configured base folder for the given
- * asset type, applying defaults if they are not explicitly defined. */
+ * asset type, applying defaults if they are not explicitly defined.
+ *
+ * The return is of the form { relative, absolute } where the relative is the
+ * path to the file as it would exist IN THE MANIFEST (i.e. it does not have a
+ * prefix for the inner asset path), while the absolute is the full and complete
+ * filename that the asset should end up at; this DOES include the inner asset
+ * path. */
 export const getAssetPath = (filename, type, manifest, bundlePath) => {
   const typeDefaults = {
     'panel': { key: 'panelPath', fallback: 'panels' },
@@ -226,11 +232,10 @@ export const getAssetPath = (filename, type, manifest, bundlePath) => {
     filename += '.html';
   }
 
-  const relative = join(baseDir, filename);
-  const absolute = join(bundlePath, relative);
+  const absolute = join(bundlePath, baseDir, filename);
 
   return {
-    relative,
+    relative: filename,
     absolute
   };
 };

@@ -38,6 +38,7 @@ export function saveManifest(manifestPath, manifest) {
   }
 
   jetpack.write(manifestPath, manifest, { atomic: true });
+  log.info('updated package.json')
 }
 
 

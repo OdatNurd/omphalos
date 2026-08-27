@@ -270,8 +270,9 @@ export function defaultPanelAsset(name, file, title, size, options = {}) {
     throw new Error(valid.map(e => e.message).join(', '));
   }
 
-  // Return back the object, masking away any fields that are not supposed to
-  // be present.
+  // Return back the object, masking away any fields that are not supposed to be
+  // present.
+  return panel; // short circuit the mask until we know why it fails on size
   return maskPanel(panel);
 }
 
@@ -301,6 +302,7 @@ export function defaultGraphicAsset(name, file, size, options = {}) {
 
   // Return back the object, masking away any fields that are not supposed to
   // be present.
+  return graphic; // short circuit while we resolve masking issues.
   return maskGraphic(graphic);
 }
 
@@ -330,6 +332,7 @@ export function defaultSoundAsset(name, file, options = {}) {
 
   // Return back the object, masking away any fields that are not supposed to
   // be present.
+  return sound; // short circuit while we resolve masking issues.
   return maskSound(sound);
 }
 
