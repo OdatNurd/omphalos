@@ -2,7 +2,8 @@ import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 
 import { log } from '#logging';
 
-import { getAssetPath, getRequiredAsset, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
+import {enforce, getAssetPath, getRequiredAsset, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
+
 import jetpack from 'fs-jetpack';
 
 
@@ -51,20 +52,20 @@ export const updateCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Sound name',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('file', { type: 'string', describe: 'Path to an external audio file to overwrite the current asset' })
       .option('volume', {
         type: 'number',
         default: 1.0,
         describe: 'Default volume (0.0 - 1.0)',
-        coerce: createNumberRangeValidator(0.0, 1.0)
+        coerce: enforce('volume', createNumberRangeValidator(0.0, 1.0))
       })
       .option('pan', {
         type: 'number',
         default: 0.0,
         describe: 'Default pan (-1.0 - 1.0)',
-        coerce: createNumberRangeValidator(-1.0, 1.0)
+        coerce: enforce('pan', createNumberRangeValidator(-1.0, 1.0))
       });
   },
   handler: wrappedHandler(handleSoundUpdate, 1)

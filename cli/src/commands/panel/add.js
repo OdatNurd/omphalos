@@ -1,7 +1,8 @@
 import { log } from '#logging';
 import { extname } from 'path';
 
-import { getNewAssetPath, ensureAssetDoesNotExist, validateSizeSpecifier, wrappedHandler, validateAssetIdentifier } from '#helpers';
+import { enforce, getNewAssetPath, ensureAssetDoesNotExist, validateSizeSpecifier,
+         wrappedHandler, validateAssetIdentifier } from '#helpers';
 
 
 // =============================================================================
@@ -47,7 +48,7 @@ export const addCommand = {
       .positional('name', {
         describe: 'The programmatic identifier of the new panel',
         type: 'string',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .positional('file', {
         describe: 'Relative path to the HTML file (infers .html)',
@@ -56,19 +57,19 @@ export const addCommand = {
       .option('size', {
         type: 'string',
         describe: 'Size of the panel in WxH format (e.g. 1920x1080)',
-        coerce: validateSizeSpecifier,
+        coerce: enforce('size', validateSizeSpecifier),
         demandOption: true
       })
       .option('min-size', {
         type: 'string',
         describe: 'Minimum size of the panel in WxH format (e.g. 1920x1080)',
-        coerce: validateSizeSpecifier,
+        coerce: enforce('min-size', validateSizeSpecifier),
         demandOption: false
       })
       .option('max-size', {
         type: 'string',
         describe: 'Maximum size of the panel in WxH format (e.g. 1920x1080)',
-        coerce: validateSizeSpecifier,
+        coerce: enforce('max-size', validateSizeSpecifier),
         demandOption: false
       })
       .option('title', {

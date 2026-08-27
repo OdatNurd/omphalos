@@ -1,11 +1,12 @@
 import { log } from '#logging';
 import { wrappedHandler } from '#helpers';
 
-import fs from 'fs';
-import { resolve, join } from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import os from 'os';
+import fs from 'node:fs';
+import { resolve, join } from 'node:path';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import os from 'node:os';
+
 import { ZipArchive } from 'archiver';
 import jetpack from 'fs-jetpack';
 

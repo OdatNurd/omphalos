@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { validateSemanticRange, wrappedHandler } from '#helpers';
+import { enforce, validateSemanticRange, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -22,7 +22,7 @@ export const engineCommand = {
     return yargs.positional('range', {
       type: 'string',
       describe: 'Semver compatible range (e.g. ^0.1.0)',
-      coerce: validateSemanticRange,
+      coerce: enforce('range', validateSemanticRange),
     });
   },
   handler: wrappedHandler(handleEngine, 1)

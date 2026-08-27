@@ -1,7 +1,9 @@
 import { log } from '#logging';
-import { extname } from 'path';
 
 import { wrappedHandler } from '#helpers';
+
+import { extname } from 'node:path';
+
 
 
 // =============================================================================

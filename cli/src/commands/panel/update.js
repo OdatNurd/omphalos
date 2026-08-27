@@ -1,7 +1,8 @@
 import { log } from '#logging';
-import { extname } from 'path';
 
-import { getNewAssetPath, getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
+import { extname } from 'node:path';
+
+import { enforce, getNewAssetPath, getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -47,7 +48,7 @@ export const updateCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Panel identifier',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('file', { type: 'string', describe: 'Scaffold a new HTML file for this panel' })
       .option('title', { type: 'string', describe: 'Update human-readable title' })

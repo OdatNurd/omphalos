@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getAssetPath, getRequiredAsset, validateAssetIdentifier, wrappedHandler } from '#helpers';
+import { enforce, getAssetPath, getRequiredAsset, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -33,7 +33,7 @@ export const rmCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Panel name',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('delete', { type: 'boolean', default: false, describe: 'Physically delete file' });
   },

@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, validateAssetIdentifier, validateSizeSpecifier, wrappedHandler } from '#helpers';
+import { enforce, getRequiredAsset, validateAssetIdentifier, validateSizeSpecifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -32,22 +32,22 @@ export const resizeCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Panel name',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('size', {
         type: 'string',
         describe: 'New size of the panel in WxH format (e.g. 1920x1080)',
-        coerce: validateSizeSpecifier
+        coerce: enforce('size', validateSizeSpecifier)
       })
       .option('min-size', {
         type: 'string',
         describe: 'Minimum size of the panel in WxH format (e.g. 800x600)',
-        coerce: validateSizeSpecifier
+        coerce: enforce('min-size', validateSizeSpecifier)
       })
       .option('max-size', {
         type: 'string',
         describe: 'Maximum size of the panel in WxH format (e.g. 2560x1440)',
-        coerce: validateSizeSpecifier
+        coerce: enforce('max-size', validateSizeSpecifier)
       });
   },
   handler: wrappedHandler(handlePanelResize, 1)

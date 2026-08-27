@@ -14,6 +14,29 @@ import jetpack from 'fs-jetpack';
 
 /* Helper function for use in a yargs command as a 'coerce' function.
  *
+ * This uses the validator provided to verify that the argument's value makes
+ * logical sense. If it does, then the value the validator returns is also
+ * returned.
+ *
+ * If the validator throws an error, this will re-throw the error, but with the
+ * name of the argument provided prepended, for context. */
+export const enforce = (argName, validator) => {
+  return value => {
+    try {
+      return validator(value);
+    }
+    catch (error) {
+      throw new Error(`${argName}: ${error.message}`);
+    }
+  }
+}
+
+
+// =============================================================================
+
+
+/* Helper function for use in a yargs command as a 'coerce' function.
+ *
  * Validates that the value provided is a valid semantic version range; if it
  * is, it returns it as a string; otherwise it throws an error. */
 export const validateSemanticRange = value => {

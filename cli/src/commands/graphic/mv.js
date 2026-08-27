@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, ensureAssetDoesNotExist, getNewAssetPath,
+import { enforce, getRequiredAsset, ensureAssetDoesNotExist, getNewAssetPath,
          validateAssetIdentifier, getRequiredAssetPath, wrappedHandler } from '#helpers';
 
 
@@ -41,7 +41,7 @@ export const mvCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Current graphic identifier',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .positional('newName', { type: 'string', describe: 'New graphic identifier' })
       .option('file', { type: 'string', describe: 'Move the physical file to a new relative path' });

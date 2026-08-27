@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { validateSemanticRange, wrappedHandler } from '#helpers';
+import { enforce, validateSemanticRange, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -24,7 +24,7 @@ export const updateCommand = {
       .positional('range', {
         type: 'string',
         describe: 'New version specifier',
-        coerce: validateSemanticRange,
+        coerce: enforce('range', validateSemanticRange),
       });
   },
   handler: wrappedHandler(handleDependencyUpdate, 1)

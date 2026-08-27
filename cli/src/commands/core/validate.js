@@ -1,7 +1,9 @@
 import { log } from '#logging';
 import { wrappedHandler } from '#helpers';
+
+import { join, extname } from 'node:path';
+
 import jetpack from 'fs-jetpack';
-import { join, extname } from 'path';
 import { parse } from 'acorn';
 
 import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';

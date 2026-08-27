@@ -9,8 +9,7 @@ const pkgManifest = JSON.parse(readFileSync(new URL('./package.json', import.met
 // the common code.
 const externalDeps = Object.keys(pkgManifest.dependencies || {});
 const nodeBuiltins = [
-  'node:path', 'node:url', 'node:fs', 'node:os', 'node:child_process', 'node:util',
-  'path', 'url', 'fs', 'os', 'child_process', 'util'
+  'node:path', 'node:url', 'node:fs', 'node:os', 'node:child_process',
 ];
 
 export default {

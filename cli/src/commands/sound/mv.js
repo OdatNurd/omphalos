@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAssetPath, getNewAssetPath, getRequiredAsset,
+import { enforce, getRequiredAssetPath, getNewAssetPath, getRequiredAsset,
          validateAssetIdentifier, ensureAssetDoesNotExist, wrappedHandler } from '#helpers';
 
 
@@ -44,7 +44,7 @@ export const mvCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Current sound identifier',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .positional('newName', { type: 'string', describe: 'New sound identifier' })
       .option('file', { type: 'string', describe: 'Move the physical audio file to a new relative path' });

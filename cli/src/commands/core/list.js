@@ -1,6 +1,7 @@
 import { log } from '#logging';
 import { wrappedHandler } from '#helpers';
-import { parse } from 'path';
+
+import { parse } from 'node:path';
 
 
 // =============================================================================

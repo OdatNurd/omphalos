@@ -1,6 +1,6 @@
 import { log } from '#logging';
 
-import { getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
+import { enforce, getRequiredAsset, validateSizeSpecifier, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -26,12 +26,12 @@ export const resizeCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Graphic name',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('size', {
         type: 'string',
         describe: 'New size of the graphic in WxH format (e.g. 800x600)',
-        coerce: validateSizeSpecifier
+        coerce: enforce('size', validateSizeSpecifier)
       });
   },
   handler: wrappedHandler(handleGraphicResize, 1)

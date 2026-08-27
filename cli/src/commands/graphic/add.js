@@ -1,7 +1,8 @@
 import { log } from '#logging';
-import { extname } from 'path';
 
-import { ensureAssetDoesNotExist, validateSizeSpecifier, validateAssetIdentifier, getNewAssetPath, wrappedHandler } from '#helpers';
+import { extname } from 'node:path';
+
+import { enforce, ensureAssetDoesNotExist, validateSizeSpecifier, validateAssetIdentifier, getNewAssetPath, wrappedHandler } from '#helpers';
 
 
 // =============================================================================
@@ -36,13 +37,13 @@ export const addCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Graphic programmatic identifier' ,
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .positional('file', { type: 'string', describe: 'Relative path to HTML file (infers .html)' })
       .option('size', {
         type: 'string',
         describe: 'Size of the graphic in WxH format (e.g. 800x600)',
-        coerce: validateSizeSpecifier,
+        coerce: enforce('size', validateSizeSpecifier),
         demandOption: true
       });
   },

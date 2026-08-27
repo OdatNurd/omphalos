@@ -2,9 +2,10 @@ import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 
 import { log } from '#logging';
 
-import { getNewAssetPath, ensureAssetDoesNotExist, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
-
 import { basename } from 'node:path';
+
+import { enforce, getNewAssetPath, ensureAssetDoesNotExist, createNumberRangeValidator, validateAssetIdentifier, wrappedHandler } from '#helpers';
+
 import jetpack from 'fs-jetpack';
 
 
@@ -54,7 +55,7 @@ export const addCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Sound identifier name',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .positional('file', { type: 'string', describe: 'Path to source audio file' })
       .option('dest-file', { type: 'string', describe: 'Bundle path for asset'})
@@ -62,13 +63,13 @@ export const addCommand = {
         type: 'number',
         default: 1.0,
         describe: 'Default volume (0.0 - 1.0)',
-        coerce: createNumberRangeValidator(0.0, 1.0)
+        coerce: enforce('volume', createNumberRangeValidator(0.0, 1.0))
       })
       .option('pan', {
         type: 'number',
         default: 0.0,
         describe: 'Default pan (-1.0 - 1.0)',
-        coerce: createNumberRangeValidator(-1.0, 1.0)
+        coerce: enforce('pan', createNumberRangeValidator(-1.0, 1.0))
       });
   },
   handler: wrappedHandler(handleSoundAdd, 1)

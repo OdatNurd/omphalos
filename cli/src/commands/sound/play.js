@@ -1,7 +1,12 @@
 import { log } from '#logging';
+
+import { enforce, getRequiredAsset, getRequiredAssetPath, validateAssetIdentifier, wrappedHandler } from '#helpers';
+
 import playSound from 'play-sound';
 
-import { getRequiredAsset, getRequiredAssetPath, validateAssetIdentifier, wrappedHandler } from '#helpers';
+
+// =============================================================================
+
 
 // Initialize the player instance
 const player = playSound();
@@ -62,7 +67,7 @@ export const playCommand = {
       .positional('name', {
         type: 'string',
         describe: 'Sound name to play',
-        coerce: validateAssetIdentifier,
+        coerce: enforce('name', validateAssetIdentifier),
       })
       .option('raw', {
         alias: 'r',
