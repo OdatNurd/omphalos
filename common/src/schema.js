@@ -27,6 +27,30 @@ joker.extendErrors({
 // =============================================================================
 
 
+/* Default values for panel options in the schema; for optional keys, the values
+ * here are the presumed values at load time if the keys are missing or not
+ * otherwise set to a value. */
+export const DEFAULT_PANEL_PATH = 'panels';
+export const DEFAULT_PANEL_LOCK = false;
+export const DEFAULT_PANEL_FULLBLEED = false;
+export const DEFAULT_PANEL_WORKSPACE = 'Workspace';
+
+/* Default values for graphic options in the schema; for optional keys, the
+ * values here are the presumed values at load time if the keys are missing or
+ * not otherwise set to a value. */
+export const DEFAULT_GRAPHIC_PATH = 'graphics';
+
+/* Default values for sound options in the schema; for optional keys, the values
+ * here are the presumed values at load time if the keys are missing or not
+ * otherwise set to a value. */
+export const DEFAULT_SOUND_PATH = 'sounds';
+export const DEFAULT_SOUND_VOLUME = 1.0;
+export const DEFAULT_SOUND_PAN = 0.0;
+
+
+// =============================================================================
+
+
 /* The details for a specific panel within the bundle.
  *
  * Sizes are in columns and rows. If a panel is locked, it will not be
@@ -115,15 +139,14 @@ const omphalosManifest = {
 
   // These items specify a path relative to the manifest file in the package
   // that specify where any panels, graphics and sounds are expected to be
-  // found. If they are not provided, then a default of "panels", "graphics"
-  // and "sounds" respectively will be used as the location.
+  // found. If they are not provided, default values are used.
   "?panelPath": "string",
   "?graphicPath": "string",
   "?soundPath": "string",
 
   // When bundling up a package, this is an optional list of files and folders
-  // that should be placed into the bundle. The contents of the panels,
-  // graphics and sound paths are always included.
+  // that should be placed into the bundle. The contents of the panels, graphics
+  // and sound paths are always included in a bundle, as is the extension.
   "?includeFiles[]": "string",
 
   // A list of user interface panels that should be presented for this bundle.
@@ -155,12 +178,14 @@ export const isValidBundle = joker.validator({
     // needed.
     "type": "module",
 
-    // The package must have a valid Omphalos manifest.
+    // The package must have a valid Omphalos manifest object within it.
     "omphalos": omphalosManifest,
   }
 });
 
-/* All panels must follow the appropriate schema.
+
+/* All panels must follow the appropriate schema. The mask function allows for
+ * masking a value of this type to remove all keys that don't fit the schema.
  *
  * This helper is for independent item validation outside of the manifest as a
  * whole. */
@@ -171,7 +196,8 @@ export const isValidPanel = joker.validator({
 export const maskPanel = joker.mask({ root: panelItem });
 
 
-/* All graphics must follow the appropriate schema.
+/* All graphics must follow the appropriate schema. The mask function allows for
+ * masking a value of this type to remove all keys that don't fit the schema.
  *
  * This helper is for independent item validation outside of the manifest as a
  * whole. */
@@ -182,7 +208,8 @@ export const isValidGraphic = joker.validator({
 export const maskGraphic = joker.mask({ root: graphicItem });
 
 
-/* All sounds must follow the appropriate schema.
+/* All sounds must follow the appropriate schema. The mask function allows for
+ * masking a value of this type to remove all keys that don't fit the schema.
  *
  * This helper is for independent item validation outside of the manifest as a
  * whole. */
@@ -207,10 +234,10 @@ export const isValidAssetId = joker.validator({
 
 /* Create and return an object that represents a package.json of a bundle such
  * that it has all of the minimal keys required for a bundle using the values
- * that were provided.
+ * that are provided.
  *
  * This also includes some other small helper items, such as scripts to use the
- * official command line tool, a dependency on said tool.
+ * official command line tool, and a dependency on said tool.
  *
  * The return is an object suitable for conversion into a package.json file or
  * for other uses.

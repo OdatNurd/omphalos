@@ -1,6 +1,8 @@
 import { log } from '#logging';
 import { wrappedHandler } from '#helpers';
 
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+
 import fs from 'node:fs';
 import { resolve, join } from 'node:path';
 import { exec } from 'node:child_process';
@@ -39,9 +41,9 @@ function formatBytes(bytes, decimals = 2) {
 async function handleBundle({ bundleName, bundlePath, manifest }) {
   // Our loader logic applies default paths for things that are missing, so we
   // replicate that here.
-  manifest.omphalos.panelPath ??= 'panels';
-  manifest.omphalos.graphicPath ??= 'graphics';
-  manifest.omphalos.soundPath ??= 'sounds';
+  manifest.omphalos.panelPath ??= DEFAULT_PANEL_PATH;
+  manifest.omphalos.graphicPath ??= DEFAULT_GRAPHIC_PATH;
+  manifest.omphalos.soundPath ??= DEFAULT_SOUND_PATH;
 
   // If the omphalos manifest has a list of include file entries, pull it;
   // otherwise, assume it is empty.
@@ -141,9 +143,9 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
   };
 
   // All panels could have panels, graphics or sounds in them.
-  addDirectoryIfItExists(manifest.omphalos.panelPath, 'panels');
-  addDirectoryIfItExists(manifest.omphalos.graphicPath, 'graphics');
-  addDirectoryIfItExists(manifest.omphalos.soundPath, 'sounds');
+  addDirectoryIfItExists(manifest.omphalos.panelPath, DEFAULT_PANEL_PATH);
+  addDirectoryIfItExists(manifest.omphalos.graphicPath, DEFAULT_GRAPHIC_PATH);
+  addDirectoryIfItExists(manifest.omphalos.soundPath, DEFAULT_SOUND_PATH);
 
   // If there is a node_modules folder that we created, we should pull that into
   // the archive as well.

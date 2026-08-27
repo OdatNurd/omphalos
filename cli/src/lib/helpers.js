@@ -1,6 +1,6 @@
 import semver from 'semver';
 
-import { isValidAssetId } from '@odatnurd/omphalos-common/schema';
+import { isValidAssetId, DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
 
 import { join } from 'node:path';
 import { log } from '#logging';
@@ -169,9 +169,9 @@ export const createNumberRangeValidator = (min, max) => {
  * Returns the asset object if found, or null if it does not exist. */
 export const getAsset = (name, type, manifest) => {
   const typeMap = {
-    'panel': 'panels',
-    'graphic': 'graphics',
-    'sound': 'sounds'
+    'panel': DEFAULT_PANEL_PATH,
+    'graphic': DEFAULT_GRAPHIC_PATH,
+    'sound': DEFAULT_SOUND_PATH
   };
 
   const manifestKey = typeMap[type];

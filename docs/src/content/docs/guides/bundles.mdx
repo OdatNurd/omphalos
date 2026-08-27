@@ -4,6 +4,10 @@ sidebar:
   order: 2
 ---
 
+import { DEFAULT_PANEL_PATH, DEFAULT_PANEL_LOCK, DEFAULT_PANEL_FULLBLEED, DEFAULT_PANEL_WORKSPACE,
+         DEFAULT_GRAPHIC_PATH,
+         DEFAULT_SOUND_PATH, DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
+
 This would talk about Bundles and the  the contents of the `package.json` and
 include information on the fields that can be present and what they're for.
 This would also have to link to the documentation in the other sections as
@@ -104,7 +108,8 @@ code; this must export the appropriate [[extension|extensions]] symbols.
 
 ### panelPath
 
-* optional (defaults to `'panels'` if not specified)
+* optional
+* default: <code>"{DEFAULT_PANEL_PATH}"</code>
 
 ```json
   "panelPath": "panels",
@@ -167,6 +172,7 @@ The title of the dashboard panel that contains this item.
 #### locked
 
 * optional
+* default: <code>{String(DEFAULT_PANEL_LOCK)}</code>
 
 If `true`, this panel can only be moved manually; it will not move if the user
 manipulates the panel layout at runtime (it will not move out of the way of
@@ -193,16 +199,16 @@ If given, specifies the maximum size that the panel can be sized to.
 #### workspace
 
 * optional
+* default: <code>"{DEFAULT_PANEL_WORKSPACE}"</code>
 
 Specifies the workspace this panel belongs to; all panels in the same workspace
 are displayed together. Any number of workspaces is possible.
 
-If this key is missing, the panel is assumed to be in a workspace named
-`Workspace`.
 
 #### fullbleed
 
 * optional
+* default: <code>{String(DEFAULT_PANEL_FULLBLEED)}</code>
 
 If true, this panel should fill the entire dashboard. This requires that the
 panel be in a workspace alone since it is the only thing that can display
@@ -210,7 +216,8 @@ there.
 
 ### graphicPath
 
-* optional (defaults to `'graphics'` if not specified)
+* optional
+* default: <code>"{DEFAULT_GRAPHIC_PATH}"</code>
 
 ```json
   "graphicsPath": "graphics",
@@ -261,7 +268,8 @@ dashboard only.
 
 ### soundPath
 
-* optional (defaults to `'sounds'` if not specified)
+* optional
+* default: <code>"{DEFAULT_SOUND_PATH}"</code>
 
 ```json
   "soundPath": "sounds",
@@ -305,6 +313,7 @@ using [[omphalos.sound.play()]].
 #### volume
 
 * optional
+* default: <code>{DEFAULT_SOUND_VOLUME}</code>
 
 The relative volume of this sound, by default. 0.0 is muted and 1.0 is full
 volume. This is just the baseline; the value can be adjusted in the mixer in
@@ -313,6 +322,7 @@ the dashboard as well as via [[omphalos.sound.set()]].
 #### pan
 
 * optional
+* default: <code>{DEFAULT_SOUND_PAN}</code>
 
 The relative panning of this sound, by default. -1.0 is full left, 0.0 is
 center, and 1.0 is full right. This is just the baseline; the value can be

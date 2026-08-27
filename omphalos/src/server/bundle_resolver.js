@@ -7,7 +7,11 @@ import semver from 'semver';
 import AdmZip from 'adm-zip';
 
 import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
-import { isValidBundle } from '@odatnurd/omphalos-common/schema';
+import { isValidBundle,
+         DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH,
+         DEFAULT_PANEL_WORKSPACE,
+         DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN
+       } from '@odatnurd/omphalos-common/schema';
 import { getBundlePaths, getPackedBundles } from '@odatnurd/omphalos-common/bundle';
 
 import { executeBundleOps, BUNDLE_OPS_FILE } from '#core/bundle_ops';
@@ -571,9 +575,9 @@ export function discoverBundles(appManifest) {
         // Ensure that the panel path and the graphic path are set, even if
         // they are not in the manifest. There are specific default values if
         // they are not present.
-        manifest.omphalos.panelPath ??= 'panels';
-        manifest.omphalos.graphicPath ??= 'graphics';
-        manifest.omphalos.soundPath ??= 'sounds';
+        manifest.omphalos.panelPath ??= DEFAULT_PANEL_PATH;
+        manifest.omphalos.graphicPath ??= DEFAULT_GRAPHIC_PATH;
+        manifest.omphalos.soundPath ??= DEFAULT_SOUND_PATH;
 
         // If there any graphics, ensure that they all have a name field; use
         // the file as a backup if there is not.
@@ -600,7 +604,7 @@ export function discoverBundles(appManifest) {
           }
           panelNames.add(panel.name);
           if (panel.workspace === undefined) {
-            panel.workspace = 'Workspace';
+            panel.workspace = DEFAULT_PANEL_WORKSPACE;
           }
         }
 
@@ -614,10 +618,10 @@ export function discoverBundles(appManifest) {
           }
           soundNames.add(sound.name);
           if (sound.volume === undefined) {
-            sound.volume = 1.0;
+            sound.volume = DEFAULT_SOUND_VOLUME;
           }
           if (sound.pan === undefined) {
-            sound.pan = 0.0;
+            sound.pan = DEFAULT_SOUND_PAN;
           }
         }
 

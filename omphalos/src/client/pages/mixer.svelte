@@ -172,6 +172,7 @@
     stateListener = omphalos.event.on(MSG_GLOBAL_STORAGE_REFRESH, SYSTEM_BUNDLE, data => {
       masterVolume = data[SYSTEM_BUNDLE]?.masterVolume ?? 1.0;
       masterPan = data[SYSTEM_BUNDLE]?.masterPan ?? 0.0;
+
       collapsedBundles = data[SYSTEM_BUNDLE]?.mixerCollapsedBundles || {};
 
       let newSettings = {};
@@ -195,9 +196,15 @@
       // Check for master routing controls first; these are stored in the system
       // bundle.
       if (bundle === SYSTEM_BUNDLE) {
-        if (key === 'masterVolume') masterVolume = value ?? 1.0;
-        if (key === 'masterPan') masterPan = value ?? 0.0;
-        if (key === 'mixerCollapsedBundles') collapsedBundles = value || {};
+        if (key === 'masterVolume') {
+          masterVolume = value ?? 1.0;
+        }
+        if (key === 'masterPan') {
+          masterPan = value ?? 0.0;
+        }
+        if (key === 'mixerCollapsedBundles') {
+          collapsedBundles = value || {};
+        }
       }
 
       // If an updae is a per sound override, then we need to check and see what
@@ -219,13 +226,13 @@
             if (value !== undefined) {
               // We strictly map these to the existing inner object to ensure
               // Svelte's `<input type="range">` bindings stay connected.
-              soundSettings[setKey].volume = Number(value.volume ?? soundObj?.volume ?? 1.0);
-              soundSettings[setKey].pan = Number(value.pan ?? soundObj?.pan ?? 0.0);
+              soundSettings[setKey].volume = Number(value.volume ?? soundObj?.volume ?? DEFAULT_SOUND_VOLUME);
+              soundSettings[setKey].pan = Number(value.pan ?? soundObj?.pan ?? DEFAULT_SOUND_PAN);
             } else {
               // If the value was deleted, revert to the baseline manifest
               // defaults
-              soundSettings[setKey].volume = Number(soundObj?.volume ?? 1.0);
-              soundSettings[setKey].pan = Number(soundObj?.pan ?? 0.0);
+              soundSettings[setKey].volume = Number(soundObj?.volume ?? DEFAULT_SOUND_VOLUME);
+              soundSettings[setKey].pan = Number(soundObj?.pan ?? DEFAULT_SOUND_PAN);
             }
           }
         }
@@ -234,9 +241,15 @@
   });
 
   onDestroy(() => {
-    if (stateListener !== undefined) stateListener();
-    if (connectListener !== undefined) connectListener();
-    if (updateListener !== undefined) updateListener();
+    if (stateListener !== undefined) {
+      stateListener();
+    }
+    if (connectListener !== undefined) {
+      connectListener();
+    }
+    if (updateListener !== undefined) {
+      updateListener();
+    }
   });
 
   $effect(() => {

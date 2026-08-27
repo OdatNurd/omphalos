@@ -6,6 +6,8 @@ import { join, extname } from 'node:path';
 import jetpack from 'fs-jetpack';
 import { parse } from 'acorn';
 
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+
 import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 
 
@@ -25,9 +27,9 @@ async function handleValidate({ bundlePath, manifest }) {
 
   // Come up with the paths that we need; they might not be set in the manifest
   // but there are defaults.
-  const pPath = omph.panelPath ?? 'panels';
-  const gPath = omph.graphicPath ?? 'graphics';
-  const sPath = omph.soundPath ?? 'sounds';
+  const pPath = omph.panelPath ?? DEFAULT_PANEL_PATH;
+  const gPath = omph.graphicPath ?? DEFAULT_GRAPHIC_PATH;
+  const sPath = omph.soundPath ?? DEFAULT_SOUND_PATH;
 
   log.info(`validating bundle assets for '${manifest.omphalos.name}'...`);
 

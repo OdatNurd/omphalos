@@ -7,6 +7,8 @@ import { SYSTEM_BUNDLE,
          getAudioTypeInfo
        } from '@odatnurd/omphalos-common/constants';
 
+import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
+
 import { assert } from '#api/assert';
 
 import { setValue, getValue, deleteValue } from '#core/storage';
@@ -446,8 +448,8 @@ async function loadBundleExtension(omphalos, manifest, bundleName, bundles) {
 
         const overrides = getValue(target, `__sys_audio:${target}:${soundName}`, {});
         return {
-          volume: overrides.volume ?? soundDef.volume ?? 1.0,
-          pan: overrides.pan ?? soundDef.pan ?? 0.0
+          volume: overrides.volume ?? soundDef.volume ?? DEFAULT_SOUND_VOLUME,
+          pan: overrides.pan ?? soundDef.pan ?? DEFAULT_SOUND_PAN
         };
       },
 

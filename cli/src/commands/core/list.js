@@ -1,5 +1,10 @@
 import { log, logTree, logDetails } from '#logging';
 
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH,
+         DEFAULT_PANEL_WORKSPACE,
+         DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN
+       } from '@odatnurd/omphalos-common/schema';
+
 import { coerceByPrefix, wrappedHandler } from '#helpers';
 
 import { parse } from 'node:path';
@@ -14,9 +19,9 @@ async function handleList({ sort, filter, bundlePath, bundleName, manifest }) {
   const omph = manifest.omphalos;
 
   // Resolve base paths (using the schema defaults if not explicitly provided).
-  const pPath = omph.panelPath ?? 'panels';
-  const gPath = omph.graphicPath ?? 'graphics';
-  const sPath = omph.soundPath ?? 'sounds';
+  const pPath = omph.panelPath ?? DEFAULT_PANEL_PATH;
+  const gPath = omph.graphicPath ?? DEFAULT_GRAPHIC_PATH;
+  const sPath = omph.soundPath ?? DEFAULT_SOUND_PATH;
 
   // ---------------------------------------------------------------------------
   // DETAILS
@@ -80,7 +85,7 @@ async function handleList({ sort, filter, bundlePath, bundleName, manifest }) {
         const workspaces = {};
         for (const p of sortedPanels) {
           // Get the workspace, using a default if there is not one.
-          const ws = p.workspace !== undefined ? p.workspace : 'Workspace';
+          const ws = p.workspace !== undefined ? p.workspace : DEFAULT_PANEL_WORKSPACE;
 
           // Add an entry to the table if we haven't added this workspace yet,
           // thenm add this item so it.
@@ -154,8 +159,8 @@ async function handleList({ sort, filter, bundlePath, bundleName, manifest }) {
           header: s.name,
           details: [
             ['file', `${sPath}/${s.file}`],
-            ['volume', s.volume !== undefined ? s.volume : 1.0],
-            ['pan', s.pan !== undefined ? s.pan : 0]
+            ['volume', s.volume !== undefined ? s.volume : DEFAULT_SOUND_VOLUME],
+            ['pan', s.pan !== undefined ? s.pan : DEFAULT_SOUND_PAN]
           ]
         };
       });

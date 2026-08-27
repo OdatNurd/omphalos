@@ -1,5 +1,6 @@
 import { connections } from '$stores/connections.svelte.js'
 
+import { DEFAULT_PANEL_LOCK } from '@odatnurd/omphalos-common/schema';
 
 // =============================================================================
 
@@ -33,7 +34,7 @@ function rawPanels(workspace) {
         workspace: panel.workspace,
         content: panel.file,
         name: panel.name,
-        locked: panel.locked ?? false,
+        locked: panel.locked ?? DEFAULT_PANEL_LOCK,
 
         width: panel.size.width,
         height: panel.size.height,

@@ -297,6 +297,9 @@ importers:
       '@astrojs/markdown-remark':
         specifier: ^7.2.4
         version: 7.2.4(supports-color@10.2.2)
+      '@odatnurd/omphalos-common':
+        specifier: workspace:*
+        version: link:../common
       unist-util-visit:
         specifier: ^5.1.0
         version: 5.1.0

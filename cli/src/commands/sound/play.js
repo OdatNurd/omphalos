@@ -2,6 +2,8 @@ import { log } from '#logging';
 
 import { enforce, getRequiredAsset, getRequiredAssetPath, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
+import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
+
 import playSound from 'play-sound';
 
 
@@ -27,8 +29,8 @@ async function handlePlay({ name, raw, bundlePath, manifest }) {
   const targetName = name;
 
   // Pull volume and panning.
-  const vol = soundConfig.volume !== undefined ? soundConfig.volume : 1.0;
-  const pan = soundConfig.pan !== undefined ? soundConfig.pan : 0;
+  const vol = soundConfig.volume !== undefined ? soundConfig.volume : DEFAULT_SOUND_VOLUME;
+  const pan = soundConfig.pan !== undefined ? soundConfig.pan : DEFAULT_SOUND_PAN;
 
   // Log the intent based on the raw flag. As it transpires this package can't
   // actually use such arguments, but maybe there is a better way.
