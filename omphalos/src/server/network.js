@@ -2,6 +2,7 @@ import { logger } from '#core/logger';
 import * as constants from '@odatnurd/omphalos-common/constants';
 
 import { setValue, getValue, deleteValue, getGlobalStorage } from '#core/storage';
+import { getTokens, generateToken, deleteToken } from '#core/tokens';
 import { assert } from '#api/assert';
 
 import * as joker from '@axel669/joker';
@@ -470,6 +471,65 @@ function handleSystemMessage(msgData, io, socket) {
       bundle: constants.SYSTEM_BUNDLE,
       event: constants.MSG_GLOBAL_STORAGE_REFRESH,
       data: getGlobalStorage()
+    });
+    return;
+  }
+
+  // The dashboard can ask us for the list of API tokens so that it can be
+  // displayed in the settings page.
+  if (msgData.event === constants.MSG_TOKEN_REQUEST) {
+    socket.emit('message', {
+      bundle: constants.SYSTEM_DASHBOARD,
+      event: constants.MSG_TOKEN_RESPONSE,
+      data: getTokens()
+    });
+    return;
+  }
+
+  // Request to create a new token. Here we are somewhat mimicing a REST API,
+  // in that we handle errors by sending results back out.
+  if (msgData.event === constants.MSG_TOKEN_CREATE) {
+    const { name, expires } = msgData.data;
+
+    // We need a valid name.
+    if (name === undefined || name.trim() === '') {
+      socket.emit('message', {
+        bundle: constants.SYSTEM_DASHBOARD,
+        event: constants.MSG_TOKEN_CREATE,
+        data: { error: 'Name is required' }
+      });
+      return;
+    }
+
+    // Make the toke and send back the token; this goes directly to the
+    // dashboard.
+    const result = generateToken(name.trim(), expires ?? 365);
+    socket.emit('message', {
+      bundle: constants.SYSTEM_DASHBOARD,
+      event: constants.MSG_TOKEN_CREATE,
+      data: result
+    });
+
+    // Broadcast the updated safe list to all dashboard clients so that the UI
+    // can update.
+    io.to(constants.SYSTEM_DASHBOARD).emit('message', {
+      bundle: constants.SYSTEM_DASHBOARD,
+      event: constants.MSG_TOKEN_RESPONSE,
+      data: getTokens()
+    });
+    return;
+  }
+
+  // Request to delete a particular token; once this is done, a new message will
+  // go out in response that lists the new tokens.
+  if (msgData.event === constants.MSG_TOKEN_DELETE) {
+    deleteToken(msgData.data.name);
+
+    // Broadcast the updated safe list to all dashboard clients
+    io.to(constants.SYSTEM_DASHBOARD).emit('message', {
+      bundle: constants.SYSTEM_DASHBOARD,
+      event: constants.MSG_TOKEN_RESPONSE,
+      data: getTokens()
     });
     return;
   }

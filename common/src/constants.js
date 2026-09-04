@@ -53,6 +53,14 @@ export const MSG_GLOBAL_STORAGE_REFRESH = '__sys_global_storage_refresh';
  * to the system bundle, so that it can update its inspector panel. */
 export const MSG_GLOBAL_STORAGE_UPDATE = '__sys_global_storage_update';
 
+/* These messages are used to exchange between the dashboard and the server to
+ * mint REST API tokens; the server generates and stores them, and the UI
+ * displays them by name, but only displays the actual token value once. */
+export const MSG_TOKEN_REQUEST = '__sys_token_req';
+export const MSG_TOKEN_RESPONSE = '__sys_token_res';
+export const MSG_TOKEN_CREATE = '__sys_token_create';
+export const MSG_TOKEN_DELETE = '__sys_token_delete';
+
 /* Messages that have this as their event are requests to generate a toast
  * message to the dashboard; messages of this type should be directed to the
  * SYSTEM_DASHBOARD, which will redirect them to the front end code that will

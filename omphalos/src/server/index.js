@@ -8,7 +8,9 @@ import { assert } from '#api/assert';
 
 import { loadBundles } from '#core/bundle_loader';
 import { setupSocketIO, dispatchMessageEvent } from '#core/network';
-import { loadStorage } from '#core/storage';
+import { loadStorage, getValue } from '#core/storage';
+import { loadTokens, requireAuth } from '#core/tokens';
+import { getRESTRouter } from '#core/rest';
 
 import { sendStaticTemplate } from '#core/static';
 
@@ -253,18 +255,15 @@ async function launchServer() {
   // Create a socket-io server using the eiows server as the back end, wrapped
   // inside of our main server.
   const io = new Server(server, {
-//    wsEngine: eiows.Server,
     cors: {
       origin: corsOrigin,
-      // Maybe needed; this is not hardly a correct list, one assumes. I've
-      // certainly never vetted it.
-      // methods: ["GET", "POST"]
     }
   });
 
-  // Initialize the storage system; this will load any file that may already
-  // exist and get it ready.
+  // Initialize the storage systems; these will load any files that may already
+  // exist and get them ready.
   loadStorage();
+  loadTokens();
 
   // Get the template API object that we will pass to extension code; it will
   // get filled out by the module loader.
@@ -285,6 +284,10 @@ async function launchServer() {
     next()
   });
 
+  // Create and mount the router for our REST API.
+  const apiRouter = getRESTRouter(io);
+  app.use('/api', apiRouter);
+
   // The list of top level pages is a known quanity; if there is a request for
   // one of them, serve the main page instead of an error page.
   const spaFile = resolve(config.get('baseDir'), 'www', 'index.html')
@@ -298,13 +301,14 @@ async function launchServer() {
 
   // Set up some middleware that will serve static files out of the static
   // folder so that we don't have to inline the pages in code. This must be
-  // registered AFTER the SPA route handlers to prevent the raw file from being served.
+  // registered AFTER the SPA route handlers to prevent the raw file from being
+  // served.
   app.use(express.static('www'));
 
   // Our last route is a wildcard. Since the client now uses a hash-based
   // router, we need to redirect any unmatched server paths to their hash
-  // equivalents. This ensures both valid legacy links (like /mixer) route correctly,
-  // and invalid links correctly trigger the SPA's 404 component.
+  // equivalents. This ensures both valid legacy links (like /mixer) route
+  // correctly, and invalid links correctly trigger the SPA's 404 component.
   app.get('/*', (req, res) => {
     res.redirect(`/#${req.originalUrl}`);
   });
@@ -332,8 +336,8 @@ catch (err) {
     log.error(err.stack);
   }
 
-  // Flag the OS that the application failed, but allow the event loop
-  // to drain naturally so async file streams (like Winston) can flush.
+  // Flag the OS that the application failed, but allow the event loop to drain
+  // naturally so async file streams (like Winston) can flush.
   process.exitCode = 1;
 }
 

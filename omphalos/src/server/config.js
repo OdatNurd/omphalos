@@ -16,9 +16,10 @@ const APP_NAME = 'omphalos';
 const CONFIG_FILE = 'omphalos.json';
 const CONFIG_FILE_TEMPLATE = 'omphalos.json.example';
 
-/* The file that stores persistent information for the storage system; this is
+/* The files that store persistent information for the storage system; these are
  * stored in the configuration folder. */
 const STORAGE_FILE = 'storage.json';
+const TOKENS_FILE = 'tokens.json';
 
 /* __dirname is not available in this module type, but we can create our own
  * value with the same name based on the URL of the current file. */
@@ -90,6 +91,13 @@ export const config = convict({
   // mechanism; this stores the name of the file used for that.
   storageFile: {
     doc: 'The full path to the file that is used for persistent object storage',
+    format: '*',
+    default: ''
+  },
+
+  // The core system persists access tokens into this file.
+  tokensFile: {
+    doc: 'The full path to the file that is used for API token storage',
     format: '*',
     default: ''
   },
@@ -281,6 +289,7 @@ config.set('bundleDir', resolve(configDir, 'bundles'));
 config.set('bundleCacheDir', resolve(configDir, '.cache'));
 config.set('overrideDir', resolve(configDir, 'overrides'));
 config.set('storageFile', resolve(configDir, STORAGE_FILE));
+config.set('tokensFile', resolve(configDir, TOKENS_FILE));
 
 /* If the configuration file exists, load it. */
 if (existsSync(configFile) === true) {
