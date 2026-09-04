@@ -4,10 +4,10 @@ sidebar:
   order: 9
 ---
 
-Omphalos allows [panels](/guides/panels), [graphics](/guides/graphics) and
-[extensions](/guides/extensions) to communicate with each other via events.
-This is supported both for intra-bundle communications, as well as for
-communications between bundles as well, as desired.
+Omphalos allows [[guide.panels]], [[guide.graphics]] and [[guide.extensions]]
+to communicate with each other via events. This is supported both for intra-
+bundle communications, as well as for communications between bundles as well,
+as desired.
 
 Events are transmitted via websocket to the destination locations, which  means
 that they can only be delivered to peers that are connected.

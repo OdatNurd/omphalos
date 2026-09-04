@@ -20,9 +20,10 @@ any desired value, so long as it is `JSON`-encodeable.
 To send a message to items in a different bundle, use
 [[omphalos.event.raiseToBundle()]] instead.
 
-The message will be transmitted to all [[graphic|graphics]], [[panel|panels]]
-and [[extension|extensions]] listeners in the current bundle, ***except*** for
-the sender, and can be listened for via [[omphalos.event.on()]].
+The message will be transmitted to all [[graphic|guide.graphics]],
+[[panel|guide.panels]] and [[extension|guide.extensions]] listeners in the
+current bundle, ***except*** for the sender, and can be listened for via
+[[omphalos.event.on()]].
 
 :::caution[reserved names]
 Event names that start with `__sys` are reserved by Omphalos for system events;

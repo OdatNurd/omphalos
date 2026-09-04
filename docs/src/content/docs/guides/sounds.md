@@ -4,8 +4,8 @@ sidebar:
   order: 7
 ---
 
-Bundles can contain sounds in their [[sound manifest|bundles#sounds]] which
-allows for playback at any point.
+Bundles can contain sounds in their [[sound manifest|guide.bundles#sounds]]
+which allows for playback at any point.
 
 Each sound has an associated `volume` and `pan` setting for how loud it plays
 and where in the stereo landscape this occurs. A global mixer allows for

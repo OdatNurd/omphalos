@@ -14,9 +14,9 @@ omphalos.event.ioConnect(() => {
 ```
 
 :::caution[Client only]
-This item is only present in the API object in [[panels]] and [[graphics]]; it is
-not present in the API that is given to [[extensions]].
-:::
+This item is only present in the API object in [[guide.panels]] and
+[[guide.graphics]]; it is not present in the API that is given to
+[[guide.extensions]].:::
 
 This event is raised whenever the asset has been connected to the back end
 system and the synchronization of storage has been completed.

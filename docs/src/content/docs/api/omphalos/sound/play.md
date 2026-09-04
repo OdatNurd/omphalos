@@ -10,8 +10,8 @@ function omphalos.sound.play(soundName, bundleName, options);
 ```
 
 Sends a request to the server's master mixing console to trigger a specific
-sound. The sound name is the name given to the sound in the
-[sound manifest](/guides/manifest/#sounds) for the given bundle.
+sound. The sound name is the name given to the sound in the [[sound
+manifest|guide.sounds]] for the given bundle.
 
 A sound can be played from either the current bundle (the default), or the
 given bundle.

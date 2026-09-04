@@ -2,7 +2,8 @@
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
-import { remarkOmphalosLinks } from './src/remarkOmphalosLinks.js';
+import { remarkOmphalosLinks, linkErrorTracker } from './src/remarkOmphalosLinks.js';
+import linkChecker from 'astro-link-checker';
 import net from 'node:net';
 
 // Get the port that the development server should run on. We have a standard
@@ -79,5 +80,22 @@ export default defineConfig({
         }
       ],
     }),
+
+    // If our link generator thought there were any problems, stop a full
+    // generation (does not affect dev builds) so that the generation of the
+    // site stops because links are broken.
+    {
+      name: 'fail-on-broken-wiki-links',
+      hooks: {
+        'astro:build:done': () => {
+          if (linkErrorTracker.count > 0) {
+            console.error(`\n[remarkOmphalosLinks] FATAL: Found ${linkErrorTracker.count} unmapped wiki-link(s) found.\n`);
+            process.exit(1);
+          }
+        }
+      }
+    },
+
+    linkChecker()
   ],
 });

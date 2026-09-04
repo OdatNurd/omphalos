@@ -9,12 +9,13 @@ sidebar:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 :::caution[Client only]
-This item is only present in the API object in [[panels]] and [[graphics]]; it is
-not present in the API that is given to [[extensions]].
+This item is only present in the API object in [[guide.panels]] and
+[[guide.graphics]]; it is not present in the API that is given to
+[[guide.extensions]].
 :::
 
 This object is a copy of the asset configuration of the asset (`panel` or
-`graphic) to which this copy of the API belongs.
+`graphic`) to which this copy of the API belongs.
 
 A key named `type` is added to this object, with a value that indicates what
 type of asset this is; `graphic` or `panel`.
@@ -52,7 +53,7 @@ type of asset this is; `graphic` or `panel`.
 
 :::note
 The information conveyed here is based on the information in the
-[manifest](/guides/manifest) or in the [omphalos.bundle](../bundle)
-value; it is *not* dynamic (i.e. the `size` you see, if any, is the
-declared default size, etc).
+[[manifest|guide.bundles#manifest]] or in the [[omphalos.bundle]] value; it
+is *not* dynamic (i.e. the `size` you see, if any, is the declared default
+size, etc).
 :::

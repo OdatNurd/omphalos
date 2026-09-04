@@ -42,7 +42,8 @@ In this example we will create a very simple bundle from scratch that shows some
 of the key concepts that are used when creating one.
 
 To do this, we must create a simple NodeJS package in the bundle folder; the
-location of this folder is [based on your operating system][1].
+location of this folder is
+[[based on your operating system|quick.configuration#configuration-area]].
 
 In your terminal, switch to the bundle folder for your OS, and use your package
 manager to choice to initialize a new bundle:
@@ -74,7 +75,7 @@ In order to be recognized as a bundle, your package must:
 1. Have a valid `name` and `version` key
 1. Contain an `omphalos` key with the required metadata.
 
-See the documentation on [bundle manifests][2] for complete details on the
+See the documentation on [[bundle manifests|guide.bundles#manifest]] for complete details on the
 available options. The only required key is the one that tells Omphalos what
 version of the application is required for the bundle to operate:
 
@@ -115,8 +116,9 @@ with loading of the bundle.
 
 ## Adding content
 
-As seen above, the bundle no content to speak of; no server side [[extension|extensions]]
-code, no dashboard [[panels]] and no overlay [[graphics]].
+As seen above, the bundle no content to speak of; no server side
+[[extensions|guide.extensions]] code, no dashboard [[guide.panels]] and no
+overlay [[guide.graphics]].
 
 ### Adding a Panel
 
@@ -145,7 +147,3 @@ it gets both messages and not just one.
 
 This shows the basics of how message sending allows you to tie everything
 together.
-
-
-  [1]: /docs/quickstart/configuration#configuration-area
-  [2]: /docs/guides/manifest

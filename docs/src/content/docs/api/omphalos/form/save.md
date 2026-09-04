@@ -12,8 +12,9 @@ function omphalos.saveForm(formOrFormName)
 ```
 
 :::caution[Client only]
-This item is only present in the API object in [[panels]] and [[graphics]]; it is
-not present in the API that is given to [[extensions]].
+This item is only present in the API object in [[guide.panels]] and
+[[guide.graphics]]; it is not present in the API that is given to
+[[guide.extensions]].
 :::
 
 Save the state of a given form into the storage system for later retrieval.
@@ -33,7 +34,8 @@ attribute in an internal meta-key that encodes the name of the form, allowing
 for later retrieval. Form fields that have no `name` will be skipped, unless
 they have the `data-var` attribute.
 
-Calls to this function will raise two [[events]] that can be listened for:
+Calls to this function will raise two [[guide.events]] that can be listened
+for:
 
 - [[omphalos.event.formPreSave()]], which will trigger prior to the save
   happening, allowing you to make any adjustments to the form data or hidden

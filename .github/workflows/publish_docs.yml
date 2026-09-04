@@ -27,7 +27,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm --filter omphalos-docs install --frozen-lockfile
+        run: pnpm --filter omphalos-docs... install --frozen-lockfile
 
       - name: Deploy to Cloudflare Production
         env:

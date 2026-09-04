@@ -11,13 +11,13 @@ function omphalos.sound.set(soundName, bundleName, options);
 
 Adjust the per-sound options for the sound name provided, optionally in a
 bundle other than this assets current bundle. The sound name is the name given
-to the sound in the [[sound manifest|manifest#sounds]] for the given bundle.
+to the sound in the [[sound manifest|guide.sounds]] for the given bundle.
 
 :::caution
-When used in a [[panel|panels]] or [[graphic|graphics]], this API only allows
-for setting the playback settings for sounds in the current bundle. Attempting
-to alter data for sounds in other bundles will raise an error. Such operations
-need to be carried out in a server [[extension|extensions]].
+When used in a [[panel|guide.panels]] or [[graphic|guide.graphics]], this API
+only allows for setting the playback settings for sounds in the current bundle.
+Attempting to alter data for sounds in other bundles will raise an error. Such
+operations need to be carried out in a server [[extension|guide.extensions]].
 :::
 
 The passed options will be used to update the system mixer's settings for this

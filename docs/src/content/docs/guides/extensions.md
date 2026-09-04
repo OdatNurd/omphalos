@@ -4,7 +4,7 @@ sidebar:
   order: 6
 ---
 
-Bundles can contain an optional [[extension|bundles#extension]] endpoint which
+Bundles can contain an optional [[extension|guide.bundles#extension]] endpoint which
 allows them have server side code running. This can be useful, for example, to
 make requests of a remote API and distribute results, etc.
 

@@ -5,7 +5,7 @@ sidebar:
 ---
 
 `omphalos.bundle` is an object which is a copy of the bundle
-[manifest](/guides/manifest) for the bundle that the code is currently
+[[manifest|guide.bundles#manifest]] or the bundle that the code is currently
 executing in.
 
 This is essentially a schema validated version of the manifest that has all of

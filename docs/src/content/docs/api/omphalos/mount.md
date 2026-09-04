@@ -12,8 +12,9 @@ function omphalos.mount(router)
 ```
 
 :::caution[Server only]
-This item is only present in the API object given to [[extensions]]; it is not
-available in [[panels]] and [[graphics]].
+This item is only present in the API object in [[guide.panels]] and
+[[guide.graphics]]; it is not present in the API that is given to
+[[guide.extensions]].
 :::
 
 Mount a router created by [[omphalos.createRouter()]] into the underlying

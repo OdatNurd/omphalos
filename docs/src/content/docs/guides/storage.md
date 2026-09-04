@@ -7,7 +7,7 @@ sidebar:
 Omphalos allows for persistent storage, which is saved on the server in a
 per-`bundle` way. This is an open ended system that allows for any number of
 variables to be saved and persisted across sessions as well as shared between
-[[panels]], [[graphics]] and [[extensions]].
+[[guide.panels]], [[guide.graphics]] and [[guide.extensions]].
 
 The [[API|omphalos]] has a `storage` object that supports the
 following operations:

@@ -5,7 +5,7 @@ sidebar:
 ---
 
 This would talk about Overrides and how they are utilized as a part of the
-[[archived|bundles#bundle-types]] bundle loader.
+[[archived|guide.bundles#bundle-types]] bundle loader.
 
 Such bundles are extracted at load time as needed, and any content that was
 previously extracted is deleted. `Overrides` allow you to specify content to be
@@ -14,7 +14,7 @@ the bundle needs to be re-extracted.
 
 ## Override Folder
 
-The [configuration area](/quickstart/configuration#configuration-area) has an
+The [[configuration area|quick.configuration#configuration-area]] has an
 `overrides` folder within it. The folders here correspond to the names of
 `archived` bundles and, if they exist, their contents will be copied over the
 extracted content of the bundle, allowing for adding or editing files.

@@ -31,6 +31,7 @@
   "devDependencies": {
     "@astrojs/markdown-remark": "^7.2.4",
     "@odatnurd/omphalos-common": "workspace:*",
+    "astro-link-checker": "^0.3.2",
     "unist-util-visit": "^5.1.0",
     "wrangler": "^4.100.0"
   }

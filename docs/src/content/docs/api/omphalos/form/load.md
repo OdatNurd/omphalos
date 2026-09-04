@@ -12,8 +12,9 @@ function omphalos.form.load(formOrFormName)
 ```
 
 :::caution[Client only]
-This item is only present in the API object in [[panels]] and [[graphics]]; it is
-not present in the API that is given to [[extensions]].
+This item is only present in the API object in [[guide.panels]] and
+[[guide.graphics]]; it is not present in the API that is given to
+[[guide.extensions]].
 :::
 
 Load the state of a given form from the storage system as saved by a call to
@@ -36,7 +37,8 @@ attribute.
 If a field has no stored value, it is left untouched so that native
 HTML defaults are preserved.
 
-Calls to this function will raise two [[events]] that can be listened for:
+Calls to this function will raise two [[guide.events]] that can be listened
+for:
 
 - [[omphalos.event.formPreLoad()]], which will trigger prior to the load
   finishing but after the data has been loaded. You can mutate the payload of
