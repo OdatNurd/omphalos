@@ -62,12 +62,13 @@ export function saveTokens() {
 // =============================================================================
 
 
-/* Create a new API token with the provided human-readable name.
+/* Create a new API token with the provided human-readable name and an optional
+ * set of permission scopes.
  *
  * This generates a random key, with an omphalos prefix on it, and returns the
  * raw token back. The hashed version of the token is written to disk to make
  * sure that it persists. */
-export function generateToken(name, expiresInDays = 365) {
+export function generateToken(name, expiresInDays = 365, scopes = []) {
   // Mint a cryptographically secure key from random bytes and with our
   // particular prefix, and then hash it.
   const rawKey = crypto.randomBytes(16).toString('hex');
@@ -85,7 +86,7 @@ export function generateToken(name, expiresInDays = 365) {
     accessToken,
     date: now.toISOString(),
     expires: expires.toISOString(),
-    scopes: ["*"]
+    scopes: Array.isArray(scopes) === true ? scopes : []
   };
 
   // Save it.
@@ -205,7 +206,7 @@ export function requireAuth(req, res, next) {
 
   // Verify that the token is valid.
   const token = verifyToken(parts[1]);
-  if (token=== false) {
+  if (token === false) {
     return res.status(403).json({ success: false, error: 'invalid or expired token' });
   }
 

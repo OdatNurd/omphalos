@@ -108,7 +108,7 @@
 </script>
 
 <Content>
-  <div class="wrapper min-w-[50%]">
+  <div class="wrapper min-w-[50%] w-full max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden pr-2">
 
     {#if graphics.list.length === 0}
       <div class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg rounded-br-lg border-neutral border-1 p-1">
@@ -128,7 +128,7 @@
             <Icon name={collapsedBundles[bundle.name] === true ? 'caret-right:solid' : 'caret-down:solid'} size="1.25rem" />
             <span class="text-xl">{bundle.name}</span>
           </div>
-          <div class="tooltip tooltip-bottom" data-tip="Reload all graphics in this bundle">
+          <div class="tooltip tooltip-left" data-tip="Reload all graphics in this bundle">
             <button onclick={(e) => { e.stopPropagation(); reloadGraphic(bundle.name); }} class="btn btn-circle btn-xs btn-primary" aria-label="Reload All Graphics">
               <Icon name={'rotate-right'} size="0.75rem" />
             </button>
@@ -137,7 +137,7 @@
 
         {#if collapsedBundles[bundle.name] !== true}
           <!-- Per Bundle; This is the list of graphics. -->
-          <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 h-full w-full relative rounded-br-lg border-neutral border-1">
+          <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 w-full relative rounded-br-lg border-neutral border-1">
 
             {#each bundle.graphics as graphic (graphic.name)}
 
@@ -152,13 +152,13 @@
 
                 <!-- Two buttons -->
                 <div class="flex ml-2">
-                  <div class="tooltip tooltip-bottom" data-tip="Copy URL">
+                  <div class="tooltip tooltip-left" data-tip="Copy URL">
                     <button onclick={(e) => { e.stopPropagation(); copyUrl(bundle, graphic); }} class="btn btn-circle btn-primary ml-1" aria-label="Copy URL">
                       <Icon name={'chain'} size="1rem" />
                     </button>
                   </div>
 
-                  <div class="tooltip tooltip-bottom" data-tip="Reload this graphic">
+                  <div class="tooltip tooltip-left" data-tip="Reload this graphic">
                     <button onclick={(e) => { e.stopPropagation(); reloadGraphic(bundle.name, graphic.name); }} class="btn btn-circle btn-primary ml-1" aria-label="Reload this graphic">
                       <Icon name={'rotate-right'} size="1rem" />
                     </button>
@@ -176,11 +176,6 @@
 </Content>
 
 <style>
-  .wrapper {
-    display: grid;
-    grid-template-rows: min-content auto;
-  }
-
   .wrapper-title   {
     display: grid;
     grid-template-columns: auto min-content;

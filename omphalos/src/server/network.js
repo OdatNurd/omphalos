@@ -489,7 +489,7 @@ function handleSystemMessage(msgData, io, socket) {
   // Request to create a new token. Here we are somewhat mimicing a REST API,
   // in that we handle errors by sending results back out.
   if (msgData.event === constants.MSG_TOKEN_CREATE) {
-    const { name, expires } = msgData.data;
+    const { name, expires, scopes } = msgData.data;
 
     // We need a valid name.
     if (name === undefined || name.trim() === '') {
@@ -503,7 +503,7 @@ function handleSystemMessage(msgData, io, socket) {
 
     // Make the toke and send back the token; this goes directly to the
     // dashboard.
-    const result = generateToken(name.trim(), expires ?? 365);
+    const result = generateToken(name.trim(), expires ?? 365, scopes);
     socket.emit('message', {
       bundle: constants.SYSTEM_DASHBOARD,
       event: constants.MSG_TOKEN_CREATE,

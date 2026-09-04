@@ -259,7 +259,7 @@
 </script>
 
 <Content>
-  <div class="wrapper rounded-tl-lg rounded-br-lg border-neutral border-4 min-w-[50%]">
+  <div class="wrapper rounded-tl-lg rounded-br-lg bg-neutral border-neutral border-4 min-w-[50%] w-full max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden pr-2">
     {#if isFirefox === true}
       <div class="alert alert-warning shadow-lg mb-4">
         <div>
@@ -320,7 +320,7 @@
 
         {#if collapsedBundles[bundle.name] !== true}
           <!-- Per Bundle; This is the list of sounds. -->
-          <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 h-full w-full relative rounded-br-lg border-neutral border-1">
+          <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 w-full relative rounded-br-lg border-neutral border-1">
 
             {#each bundle.sounds as sound (sound.name)}
               {@const typeInfo = getAudioTypeInfo(sound.file)}
@@ -364,11 +364,6 @@
 </Content>
 
 <style>
-  .wrapper {
-    display: grid;
-    grid-template-rows: min-content auto;
-  }
-
   .wrapper-title   {
     display: grid;
     grid-template-columns: auto min-content;

@@ -16,6 +16,16 @@ function watchStaticDir() {
   }
 }
 
+// Suppress circular dependency warnings stemming from internal Svelte runtime
+// packages being a dick. And also semver, which is used in the API code.
+const onwarn = (warning, warn) => {
+  if (warning.code === 'CIRCULAR_DEPENDENCY' &&
+      (warning.ids?.some(id => id.includes('node_modules')) === true || warning.message.includes('node_modules') === true)) {
+    return;
+  }
+  warn(warning);
+};
+
 
 export default [
   {
@@ -25,15 +35,7 @@ export default [
       format: 'iife',
       name: 'app',
     },
-    onwarn(warning, warn) {
-      // Suppress circular dependency warnings stemming from internal Svelte
-      // runtime packages being a dick.
-      if (warning.code === 'CIRCULAR_DEPENDENCY' &&
-          (warning.ids?.some(id => id.includes('node_modules')) === true || warning.message.includes('node_modules') === true)) {
-        return;
-      }
-      warn(warning);
-    },
+    onwarn,
     plugins: [
       svelte({}),
       $path({
@@ -61,6 +63,7 @@ export default [
       format: 'iife',
       name: 'omphalos'
     },
+    onwarn,
     plugins: [
       commonjs(),
       resolve({ browser: true }),
