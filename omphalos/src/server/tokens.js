@@ -2,6 +2,8 @@ import { config } from '#core/config';
 import { logger } from '#core/logger';
 import { assert } from '#api/assert';
 
+import { hasPermissions } from '@odatnurd/omphalos-common/access';
+
 import jetpack from 'fs-jetpack';
 import crypto from 'node:crypto';
 import json5 from 'json5';
@@ -82,7 +84,8 @@ export function generateToken(name, expiresInDays = 365) {
     name,
     accessToken,
     date: now.toISOString(),
-    expires: expires.toISOString()
+    expires: expires.toISOString(),
+    scopes: ["*"]
   };
 
   // Save it.
@@ -109,7 +112,8 @@ export function getTokens() {
   return tokens.map(t => ({
     name: t.name,
     date: t.date,
-    expires: t.expires
+    expires: t.expires,
+    scopes: t.scopes,
   }));
 }
 
@@ -170,6 +174,19 @@ export function verifyToken(rawToken) {
 // =============================================================================
 
 
+/* This is a small helper function which can dynamically generate a permission
+ * string scoped to th bundle paramter found in the express request route that
+ * was triggered. */
+export function bundlePermission(action) {
+  return function (req) {
+    return `${req.params.bundle}:${action}`;
+  };
+}
+
+
+// =============================================================================
+
+
 /* A small custom middleware function; this enforces that the incoming request
  * has an authorization header with a bearer token that is considered to be a
  * valid API key. */
@@ -197,6 +214,78 @@ export function requireAuth(req, res, next) {
   req.auth = token;
   next();
 }
+
+
+// =============================================================================
+
+
+/* A small custom middleware function factory; this needs to be used along with
+ * the requireAuth function and can be used to add an additional restriction
+ * that the token that requireAuth puts into req.auth has scopes that allow the
+ * operation to proceed.
+ *
+ * The permissions argument can be either a single string permission or an
+ * array of such permissions; for the format, see the list in the common library
+ * access code. Permissions can also be a function, in whch case it will be
+ * invoked to determine the permissions dynamically.
+ *
+ * The operator can be either 'and' or 'or' to indicate if the permissions in
+ * the list need to all be present, or if only one needs to be present. */
+export function requirePermissions(permissions, operator = 'and') {
+  return (req, res, next) => {
+    // We require the other middleware to have attached the appropriate auth for
+    // us, or we can't test. In such a case, no such permissions are possible.
+    if (req.auth === undefined || req.auth === null) {
+      return res.status(401).json({ success:false, error: 'authentication required' });
+    }
+
+    // Get the list of scopes out of the token; if that is not an array, then
+    // the token is invalid.
+    const tokenScopes = req.auth.scopes;
+    if (Array.isArray(tokenScopes) === false) {
+      return res.status(403).json({ success: false, error: 'token missing scopes definition' });
+    }
+
+    // Get the raw list of permissions; if we were given a function, invoke it;
+    // otherwise, the permissions is just what was provided to us; we want to
+    // normalize that into a list for sanity.
+    const rawList = typeof permissions === 'function' ? permissions(req) : permissions;
+    const list = Array.isArray(rawList) === true ? rawList : [rawList];
+
+    // The returned list might contain functions; so resolve all of them now to
+    // come up with the final list.
+    const resolvedList = list.map(item => (typeof item === 'function' ? item(req) : item));
+
+    // If the permission is not met, then we can fail out now.
+    if (hasPermissions(resolvedList, operator, tokenScopes) === false) {
+      return res.status(403).json({ success: false, error: 'forbidden' });
+    }
+
+    // Looks good, continue on down the line.
+    next();
+  };
+}
+
+
+// =============================================================================
+
+
+
+/* A small custom middleware function factory; this needs to be used along with
+ * the requireAuth function and can be used to add an additional restriction
+ * that the token that requireAuth puts into req.auth has scopes that allow the
+ * operation to proceed.
+ *
+ * This functions as requirePermissions, but all of the actions provided will be
+ * prefixed with the bundle from the passed in request automatically. */
+export function requireBundlePermissions(actions, operator = 'and') {
+  // Ensure that our action list is an array if it's not already.
+  actions = Array.isArray(actions) === true ? actions : [actions];
+
+  // Return something that annotates all of the permissions for us.
+  return requirePermissions(actions.map(action => bundlePermission(action), operator));
+}
+
 
 
 // =============================================================================

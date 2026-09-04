@@ -2,7 +2,7 @@ import { logger } from '#core/logger';
 
 import { dispatchMessageEvent } from '#core/network';
 import { getValue } from '#core/storage';
-import { requireAuth } from '#core/tokens';
+import { requireAuth, requireBundlePermissions } from '#core/tokens';
 
 import express from 'express';
 
@@ -99,16 +99,28 @@ export function getRESTRouter(io) {
   //----------------------------------------------------------------------------
   // Events
   //----------------------------------------------------------------------------
-  apiRouter.post('/v1/event/:bundle', (req, res) => raiseEvent(req, res, io));
+  apiRouter.post(
+    '/v1/event/:bundle',
+    requireBundlePermissions("event:send"),
+    (req, res) => raiseEvent(req, res, io)
+  );
 
   //----------------------------------------------------------------------------
   // Storage
   //----------------------------------------------------------------------------
-  apiRouter.get('/v1/storage/:bundle', (req, res) => storageKeyList(req, res));
-  apiRouter.get('/v1/storage/:bundle/:key', (req, res) => storageKey(req, res));
+  apiRouter.get(
+    '/v1/storage/:bundle',
+    requireBundlePermissions("storage:list"),
+    (req, res) => storageKeyList(req, res)
+  );
+
+  apiRouter.get(
+    '/v1/storage/:bundle/:key',
+    requireBundlePermissions("storage:read"),
+    (req, res) => storageKey(req, res)
+  );
 
   // All other subroutes are invalid.
-  // Everything else is an error.
   apiRouter.use('*', (req, res) => {
     res.status(404).json({ success: false, error: 'API endpoint not found' });
   });
