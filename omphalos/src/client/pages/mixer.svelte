@@ -1,5 +1,5 @@
 <script>
-  import { Content, Icon } from '$components';
+  import { Content, Icon, FoldableSection } from '$components';
   import { onMount, onDestroy } from 'svelte';
 
   import { SYSTEM_BUNDLE,
@@ -65,7 +65,7 @@
   // global storage in the SYSTEM_BUNDLE.
   const toggleBundle = (bundleName) => {
     const currentState = { ...collapsedBundles };
-    currentState[bundleName] = !currentState[bundleName];
+    currentState[bundleName] = (currentState[bundleName] === true) ? false : true;
     collapsedBundles = currentState;
 
     updateStorage(SYSTEM_BUNDLE, 'mixerCollapsedBundles', currentState);
@@ -259,104 +259,91 @@
 </script>
 
 <Content>
-  <div class="wrapper rounded-tl-lg rounded-br-lg bg-neutral border-neutral border-4 min-w-[50%] w-full max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden pr-2">
-    {#if isFirefox === true}
-      <div class="alert alert-warning shadow-lg mb-4">
-        <div>
-          <Icon name="triangle-exclamation:solid" size="1.5rem" />
-          <span>Firefox has poor support for selecting audio output devices. It is strongly recommended to use the OBS Overlay for sound playback instead.</span>
-        </div>
-      </div>
-    {/if}
+  <div class="wrapper min-w-[50%] w-full max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden pr-2">
 
-    <div class="flex items-center gap-2 p-4">
-      <select bind:value={soundDevice} class="select select-bordered flex-1 min-w-0">
-        {#each audioDevices as device (device.id)}
-          <option value={device.id}>{device.name}</option>
-        {/each}
-      </select>
-      <button onclick={soundTest} class="btn border-none bg-slate-600 text-slate-100 hover:bg-slate-500">Test</button>
-      <button onclick={refreshDeviceList} class="btn border-none bg-slate-600 text-slate-100 hover:bg-slate-500"><Icon name="refresh" size="1rem" /></button>
+    <div class="rounded-tl-lg rounded-br-lg bg-neutral border-neutral border-4 mb-4">
+      {#if isFirefox === true}
+        <div class="alert alert-warning shadow-lg m-4 w-auto">
+          <div>
+            <Icon name="triangle-exclamation:solid" size="1.5rem" />
+            <span>Firefox has poor support for selecting audio output devices. It is strongly recommended to use the OBS Overlay for sound playback instead.</span>
+          </div>
+        </div>
+      {/if}
+
+      <div class="flex items-center gap-2 p-4">
+        <select bind:value={soundDevice} class="select select-bordered flex-1 min-w-0">
+          {#each audioDevices as device (device.id)}
+            <option value={device.id}>{device.name}</option>
+          {/each}
+        </select>
+        <button onclick={soundTest} class="btn border-none bg-slate-600 text-slate-100 hover:bg-slate-500">Test</button>
+        <button onclick={refreshDeviceList} class="btn border-none bg-slate-600 text-slate-100 hover:bg-slate-500"><Icon name="refresh" size="1rem" /></button>
+      </div>
+
+      {#if stateLoaded === true}
+        <div class="font-bold wrapper-title bg-neutral text-neutral-content border-t border-base-100 p-2">
+          <span class="text-md">Master Controls</span>
+        </div>
+        <div class="bg-neutral text-neutral-content p-4 pt-0.5 relative rounded-br-lg">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col w-full">
+              <label for="master-volume-slider">Volume: {Math.round(masterVolume * 100)}%</label>
+              <input id="master-volume-slider" type="range" min="0" max="1" step="0.05" bind:value={masterVolume} onchange={updateMaster} class="range range-xs range-primary w-full" />
+            </div>
+            <div class="flex flex-col w-full">
+              <label for="master-pan-slider">Pan: {formatPan(masterPan)}</label>
+              <input id="master-pan-slider" type="range" min="-1" max="1" step="0.1" bind:value={masterPan} onchange={updateMaster} class="range range-xs range-primary w-full" />
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
 
-    {#if stateLoaded === true}
-      <div class="font-bold wrapper-title bg-neutral text-neutral-content rounded-tl-lg border-neutral border-1 p-1">
-        <span class="text-xl">Master Controls</span>
-      </div>
-      <div class="bg-neutral text-neutral-content p-4 mb-4 relative rounded-br-lg border-neutral border-1">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col w-full">
-            <label for="master-volume-slider">Volume: {Math.round(masterVolume * 100)}%</label>
-            <input id="master-volume-slider" type="range" min="0" max="1" step="0.05" bind:value={masterVolume} onchange={updateMaster} class="range range-xs range-primary w-full" />
-          </div>
-          <div class="flex flex-col w-full">
-            <label for="master-pan-slider">Pan: {formatPan(masterPan)}</label>
-            <input id="master-pan-slider" type="range" min="-1" max="1" step="0.1" bind:value={masterPan} onchange={updateMaster} class="range range-xs range-primary w-full" />
-          </div>
-        </div>
-      </div>
-    {/if}
-
     {#if sounds.list.length === 0}
-      <div class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg rounded-br-lg border-neutral border-1 p-1">
+      <div class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg rounded-br-lg border-neutral border-1 p-2">
         <span class="text-xl">No loaded bundles contain sounds</span>
       </div>
     {:else if stateLoaded === true}
       {#each sounds.list as bundle (bundle.name)}
-        <!-- Per Bundle; this sets the name and handles the collapse toggle -->
-        <!-- Add dynamic bottom rounding and margin if the content block is hidden -->
-        <div
-          role="button"
-          tabindex="0"
-          class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg border-neutral border-1 p-2 cursor-pointer select-none {collapsedBundles[bundle.name] === true ? 'rounded-br-lg mb-4' : ''}"
-          onclick={() => toggleBundle(bundle.name)}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBundle(bundle.name); } }}
+        <FoldableSection
+          title={bundle.name}
+          collapsed={collapsedBundles[bundle.name] === true}
+          ontoggle={() => toggleBundle(bundle.name)}
         >
-          <div class="flex items-center gap-2">
-            <Icon name={collapsedBundles[bundle.name] === true ? 'caret-right:solid' : 'caret-down:solid'} size="1.25rem" />
-            <span class="text-xl">{bundle.name}</span>
-          </div>
-        </div>
+          {#each bundle.sounds as sound (sound.name)}
+            {@const typeInfo = getAudioTypeInfo(sound.file)}
+            <!-- Per Graphic; Covers the entire shiboodle -->
+            <div class="flex flex-col px-4 mt-0.5 py-2 bg-secondary text-secondary-content">
 
-        {#if collapsedBundles[bundle.name] !== true}
-          <!-- Per Bundle; This is the list of sounds. -->
-          <div class="bg-neutral text-neutral-content p-0 m-0 mb-4 w-full relative rounded-br-lg border-neutral border-1">
-
-            {#each bundle.sounds as sound (sound.name)}
-              {@const typeInfo = getAudioTypeInfo(sound.file)}
-              <!-- Per Graphic; Covers the entire shiboodle -->
-              <div class="flex flex-col px-4 mt-2 py-2 bg-secondary text-secondary-content">
-
-                <!-- Top Row: Name, Type Badge and Play button -->
-                <div class="flex items-center justify-between mb-2">
-                  <div class="flex items-center gap-2">
-                    <div class="font-bold underline">{sound.name}</div>
-                    <div class="badge badge-sm {typeInfo.color} font-mono border-none">{typeInfo.label}</div>
-                  </div>
-                  <div class="tooltip tooltip-left" data-tip="Play this sound">
-                    <button onclick={() => playRemote(bundle.name, sound.name)} class="btn btn-circle btn-primary btn-sm ml-1" aria-label="Play this sound">
-                      <Icon name={'play'} size="0.75rem" />
-                    </button>
-                  </div>
+              <!-- Top Row: Name, Type Badge and Play button -->
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="font-bold underline">{sound.name}</div>
+                  <div class="badge badge-sm {typeInfo.color} font-mono border-none">{typeInfo.label}</div>
                 </div>
-
-                <!-- Bottom Row: Sliders (Side-by-Side) -->
-                <div class="flex flex-row gap-4 pl-4 border-l-2 border-primary">
-                  <div class="flex flex-col flex-1 min-w-0">
-                    <label for={`vol-${bundle.name}-${sound.name}`} class="text-xs">Volume: {Math.round(soundSettings[`${bundle.name}:${sound.name}`].volume * 100)}%</label>
-                    <input id={`vol-${bundle.name}-${sound.name}`} type="range" min="0" max="1" step="0.05" bind:value={soundSettings[`${bundle.name}:${sound.name}`].volume} onchange={() => updateSound(bundle.name, sound.name)} class="range range-xs range-primary opacity-60 w-full" />
-                  </div>
-                  <div class="flex flex-col flex-1 min-w-0">
-                    <label for={`pan-${bundle.name}-${sound.name}`} class="text-xs">Pan: {formatPan(soundSettings[`${bundle.name}:${sound.name}`].pan)}</label>
-                    <input id={`pan-${bundle.name}-${sound.name}`} type="range" min="-1" max="1" step="0.1" bind:value={soundSettings[`${bundle.name}:${sound.name}`].pan} onchange={() => updateSound(bundle.name, sound.name)} class="range range-xs range-primary opacity-60 w-full" />
-                  </div>
+                <div class="tooltip tooltip-left" data-tip="Play this sound">
+                  <button onclick={() => playRemote(bundle.name, sound.name)} class="btn btn-circle btn-primary btn-sm ml-1" aria-label="Play this sound">
+                    <Icon name={'play'} size="0.75rem" />
+                  </button>
                 </div>
-
               </div>
-            {/each}
 
-          </div>
-        {/if}
+              <!-- Bottom Row: Sliders (Side-by-Side) -->
+              <div class="flex flex-row gap-4 pl-4 border-l-2 border-primary">
+                <div class="flex flex-col flex-1 min-w-0">
+                  <label for={`vol-${bundle.name}-${sound.name}`} class="text-xs">Volume: {Math.round(soundSettings[`${bundle.name}:${sound.name}`].volume * 100)}%</label>
+                  <input id={`vol-${bundle.name}-${sound.name}`} type="range" min="0" max="1" step="0.05" bind:value={soundSettings[`${bundle.name}:${sound.name}`].volume} onchange={() => updateSound(bundle.name, sound.name)} class="range range-xs range-primary opacity-60 w-full" />
+                </div>
+                <div class="flex flex-col flex-1 min-w-0">
+                  <label for={`pan-${bundle.name}-${sound.name}`} class="text-xs">Pan: {formatPan(soundSettings[`${bundle.name}:${sound.name}`].pan)}</label>
+                  <input id={`pan-${bundle.name}-${sound.name}`} type="range" min="-1" max="1" step="0.1" bind:value={soundSettings[`${bundle.name}:${sound.name}`].pan} onchange={() => updateSound(bundle.name, sound.name)} class="range range-xs range-primary opacity-60 w-full" />
+                </div>
+              </div>
+
+            </div>
+          {/each}
+        </FoldableSection>
       {/each}
     {/if}
 

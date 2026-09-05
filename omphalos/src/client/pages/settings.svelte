@@ -1,5 +1,5 @@
 <script>
-  import { Content, Icon } from '$components';
+  import { Content, Icon, FoldableSection } from '$components';
   import { onMount, onDestroy } from 'svelte';
   import { toast } from '$lib/toast.svelte.js';
   import { RestPermissionScopes } from '@odatnurd/omphalos-common/access';
@@ -183,11 +183,11 @@
     };
 
     if (skepsisCollapsed === undefined) {
-      skepsisCollapsed = omphalos.Skepsis('settingsCollapsedSections', {});
+      skepsisCollapsed = omphalos.Skepsis('settingsCollapsedSections', { createToken: true });
       skepsisCollapsed.on((newVal) => {
-        collapsedSections = newVal || {};
+        collapsedSections = newVal || { createToken: true };
       });
-      collapsedSections = skepsisCollapsed.value || {};
+      collapsedSections = skepsisCollapsed.value || { createToken: true };
     }
 
     requestState();
@@ -199,13 +199,13 @@
     });
 
     stateListener = omphalos.event.on(MSG_GLOBAL_STORAGE_REFRESH, SYSTEM_BUNDLE, data => {
-      collapsedSections = data[SYSTEM_BUNDLE]?.settingsCollapsedSections || {};
+      collapsedSections = data[SYSTEM_BUNDLE]?.settingsCollapsedSections || { createToken: true };
     });
 
     updateListener = omphalos.event.on(MSG_GLOBAL_STORAGE_UPDATE, SYSTEM_BUNDLE, data => {
       const { bundle, key, value } = data;
       if (bundle === SYSTEM_BUNDLE && key === 'settingsCollapsedSections') {
-        collapsedSections = value || {};
+        collapsedSections = value || { createToken: true };
       }
     });
 
@@ -264,177 +264,155 @@
 <Content>
   <div class="wrapper min-w-[50%] w-full max-w-4xl max-h-[85vh] overflow-y-auto overflow-x-hidden pr-2">
 
-    <div
-      role="button"
-      tabindex="0"
-      class="font-bold wrapper-title bg-primary text-primary-content rounded-tl-lg border-neutral border-1 p-2 cursor-pointer select-none {collapsedSections.createToken === true ? 'rounded-br-lg mb-6' : ''}"
-      onclick={() => toggleSection('createToken')}
-      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection('createToken'); } }}
+    <FoldableSection
+      title="Create API Key"
+      collapsed={collapsedSections.createToken === true}
+      ontoggle={() => toggleSection('createToken')}
     >
-      <div class="flex items-center gap-2">
-        <Icon name={collapsedSections.createToken === true ? 'caret-right:solid' : 'caret-down:solid'} size="1.25rem" />
-        <span class="text-xl">Create API Key</span>
-      </div>
-    </div>
+      <div class="p-4 border-b border-neutral/30">
 
-    {#if collapsedSections.createToken !== true}
-      <div class="bg-neutral text-neutral-content p-0 m-0 mb-6 w-full relative rounded-br-lg border-neutral border-1">
-
-        <div class="p-4 border-b border-neutral/30">
-
-          <div class="flex flex-wrap items-start gap-4 mb-6">
-            <div class="flex-grow max-w-sm">
-              <div class="font-bold mb-1 text-sm">Key Name</div>
-              <input type="text" placeholder="e.g. OBS Request Script" bind:value={newTokenName} class="input input-bordered input-sm w-full bg-base-100 text-base-content" />
-            </div>
-            <div>
-              <div class="font-bold mb-1 text-sm">Expiration</div>
-              <select bind:value={newTokenExpiry} class="select select-bordered select-sm w-full bg-base-100 text-base-content">
-                <option value={30}>30 Days</option>
-                <option value={90}>90 Days</option>
-                <option value={365}>1 Year</option>
-                <option value={3650}>10 Years</option>
-              </select>
-            </div>
+        <div class="flex flex-wrap items-start gap-4 mb-4">
+          <div class="flex-grow max-w-sm">
+            <div class="font-bold mb-1 text-sm">Key Name</div>
+            <input type="text" placeholder="e.g. OBS Request Script" bind:value={newTokenName} class="input input-bordered input-sm w-full bg-base-100 text-base-content" />
           </div>
+          <div>
+            <div class="font-bold mb-1 text-sm">Expiration</div>
+            <select bind:value={newTokenExpiry} class="select select-bordered select-sm w-full bg-base-100 text-base-content">
+              <option value={30}>30 Days</option>
+              <option value={90}>90 Days</option>
+              <option value={365}>1 Year</option>
+              <option value={3650}>10 Years</option>
+            </select>
+          </div>
+        </div>
 
-          <div class="mb-4">
-            <div class="font-bold mb-2 text-sm">Target Bundles</div>
-            <details class="collapse collapse-arrow border border-neutral bg-base-100 text-base-content rounded w-full md:w-1/2">
-              <summary class="collapse-title min-h-0 h-10 py-0 px-3 flex items-center text-sm font-bold">
-                {selectedBundles.length === 0 ? 'Select Target Bundles...' : `${selectedBundles.length} Bundle${selectedBundles.length > 1 ? 's' : ''} Selected`}
-              </summary>
-              <div class="collapse-content p-0 border-t border-neutral/30">
-                <div class="flex flex-col max-h-48 overflow-y-auto p-2 gap-1 bg-base-100">
-                  {#if availableBundles.length === 0}
-                    <span class="text-sm italic opacity-70 p-2">No bundles loaded</span>
-                  {/if}
-                  {#each availableBundles as bndl}
-                    <label class="cursor-pointer flex items-center justify-start gap-3 p-1 hover:bg-base-200 rounded">
-                      <input type="checkbox" class="checkbox checkbox-sm" value={bndl} bind:group={selectedBundles} />
-                      <span class="label-text">{bndl}</span>
-                    </label>
+        <div class="mb-4">
+          <div class="font-bold mb-2 text-sm">Target Bundles</div>
+          <details class="collapse collapse-arrow border border-neutral bg-base-100 text-base-content rounded w-full md:w-1/2">
+            <summary class="collapse-title min-h-0 h-10 py-0 px-3 flex items-center text-sm font-bold">
+              {selectedBundles.length === 0 ? 'Select Target Bundles...' : `${selectedBundles.length} Bundle${selectedBundles.length > 1 ? 's' : ''} Selected`}
+            </summary>
+            <div class="collapse-content p-0 border-t border-neutral/30">
+              <div class="flex flex-col max-h-48 overflow-y-auto p-2 gap-1 bg-base-100">
+                {#if availableBundles.length === 0}
+                  <span class="text-sm italic opacity-70 p-2">No bundles loaded</span>
+                {/if}
+                {#each availableBundles as bndl}
+                  <label class="cursor-pointer flex items-center justify-start gap-3 p-1 hover:bg-base-200 rounded">
+                    <input type="checkbox" class="checkbox checkbox-sm" value={bndl} bind:group={selectedBundles} />
+                    <span class="label-text">{bndl}</span>
+                  </label>
+                {/each}
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="mb-2">
+          <div class="font-bold mb-2 text-sm">Permissions</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {#each Object.keys(RestPermissionScopes) as broad}
+              <div class="bg-base-100 p-2 rounded border border-neutral flex flex-col text-base-content">
+                <label class="cursor-pointer flex items-center gap-2 font-bold border-b border-neutral/20 pb-1 mb-1">
+                  <input type="checkbox" class="checkbox checkbox-sm checkbox-primary"
+                         checked={scopeSelections[broad]._all}
+                         onchange={() => toggleBroadScope(broad)} />
+                  <span class="label-text font-bold text-lg leading-none">{broad}</span>
+                  <span class="text-xs font-normal opacity-70 ml-1 leading-none">({RestPermissionScopes[broad].description})</span>
+                </label>
+                <div class="pl-2 flex flex-col gap-0.5 pt-1">
+                  {#each Object.keys(RestPermissionScopes[broad]) as child}
+                    {#if child !== 'description'}
+                      <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" class="checkbox checkbox-xs"
+                               checked={scopeSelections[broad][child]}
+                               onchange={() => toggleChildScope(broad, child)} />
+                        <span class="label-text">{child}</span>
+                        <span class="text-xs opacity-60 ml-1">- {RestPermissionScopes[broad][child].description}</span>
+                      </label>
+                    {/if}
                   {/each}
                 </div>
               </div>
-            </details>
-          </div>
-
-          <div class="mb-2">
-            <div class="font-bold mb-2 text-sm">Permissions</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {#each Object.keys(RestPermissionScopes) as broad}
-                <div class="bg-base-100 p-2 rounded border border-neutral flex flex-col text-base-content">
-                  <label class="cursor-pointer flex items-center gap-2 font-bold border-b border-neutral/20 pb-1 mb-1">
-                    <input type="checkbox" class="checkbox checkbox-sm checkbox-primary"
-                           checked={scopeSelections[broad]._all}
-                           onchange={() => toggleBroadScope(broad)} />
-                    <span class="label-text font-bold text-lg leading-none">{broad}</span>
-                    <span class="text-xs font-normal opacity-70 ml-1 leading-none">({RestPermissionScopes[broad].description})</span>
-                  </label>
-                  <div class="pl-2 flex flex-col gap-0.5 pt-1">
-                    {#each Object.keys(RestPermissionScopes[broad]) as child}
-                      {#if child !== 'description'}
-                        <label class="cursor-pointer flex items-center gap-2">
-                          <input type="checkbox" class="checkbox checkbox-xs"
-                                 checked={scopeSelections[broad][child]}
-                                 onchange={() => toggleChildScope(broad, child)} />
-                          <span class="label-text">{child}</span>
-                          <span class="text-xs opacity-60 ml-1">- {RestPermissionScopes[broad][child].description}</span>
-                        </label>
-                      {/if}
-                    {/each}
-                  </div>
-                </div>
-              {/each}
-            </div>
-          </div>
-
-          <div class="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-neutral/30">
-            <button onclick={createToken} class="btn btn-primary">Generate API Key</button>
+            {/each}
           </div>
         </div>
 
-        {#if newlyGeneratedToken !== null}
-          <div class="mx-4 mb-4 mt-4">
-            <div class="alert alert-warning shadow-lg text-warning-content relative pr-10">
+        <div class="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-neutral/30">
+          <button onclick={createToken} class="btn btn-primary">Generate API Key</button>
+        </div>
+      </div>
 
-              <button
-                onclick={() => { newlyGeneratedToken = null; tokenVisible = false; }}
-                class="btn btn-ghost btn-xs btn-circle absolute top-2 right-2 text-inherit hover:bg-black/20"
-                aria-label="Close"
-              >
-                <Icon name="xmark:solid" size="1rem" />
-              </button>
+      {#if newlyGeneratedToken !== null}
+        <div class="mx-4 mb-4 mt-4">
+          <div class="alert alert-warning shadow-lg text-warning-content relative pr-10">
 
-              <div class="flex flex-col items-start w-full gap-2">
-                <div class="flex items-center gap-2 pr-6">
-                  <Icon name="triangle-exclamation:solid" size="1.5rem" />
-                  <span class="font-bold">Important: Copy your new API key now. It will not be shown again!</span>
-                </div>
-                <div class="flex items-center gap-2 w-full">
-                  <code class="p-2 rounded flex-grow font-mono select-all bg-black/20 text-inherit">
-                    {tokenVisible === true ? newlyGeneratedToken : '•'.repeat(newlyGeneratedToken.length)}
-                  </code>
+            <button
+              onclick={() => { newlyGeneratedToken = null; tokenVisible = false; }}
+              class="btn btn-ghost btn-xs btn-circle absolute top-2 right-2 text-inherit hover:bg-black/20"
+              aria-label="Close"
+            >
+              <Icon name="xmark:solid" size="1rem" />
+            </button>
 
-                  <div class="tooltip tooltip-top" data-tip={tokenVisible === true ? 'Hide Token' : 'Show Token'}>
-                    <button
-                      onclick={() => tokenVisible = tokenVisible === false}
-                      class="btn btn-sm btn-square border-none bg-black/20 text-inherit hover:bg-black/30"
-                      aria-label={tokenVisible === true ? 'Hide Token' : 'Show Token'}
-                    >
-                      <Icon name={tokenVisible === true ? 'eye-slash' : 'eye'} size="1rem" />
-                    </button>
-                  </div>
+            <div class="flex flex-col items-start w-full gap-2">
+              <div class="flex items-center gap-2 pr-6">
+                <Icon name="triangle-exclamation:solid" size="1.5rem" />
+                <span class="font-bold">Important: Copy your new API key now. It will not be shown again!</span>
+              </div>
+              <div class="flex items-center gap-2 w-full">
+                <code class="p-2 rounded flex-grow font-mono select-all bg-black/20 text-inherit">
+                  {tokenVisible === true ? newlyGeneratedToken : '•'.repeat(newlyGeneratedToken.length)}
+                </code>
 
-                  <button onclick={copyToken} class="btn btn-sm border-none bg-black/20 text-inherit hover:bg-black/30">
-                    <Icon name="copy" size="1rem" /> Copy
+                <div class="tooltip tooltip-top" data-tip={tokenVisible === true ? 'Hide Token' : 'Show Token'}>
+                  <button
+                    onclick={() => tokenVisible = tokenVisible === false}
+                    class="btn btn-sm btn-square border-none bg-black/20 text-inherit hover:bg-black/30"
+                    aria-label={tokenVisible === true ? 'Hide Token' : 'Show Token'}
+                  >
+                    <Icon name={tokenVisible === true ? 'eye-slash' : 'eye'} size="1rem" />
                   </button>
                 </div>
+
+                <button onclick={copyToken} class="btn btn-sm border-none bg-black/20 text-inherit hover:bg-black/30">
+                  <Icon name="copy" size="1rem" /> Copy
+                </button>
               </div>
             </div>
           </div>
-        {/if}
+        </div>
+      {/if}
+    </FoldableSection>
 
-      </div>
-    {/if}
-
-    <div
-      role="button"
-      tabindex="0"
-      class="font-bold wrapper-title bg-primary text-neutral-content rounded-tl-lg border-neutral border-1 p-2 cursor-pointer select-none {collapsedSections.apiKeys === true || tokens.length === 0 ? 'rounded-br-lg' : ''}"
-      onclick={() => toggleSection('apiKeys')}
-      onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection('apiKeys'); } }}
+    <FoldableSection
+      title="Active API Keys"
+      collapsed={collapsedSections.apiKeys === true}
+      ontoggle={() => toggleSection('apiKeys')}
     >
-      <div class="flex items-center gap-2">
-        <Icon name={collapsedSections.apiKeys === true ? 'caret-right:solid' : 'caret-down:solid'} size="1.25rem" />
-        <span class="text-xl">Active API Keys</span>
-      </div>
-    </div>
-
-    {#if collapsedSections.apiKeys !== true}
       {#if tokens.length === 0}
-        <div class="bg-neutral text-neutral-content rounded-br-lg border-neutral border-1 border-t-0 p-4 opacity-70 italic text-center">
+        <div class="p-4 opacity-70 italic text-center">
           No API keys have been generated yet.
         </div>
       {:else}
-        <div class="bg-neutral text-neutral-content rounded-br-lg border-neutral border-1 border-t-0 p-0 m-0 w-full relative pb-2">
+        <div class="pb-2">
           {#each tokens as token (token.name)}
-            <div class="flex justify-between items-center px-4 mt-2 py-2 bg-secondary text-secondary-content">
+            <div class="flex justify-between items-center px-4 mt-0.5 py-2 bg-secondary text-secondary-content">
               <div class="flex flex-col">
                 <span class="font-bold underline">{token.name}</span>
                 <div class="flex items-center gap-2">
                   <span class="text-sm opacity-80">Minted: {formatDate(token.date)} | Expires: {formatDate(token.expires)}</span>
                   {#if new Date() > new Date(token.expires)}
-                    <span class="badge badge-sm badge-error rounded-md">Expired</span>
+                    <span class="badge badge-md badge-error rounded-md">Expired</span>
                   {/if}
                 </div>
                 <div class="text-xs mt-1 flex flex-wrap gap-1">
                   {#if token.scopes === undefined || token.scopes.length === 0}
-                    <span class="font-mono badge badge-md rounded-md badge-error">No Permissions</span>
+                    <span class="badge badge-sm badge-error font-mono rounded-md">No Permissions</span>
                   {:else}
                     {#each token.scopes as scope}
-                      <span class="font-mono badge badge-md rounded-md {scope.includes('*') === true ? 'badge-success' : 'badge-info'}">{scope}</span>
+                      <span class="badge badge-sm {scope.includes('*') === true ? 'badge-accent' : 'badge-primary'} font-mono rounded-md">{scope}</span>
                     {/each}
                   {/if}
                 </div>
@@ -448,14 +426,7 @@
           {/each}
         </div>
       {/if}
-    {/if}
+    </FoldableSection>
 
   </div>
 </Content>
-
-<style>
-  .wrapper-title {
-    display: grid;
-    grid-template-columns: auto min-content;
-  }
-</style>
