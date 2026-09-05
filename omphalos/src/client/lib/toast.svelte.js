@@ -31,6 +31,28 @@ class NotificationState {
     }
   }
 
+  /* Dismiss a specific toast immediately by its ID.
+   *
+   * If it is the currently ticking toast at the front of the queue, cancel the
+   * timer and trigger the next item. */
+  dismiss(id) {
+    const index = this.list.findIndex(n => n.id === id);
+    if (index === -1) {
+      return;
+    }
+
+    if (index === 0 && this.#timer !== null) {
+      clearTimeout(this.#timer);
+      this.#timer = null;
+    }
+
+    this.list.splice(index, 1);
+
+    if (index === 0) {
+      this.#processQueue();
+    }
+  }
+
   /* The core method for adding in a notification; this appends a new record
    * to the notification list and kicks off the queue processing if it is
    * not already running. */

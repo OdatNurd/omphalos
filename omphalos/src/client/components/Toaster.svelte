@@ -10,7 +10,7 @@
   {#each toast.list as notification (notification.id)}
     <div animate:flip class="mb-2 min-w-[50%]">
       <div transition:fly={{ y: 30 }}>
-        <Toast type={notification.type} message={notification.message} />
+        <Toast id={notification.id} type={notification.type} message={notification.message} />
       </div>
     </div>
   {/each}
