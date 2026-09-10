@@ -11,11 +11,7 @@ sidebar:
 function omphalos.saveForm(formOrFormName)
 ```
 
-:::caution[Client only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/clientOnly]]
 
 Save the state of a given form into the storage system for later retrieval.
 The form can be later loaded back via [[omphalos.form.load()]].

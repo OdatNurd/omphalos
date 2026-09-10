@@ -11,11 +11,7 @@ sidebar:
 function omphalos.import(bundleName)
 ```
 
-:::caution[Server only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/serverOnly]]
 
 A function that can be used to load symbols from other bundles; these symbols
 come from the list of explicitly exported symbols for sharing from the bundle

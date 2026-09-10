@@ -11,11 +11,7 @@ sidebar:
 function omphalos.form.load(formOrFormName)
 ```
 
-:::caution[Client only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/clientOnly]]
 
 Load the state of a given form from the storage system as saved by a call to
 [[omphalos.form.save()]] and apply it directly to the DOM.

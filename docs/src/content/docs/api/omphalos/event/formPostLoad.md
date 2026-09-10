@@ -13,11 +13,7 @@ omphalos.event.formPostLoad((payload) => {
 })
 ```
 
-:::caution[Client only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/clientOnly]]
 
 This event is raised by a call to [[omphalos.form.load()]] to load a form from
 storage. The event invokes after the load takes place, and has the following

@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import { remarkOmphalosLinks, linkErrorTracker } from './src/remarkOmphalosLinks.js';
+import { remarkMarkdownMacros } from './src/remarkMarkdownMacros.js';
 import linkChecker from 'astro-link-checker';
 import net from 'node:net';
 
@@ -45,7 +46,7 @@ export default defineConfig({
   },
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkOmphalosLinks],
+      remarkPlugins: [remarkMarkdownMacros, remarkOmphalosLinks],
     }),
   },
   integrations: [
@@ -89,7 +90,7 @@ export default defineConfig({
       hooks: {
         'astro:build:done': () => {
           if (linkErrorTracker.count > 0) {
-            console.error(`\n[remarkOmphalosLinks] FATAL: Found ${linkErrorTracker.count} unmapped wiki-link(s) found.\n`);
+            console.error(`\n[remarkOmphalosLinks] FATAL: found ${linkErrorTracker.count} unmapped wiki-link(s) found.\n`);
             process.exit(1);
           }
         }

@@ -13,11 +13,7 @@ omphalos.event.ioDisonnect(() => {
 })
 ```
 
-:::caution[Client only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/clientOnly]]
 
 This event is raised whenever the asset has been disconnected from the back end
 system.

@@ -8,6 +8,8 @@ sidebar:
 function omphalos.storage.set(key, value);
 ```
 
+[[macro storage/reservedKeys]]
+
 Store the provided value into the persistent storage for this bundle under the
 given `key`. If any value for that key already exists, it will be replaced with
 the new value.

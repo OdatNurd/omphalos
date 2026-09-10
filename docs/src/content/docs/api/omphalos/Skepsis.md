@@ -8,6 +8,8 @@ sidebar:
 omphalos.Skepsis(key, defaultValue);
 ```
 
+[[macro storage/reservedKeys]]
+
 A [Skepsis][1] (as in [omphaloskepsis][2]) is an object that wraps a specified
 bundle variable so that you don't need to constantly call
 [[omphalos.storage.get()]] to get the value, [[omphalos.storage.set()]] to

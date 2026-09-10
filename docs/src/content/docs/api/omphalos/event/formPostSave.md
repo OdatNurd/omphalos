@@ -13,11 +13,7 @@ omphalos.event.formPostSave((payload) => {
 })
 ```
 
-:::caution[Client only]
-This item is only present in the API object in [[guide.panels]] and
-[[guide.graphics]]; it is not present in the API that is given to
-[[guide.extensions]].
-:::
+[[macro api/clientOnly]]
 
 This event is raised by a call to [[omphalos.form.save()]] to save a form to
 storage. The event invokes after the save is complete, and has the following

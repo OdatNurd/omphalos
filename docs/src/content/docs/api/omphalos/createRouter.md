@@ -11,10 +11,7 @@ sidebar:
 function omphalos.createRouter()
 ```
 
-:::caution[Server only]
-This item is only present in the API object given to [[guide.extensions]]; it
-is not available in [[guide.panels]] and [[guide.graphics]].
-:::
+[[macro api/serverOnly]]
 
 Create and return back a new [express router][1] to allow your extension to
 respond to any requests it may need to respond to, expose the routes of used
