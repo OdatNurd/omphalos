@@ -6,7 +6,7 @@
  * panels in all bundles, and return the list back.
  *
  * The list of workspaces is sorted on return to ensure that the order is a
- * known state. */
+ * known state, respecting any custom ordering saved by the user. */
 export function getWorkspaceList() {
   const result = new Set();
 
@@ -16,7 +16,44 @@ export function getWorkspaceList() {
     });
   }
 
-  return Array.from(result).sort();
+  // Get the list of all workspaces, and sort them.
+  const allWorkspaces = Array.from(result).sort();
+
+  // Grab our saved version of the workspace order, defaulting it to being an
+  // empty array if the setting is not present.
+  //
+  // When present, we arrange the workspaces according to the saved order.
+  const savedOrder = JSON.parse(localStorage.workspaceOrder || '[]');
+  if (savedOrder.length > 0) {
+    allWorkspaces.sort((left, right) => {
+      const indexLeft = savedOrder.indexOf(left);
+      const indexRight = savedOrder.indexOf(right);
+
+      if (indexLeft !== -1 && indexRight !== -1) {
+        return indexLeft - indexRight;
+      }
+      if (indexLeft !== -1) {
+        return -1;
+      }
+      if (indexRight !== -1) {
+        return 1;
+      }
+
+      return left.localeCompare(right);
+    });
+  }
+
+  return allWorkspaces;
+}
+
+
+// =============================================================================
+
+
+/* Persist the ordered list of workspaces into local storage so that the
+ * dashboard can maintain the user's preferred tab order. */
+export function saveWorkspaceOrder(order) {
+  localStorage.workspaceOrder = JSON.stringify(order);
 }
 
 
