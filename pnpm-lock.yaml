@@ -416,6 +416,12 @@ importers:
         specifier: workspace:*
         version: link:../cli
 
+  theatron:
+    devDependencies:
+      '@odatnurd/omphalos-cli':
+        specifier: workspace:*
+        version: link:../cli
+
 packages:
 
   '@alloc/quick-lru@5.2.0':

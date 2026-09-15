@@ -1,0 +1,32 @@
+{
+  "output": {
+    "filePath": "omphalos-theatron.md",
+    "style": "markdown"
+  },
+  "include": [
+    "docs/**/*",
+    "theatron/**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "**/fontawesome/**",
+      "**/gridstack/**",
+      "**/*.svg",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.mp3",
+      "**/*.wav",
+      "**/*.ogg",
+      "**/*.aac",
+      "**/*.flac",
+      "**/*.m4a",
+      "**/*.webm",
+      "**/*.omphalos-bundle",
+      "omphalos-*.md"
+    ]
+  }
+}

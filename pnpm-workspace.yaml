@@ -5,6 +5,7 @@ packages:
   - docs
   - omphalos
   - sample-bundle
+  - theatron
 
 allowBuilds:
   core-js: true
