@@ -5,7 +5,34 @@
   "type": "module",
   "omphalos": {
     "name": "theatron",
-    "compatibleRange": "~0.1.0"
+    "compatibleRange": "~0.1.0",
+    "extension": "extension.js",
+    "panels": [
+      {
+        "name": "stream-timer",
+        "file": "timer.html",
+        "title": "Timer",
+        "workspace": "Theatron",
+        "minSize": {
+          "width": 3,
+          "height": 12
+        },
+        "size": {
+          "width": 3,
+          "height": 24
+        }
+      }
+    ],
+    "graphics": [
+      {
+        "name": "stream-timer",
+        "file": "timer.html",
+        "size": {
+          "width": 800,
+          "height": 300
+        }
+      }
+    ]
   },
   "scripts": {
     "bundle": "omphalos bundle",

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Theatron Timer</title>
+  <style>
+    .live-display {
+      font-family: monospace;
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 1rem;
+      background: var(--omph-bg);
+      color: var(--omph-primary);
+      border-radius: var(--omph-radius);
+      border: 1px solid var(--omph-border);
+      margin-bottom: 1rem;
+    }
+
+    /* Layout Utilities */
+    .mb-sm {
+      margin-bottom: 0.5rem;
+    }
+    .mt-sm {
+      margin-top: 0.5rem;
+    }
+    .flex-fill {
+      flex-grow: 1;
+    }
+
+    /* Force spread clusters to stay on a single line */
+    .control-cluster.spread {
+      flex-wrap: nowrap;
+    }
+
+    /* Prevent text wrapping on the labels so they don't break flex height */
+    .control-cluster.spread .control-text {
+      white-space: nowrap;
+    }
+
+    /* Fixed width for the font size display to prevent slider layout jank */
+    .digit-display {
+      display: inline-block;
+      width: 3ch;
+      text-align: right;
+    }
+
+    /* Allow form elements to shrink when space gets tight */
+    .control-cluster.spread input,
+    .control-cluster.spread select {
+      min-width: 0;
+      flex-shrink: 1;
+    }
+
+    /* Prevent the number input from ballooning if there is extra space */
+    input[type="number"] {
+      max-width: 80px;
+    }
+  </style>
+</head>
+<body>
+  <div class="control-group">
+    <span class="control-group-title">Live Status</span>
+    <div id="live-timer" class="live-display">00:00</div>
+
+    <div class="control-cluster evenly mb-sm">
+      <button id="btn-start" class="primary">Start</button>
+      <button id="btn-pause" class="warning">Pause</button>
+      <button id="btn-reset" class="error">Reset</button>
+    </div>
+    <div class="control-cluster evenly">
+      <button id="btn-sub" class="info">- 1 Min</button>
+      <button id="btn-add" class="info">+ 1 Min</button>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <span class="control-group-title">Configuration</span>
+
+    <form id="timer-config-form" name="timer-config">
+      <div class="control-cluster spread">
+        <span class="control-text">Duration (Seconds)</span>
+        <input type="number" data-var="timerDuration" placeholder="300" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Direction</span>
+        <select data-var="timerMode">
+          <option value="countdown">Countdown</option>
+          <option value="countup">Count Up</option>
+        </select>
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Text Color</span>
+        <input type="color" name="textColor" value="#ffffff" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Font Size (<span id="font-size-display" class="digit-display">72</span>px)</span>
+        <input type="range" id="font-size-slider" name="fontSize" min="12" max="256" step="2" value="72" class="flex-fill" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Font Weight</span>
+        <select name="fontWeight">
+          <option value="normal">Normal</option>
+          <option value="bold">Bold</option>
+        </select>
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Justification</span>
+        <select name="textAlign">
+          <option value="left">Left</option>
+          <option value="center">Center</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+
+      <div class="control-cluster right mt-sm">
+        <button type="button" id="btn-save-config" class="primary">Save Configuration</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Set up binds for triggering events when buttons are clicked.
+    document.getElementById('btn-start').addEventListener('click', () => omphalos.event.raise('timer.start'));
+    document.getElementById('btn-pause').addEventListener('click', () => omphalos.event.raise('timer.pause'));
+    document.getElementById('btn-reset').addEventListener('click', () => omphalos.event.raise('timer.reset'));
+    document.getElementById('btn-add').addEventListener('click', () => omphalos.event.raise('timer.add', { seconds: 60 }));
+    document.getElementById('btn-sub').addEventListener('click', () => omphalos.event.raise('timer.add', { seconds: -60 }));
+
+    // Handler for saving the timer configuration.
+    document.getElementById('btn-save-config').addEventListener('click', () => {
+      omphalos.form.save('timer-config-form');
+      omphalos.toast('Timer configuration saved', 'success', 2);
+    });
+
+    // Get the controls for the font size slider and display so that we can
+    // make them reactive.
+    const fontSizeSlider = document.getElementById('font-size-slider');
+    const fontSizeDisplay = document.getElementById('font-size-display');
+
+    fontSizeSlider.addEventListener('input', (e) => {
+      fontSizeDisplay.textContent = e.target.value;
+    });
+
+    // When the form loads, make sure everything is updated.
+    omphalos.event.formPostLoad(payload => {
+      if (payload.formName === 'timer-config') {
+        fontSizeDisplay.textContent = fontSizeSlider.value;
+      }
+    });
+
+    omphalos.event.ioConnect(() => {
+      omphalos.form.load('timer-config-form');
+    });
+
+    // Create the Skepsis objects for our state bindings; these mimic what is
+    // done in the server side of things, setting defaultgs for things when
+    // there is no saved value yet.
+    const timerState = omphalos.Skepsis('timerState', { running: false, remainingMs: 300000, targetEpoch: 0 });
+    const timerMode = omphalos.Skepsis('timerMode', 'countdown');
+
+    const liveDisplay = document.getElementById('live-timer');
+
+    function formatTime(ms) {
+      if (ms < 0) {
+        ms = 0;
+      }
+
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+
+      return `${minutes}:${seconds}`;
+    }
+
+    // Our render loop. We use requestAnimationFrame to make the clock as
+    // accurate as possible.
+    function tick() {
+      const state = timerState.value;
+      const mode = timerMode.value;
+
+      if (state.running === true) {
+        let currentMs;
+        if (mode === 'countdown') {
+          currentMs = state.targetEpoch - Date.now();
+        } else {
+          currentMs = Date.now() - state.targetEpoch;
+        }
+        liveDisplay.textContent = formatTime(currentMs);
+      } else {
+        liveDisplay.textContent = formatTime(state.remainingMs);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    // Kick off the timer.
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timer Overlay</title>
+  <style>
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    #timer-text {
+      width: 100%;
+      font-family: var(--omph-font, monospace);
+      font-size: 72px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin: 0;
+      padding: 0 1rem;
+      box-sizing: border-box;
+
+      /* These values are overridden by the JS code. */
+      color: #ffffff;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="timer-text">00:00</div>
+
+  <script>
+    const timerText = document.getElementById('timer-text');
+
+    // Create the Skepsis objects for our state bindings; these mimic what is
+    // done in the server side of things, setting defaultgs for things when
+    // there is no saved value yet.
+    const timerState = omphalos.Skepsis('timerState', { running: false, remainingMs: 300000, targetEpoch: 0 });
+    const timerMode = omphalos.Skepsis('timerMode', 'countdown');
+
+    // Get the timer configuration; this is an object managed by the panel.
+    const timerConfig = omphalos.Skepsis('form:stream-timer:timer-config', {});
+
+    // Apply our custom styling based on the configuration of the timer.
+    function applyStyling() {
+      const config = timerConfig.value;
+      if (config === undefined || Object.keys(config).length === 0) {
+        return;
+      }
+
+      if (config.textColor !== undefined) {
+        timerText.style.color = config.textColor;
+      }
+
+      if (config.fontSize !== undefined) {
+        timerText.style.fontSize = `${config.fontSize}px`;
+      }
+
+      if (config.fontWeight !== undefined) {
+        timerText.style.fontWeight = config.fontWeight;
+      }
+
+      if (config.textAlign !== undefined) {
+        timerText.style.textAlign = config.textAlign;
+      }
+    }
+
+    // When we get the event that says that we connected, or when we get the
+    // event that says the config changed, reapply the styling.
+    //
+    // Data hydration policy dictates that we get told we connected after the
+    // server gives us the storage update.
+    timerConfig.on(() => applyStyling());
+    omphalos.event.ioConnect(() => applyStyling());
+
+    function formatTime(ms) {
+      if (ms <= 0) {
+        return "00:00";
+      }
+
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+
+      return `${minutes}:${seconds}`;
+    }
+
+    // Our render loop. We use requestAnimationFrame to make the clock as
+    // accurate as possible.
+    function tick() {
+      const state = timerState.value;
+      const mode = timerMode.value;
+
+      if (state.running === true) {
+        let currentMs;
+        if (mode === 'countdown') {
+          currentMs = state.targetEpoch - Date.now();
+        } else {
+          currentMs = Date.now() - state.targetEpoch;
+        }
+
+        timerText.textContent = formatTime(currentMs);
+      } else {
+        timerText.textContent = formatTime(state.remainingMs);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    // Kick off the timer.
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
