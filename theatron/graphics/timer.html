@@ -45,17 +45,49 @@
 
     // Get the timer configuration; this is an object managed by the panel.
     const timerConfig = omphalos.Skepsis('form:stream-timer:timer-config', {});
+    const brandConfig = omphalos.Skepsis('form:branding:branding', {});
 
-    // Apply our custom styling based on the configuration of the timer.
+    function injectGoogleFont(fontName) {
+      if (fontName === undefined || fontName === '') {
+        return;
+      }
+      const fontId = 'font-' + fontName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+      if (document.getElementById(fontId) === null) {
+        const link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+
+    // Apply our custom styling based on the configuration of the timer and branding.
     function applyStyling() {
+      const brand = brandConfig.value;
       const config = timerConfig.value;
+
       if (config === undefined || Object.keys(config).length === 0) {
         return;
       }
 
-      if (config.textColor !== undefined) {
-        timerText.style.color = config.textColor;
+      let color = config.textColor !== undefined ? config.textColor : '#ffffff';
+      if (config.themeColor === 'primary') {
+        color = (brand !== undefined && brand.colorPrimaryBg !== undefined) ? brand.colorPrimaryBg : '#3B82F6';
+      } else if (config.themeColor === 'secondary') {
+        color = (brand !== undefined && brand.colorSecondaryBg !== undefined) ? brand.colorSecondaryBg : '#1E293B';
       }
+
+      let font = config.customFont !== undefined ? config.customFont : 'monospace';
+      if (config.themeFont === 'primary') {
+        font = (brand !== undefined && brand.fontPrimary !== undefined) ? brand.fontPrimary : 'Montserrat';
+      } else if (config.themeFont === 'secondary') {
+        font = (brand !== undefined && brand.fontSecondary !== undefined) ? brand.fontSecondary : 'Open Sans';
+      }
+
+      injectGoogleFont(font);
+
+      timerText.style.color = color;
+      timerText.style.fontFamily = `"${font}", monospace`;
 
       if (config.fontSize !== undefined) {
         timerText.style.fontSize = `${config.fontSize}px`;
@@ -76,6 +108,7 @@
     // Data hydration policy dictates that we get told we connected after the
     // server gives us the storage update.
     timerConfig.on(() => applyStyling());
+    brandConfig.on(() => applyStyling());
     omphalos.event.ioConnect(() => applyStyling());
 
     function formatTime(ms) {

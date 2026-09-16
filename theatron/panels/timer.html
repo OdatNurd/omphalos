@@ -46,6 +46,16 @@
       text-align: right;
     }
 
+    .color-swatch {
+      width: 2.35rem;
+      height: 2.35rem;
+      border: 1px solid var(--omph-border);
+      border-radius: calc(var(--omph-radius) - 2px);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
     /* Allow form elements to shrink when space gets tight */
     .control-cluster.spread input,
     .control-cluster.spread select {
@@ -94,7 +104,27 @@
 
       <div class="control-cluster spread">
         <span class="control-text">Text Color</span>
-        <input type="color" name="textColor" value="#ffffff" />
+        <select name="themeColor" id="themeColor">
+          <option value="primary">Theme Primary</option>
+          <option value="secondary">Theme Secondary</option>
+          <option value="custom">Custom</option>
+        </select>
+        <div id="theme-color-swatch" class="color-swatch"></div>
+        <input type="color" name="textColor" id="textColor" value="#ffffff" style="display: none;" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Font Family</span>
+        <select name="themeFont" id="themeFont">
+          <option value="primary">Theme Primary</option>
+          <option value="secondary">Theme Secondary</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+
+      <div class="control-cluster spread" id="customFontRow" style="display: none;">
+        <span class="control-text">Custom Font Name</span>
+        <input type="text" name="customFont" id="customFont" placeholder="e.g. Roboto" style="width: 160px;" />
       </div>
 
       <div class="control-cluster spread">
@@ -152,6 +182,7 @@
     omphalos.event.formPostLoad(payload => {
       if (payload.formName === 'timer-config') {
         fontSizeDisplay.textContent = fontSizeSlider.value;
+        updateFormVisibility();
       }
     });
 
@@ -165,7 +196,102 @@
     const timerState = omphalos.Skepsis('timerState', { running: false, remainingMs: 300000, targetEpoch: 0 });
     const timerMode = omphalos.Skepsis('timerMode', 'countdown');
 
+    // Configurations
+    const timerConfig = omphalos.Skepsis('form:stream-timer:timer-config', {});
+    const brandConfig = omphalos.Skepsis('form:branding:branding', {});
+
     const liveDisplay = document.getElementById('live-timer');
+
+    function updateFormVisibility() {
+      const brand = brandConfig.value;
+      const colorSource = document.getElementById('themeColor').value;
+      const fontSource = document.getElementById('themeFont').value;
+
+      if (colorSource === 'custom') {
+        document.getElementById('theme-color-swatch').style.display = 'none';
+        document.getElementById('textColor').style.display = 'inline-block';
+      } else {
+        document.getElementById('theme-color-swatch').style.display = 'inline-block';
+        document.getElementById('textColor').style.display = 'none';
+
+        let bgColor = 'transparent';
+        if (brand !== undefined) {
+          if (colorSource === 'primary') {
+            bgColor = brand.colorPrimaryBg !== undefined ? brand.colorPrimaryBg : '#3B82F6';
+          } else if (colorSource === 'secondary') {
+            bgColor = brand.colorSecondaryBg !== undefined ? brand.colorSecondaryBg : '#1E293B';
+          }
+        }
+        document.getElementById('theme-color-swatch').style.backgroundColor = bgColor;
+      }
+
+      if (fontSource === 'custom') {
+        document.getElementById('customFontRow').style.display = '';
+      } else {
+        document.getElementById('customFontRow').style.display = 'none';
+      }
+    }
+
+    document.getElementById('themeColor').addEventListener('change', updateFormVisibility);
+    document.getElementById('themeFont').addEventListener('change', updateFormVisibility);
+    brandConfig.on(() => updateFormVisibility());
+
+    function injectGoogleFont(fontName) {
+      if (fontName === undefined || fontName === '') {
+        return;
+      }
+      const fontId = 'font-' + fontName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+      if (document.getElementById(fontId) === null) {
+        const link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+
+    function applyStyling() {
+      const brand = brandConfig.value;
+      const config = timerConfig.value;
+
+      if (config === undefined || Object.keys(config).length === 0) {
+        return;
+      }
+
+      let color = config.textColor !== undefined ? config.textColor : '#ffffff';
+      if (config.themeColor === 'primary') {
+        color = (brand !== undefined && brand.colorPrimaryBg !== undefined) ? brand.colorPrimaryBg : '#3B82F6';
+      } else if (config.themeColor === 'secondary') {
+        color = (brand !== undefined && brand.colorSecondaryBg !== undefined) ? brand.colorSecondaryBg : '#1E293B';
+      }
+
+      let font = config.customFont !== undefined ? config.customFont : 'monospace';
+      if (config.themeFont === 'primary') {
+        font = (brand !== undefined && brand.fontPrimary !== undefined) ? brand.fontPrimary : 'Montserrat';
+      } else if (config.themeFont === 'secondary') {
+        font = (brand !== undefined && brand.fontSecondary !== undefined) ? brand.fontSecondary : 'Open Sans';
+      }
+
+      injectGoogleFont(font);
+
+      liveDisplay.style.color = color;
+
+      // Keep the current font in the fallback chain while the new font
+      // downloads to prevent the text from briefly flashing.
+      const currentFont = liveDisplay.style.fontFamily.split(',')[0].trim();
+      if (currentFont !== '' && currentFont !== `"${font}"`) {
+        liveDisplay.style.fontFamily = `"${font}", ${currentFont}, monospace`;
+      } else {
+        liveDisplay.style.fontFamily = `"${font}", monospace`;
+      }
+
+      if (config.fontWeight !== undefined) {
+        liveDisplay.style.fontWeight = config.fontWeight;
+      }
+    }
+
+    timerConfig.on(() => applyStyling());
+    brandConfig.on(() => applyStyling());
 
     function formatTime(ms) {
       if (ms < 0) {
