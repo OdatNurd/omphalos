@@ -42,6 +42,16 @@
         }
       },
       {
+        "file": "controls_alpine.html",
+        "name": "controls-alpine",
+        "title": "Control Panel Alpine",
+        "workspace": "Controls",
+        "size": {
+          "width": 4,
+          "height": 7
+        }
+      },
+      {
         "file": "controls_three.html",
         "name": "controls-three",
         "title": "Form Persistence Test",

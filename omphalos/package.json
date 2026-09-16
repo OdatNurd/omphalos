@@ -31,6 +31,7 @@
     "@axel669/event-bridge": "^1.0.2",
     "@axel669/joker": "^0.3.6",
     "adm-zip": "^0.6.0",
+    "alpinejs": "^3.17.3",
     "compression": "^1.8.1",
     "convict": "^6.2.5",
     "dotenv": "^16.6.1",

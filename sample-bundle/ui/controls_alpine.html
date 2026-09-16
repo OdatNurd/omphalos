@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control Panel Alpine</title>
+</head>
+<body>
+  <p>
+    This sample panel listens for the message broadcast by the other panel when
+    you click the <strong>Click Me</strong> button.
+  </p>
+
+  <div x-data="reactivePanel()" x-init="setup()">
+
+    <!-- Clack Output -->
+    <div x-show="clackCount > 0" style="border-top: 1px solid var(--omph-border); padding-top: 0.5rem;" x-cloak>
+      Button clicked <span x-text="clackCount"></span> times since panel reload
+    </div>
+
+    <!-- Connected Peers -->
+    <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
+      <p style="margin-bottom: 0.5rem;">Connected Peers:</p>
+      <div style="font-family: monospace; font-size: 0.9rem; background: var(--omph-bg-mute); padding: 0.5rem; border-radius: var(--omph-radius); border: 1px solid var(--omph-border); min-height: 2rem;">
+
+        <template x-if="Object.keys(peers).length === 0">
+          <span style="color: var(--omph-fg-mute); font-style: italic;">No peers detected in manifest.</span>
+        </template>
+
+        <template x-for="key in Object.keys(peers).sort()" :key="key">
+          <div style="margin-bottom: 0.25rem;">
+            <span style="color: var(--omph-primary); font-weight: bold;" x-text="`[${peers[key].type}]`"></span>
+            <span x-text="`${peers[key].name}: `"></span>
+
+            <template x-if="peers[key].count === 'unknown'">
+              <span style="color: var(--omph-warning);">unknown</span>
+            </template>
+            <template x-if="peers[key].count > 0">
+              <span style="color: var(--omph-success);" x-text="`${peers[key].count} active`"></span>
+            </template>
+            <template x-if="peers[key].count === 0">
+              <span style="color: var(--omph-fg-mute);">offline</span>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Skepsis Global Clicks -->
+    <div style="margin-top: 1rem; border-top: 1px solid var(--omph-border); padding-top: 1rem;">
+      <p style="margin-bottom: 0.25rem;">Global Click Tracking (Skepsis API):</p>
+      <div style="font-weight: bold; color: var(--omph-primary); margin-bottom: 0.75rem;"
+           x-text="`Lifetime Clicks: ${lifetimeClicks}`"></div>
+      <button class="warning" :disabled="isConnected === false" @click="resetClicks()">Reset Lifetime Clicks</button>
+    </div>
+
+  </div>
+
+  <script>
+    function reactivePanel() {
+      return {
+        clackCount: 0,
+        peers: {},
+        lifetimeClicks: 0,
+        isConnected: false,
+        globalClicksRef: null,
+
+        setup() {
+          // Initialize static peer list from manifest
+          this.initPeers();
+
+          // Connect to the Skepsis API
+          this.globalClicksRef = omphalos.Skepsis('clickCount', 0);
+          this.lifetimeClicks = this.globalClicksRef.value;
+
+          // Listen for Skepsis updates
+          this.globalClicksRef.on((newValue) => {
+            this.lifetimeClicks = newValue;
+          });
+
+          // Listen for standard custom events
+          omphalos.event.on('clack', () => {
+            this.clackCount++;
+          });
+
+          // Network Lifecycle Events
+          omphalos.event.ioConnect(() => {
+            this.isConnected = true;
+
+            // Set our own count to 1 like the vanilla version
+            const selfKey = `${omphalos.asset.type}:${omphalos.asset.name}`;
+            if (this.peers[selfKey] !== undefined) {
+              if (this.peers[selfKey].count === 'unknown' || this.peers[selfKey].count === 0) {
+                this.peers[selfKey].count = 1;
+              }
+            }
+          });
+
+          omphalos.event.ioDisconnect(() => {
+            this.isConnected = false;
+            this.initPeers();
+          });
+
+          // Peer connection updates
+          omphalos.event.peerConnected((data) => {
+            const key = `${data.type}:${data.name}`;
+            if (this.peers[key] !== undefined) {
+              this.peers[key].count = data.count;
+            }
+          });
+
+          omphalos.event.peerDisconnected((data) => {
+            const key = `${data.type}:${data.name}`;
+            if (this.peers[key] !== undefined) {
+              this.peers[key].count = data.count;
+            }
+          });
+        },
+
+        initPeers() {
+          const newPeers = {};
+          const manifest = omphalos.bundle.omphalos;
+
+          if (manifest.panels !== undefined) {
+            manifest.panels.forEach(p => {
+              newPeers[`panel:${p.name}`] = { type: 'panel', name: p.name, count: 'unknown' };
+            });
+          }
+
+          if (manifest.graphics !== undefined) {
+            manifest.graphics.forEach(g => {
+              newPeers[`graphic:${g.name}`] = { type: 'graphic', name: g.name, count: 'unknown' };
+            });
+          }
+
+          this.peers = newPeers;
+        },
+
+        resetClicks() {
+          this.globalClicksRef.value = 0;
+        }
+      }
+    }
+  </script>
+</body>
+</html>

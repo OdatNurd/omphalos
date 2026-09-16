@@ -85,6 +85,15 @@ function assetTemplate(dom, manifest, asset, assetType) {
     </script>
   `;
 
+  // If the document contains any elements declaring an Alpine component,
+  // automatically inject the Alpine library.
+  if (dom.window.document.querySelector('[x-data], [data-x-data]') !== null) {
+    content.innerHTML += `
+      <style>[x-cloak] { display: none !important; }</style>
+      <script defer src="/alpine/alpine.js"></script>
+    `;
+  }
+
   // Add the children of the element that we created to the start of the head
   // element in the page when we serve it.
   dom.window.document.querySelector('head').prepend(...content.children);
