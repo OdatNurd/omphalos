@@ -21,6 +21,16 @@
           "width": 3,
           "height": 24
         }
+      },
+      {
+        "name": "branding",
+        "file": "branding.html",
+        "title": "Branding",
+        "workspace": "Theatron",
+        "size": {
+          "width": 3,
+          "height": 12
+        }
       }
     ],
     "graphics": [

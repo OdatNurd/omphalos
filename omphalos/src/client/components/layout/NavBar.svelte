@@ -1,6 +1,4 @@
 <script>
-  import { location } from 'svelte-spa-router';
-  import { toast } from '$lib/toast.svelte.js';
   import { saveWorkspaceOrder } from '$lib/workspace.js';
 
   import Tab from './Tab.svelte';

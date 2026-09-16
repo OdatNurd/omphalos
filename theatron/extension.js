@@ -8,6 +8,46 @@ export const symbols = {
 /******************************************************************************/
 
 
+/* Set up the global branding theme for Theatron.
+ *
+ * This ensures that the branding form always has a complete set of default
+ * values, even on first load or if we add new branding fields in a future
+ update. */
+function setupTheme(omphalos) {
+  const themeState = omphalos.Skepsis('form:branding:branding', {});
+  const currentTheme = themeState.value;
+  let needsUpdate = false;
+
+  const defaults = {
+    colorPrimaryBg: '#3B82F6',
+    colorPrimaryText: '#FFFFFF',
+    colorSecondaryBg: '#1E293B',
+    colorSecondaryText: '#C8D2E0',
+    colorAccent: '#F59E0B',
+    fontPrimary: 'Montserrat',
+    fontSecondary: 'Open Sans'
+  };
+
+  // Loop through our defaults and inject any that are missing.
+  for (const key of Object.keys(defaults)) {
+    if (currentTheme[key] === undefined) {
+      currentTheme[key] = defaults[key];
+      needsUpdate = true;
+    }
+  }
+
+  // If we seeded a brand new object or added missing keys, push the update so
+  // the rest of the system (and storage) knows about it.
+  if (needsUpdate === true) {
+    themeState.update();
+    omphalos.log.info('initialized default theatron branding');
+  }
+}
+
+
+/******************************************************************************/
+
+
 /* Set up the timer functionality in Theatron.
  *
  * This provides a timer that can count up or down, and has configurable
@@ -178,6 +218,7 @@ function setupTimer(omphalos) {
 export function main(omphalos) {
   omphalos.log.info('initializing Theatron');
 
+  setupTheme(omphalos);
   setupTimer(omphalos);
 }
 

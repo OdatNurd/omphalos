@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Theatron Branding</title>
+  <style>
+    .mb-sm {
+      margin-bottom: 0.5rem;
+    }
+    .mt-sm {
+      margin-top: 0.5rem;
+    }
+    .flex-fill {
+      flex-grow: 1;
+    }
+
+    .control-cluster.spread {
+      flex-wrap: nowrap;
+    }
+
+    .control-cluster.spread .control-text {
+      white-space: nowrap;
+    }
+
+    input[type="text"] {
+      min-width: 0;
+      width: 160px;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="branding-form" name="branding">
+
+    <!-- ==========================================
+         COLOR PALETTE
+         ========================================== -->
+    <div class="control-group">
+      <span class="control-group-title">Primary Colors</span>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Background Color</span>
+        <input type="color" name="colorPrimaryBg" value="#3B82F6" />
+      </div>
+      <div class="control-cluster spread">
+        <span class="control-text">Text Color</span>
+        <input type="color" name="colorPrimaryText" value="#FFFFFF" />
+      </div>
+
+      <hr>
+
+      <span class="control-group-title" style="border-bottom: none; padding-bottom: 0;">Secondary Colors</span>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Background Color</span>
+        <input type="color" name="colorSecondaryBg" value="#1E293B" />
+      </div>
+      <div class="control-cluster spread">
+        <span class="control-text">Text Color</span>
+        <input type="color" name="colorSecondaryText" value="#C8D2E0" />
+      </div>
+
+      <hr>
+
+      <span class="control-group-title" style="border-bottom: none; padding-bottom: 0;">Accent Color</span>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Accent Color</span>
+        <input type="color" name="colorAccent" value="#F59E0B" />
+      </div>
+    </div>
+
+    <!-- ==========================================
+         TYPOGRAPHY
+         ========================================== -->
+    <div class="control-group">
+      <span class="control-group-title">Typography</span>
+      <p class="control-text mb-sm">Enter the name of a Google Font (e.g., "Montserrat", "Open Sans").</p>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Primary Font</span>
+        <input type="text" name="fontPrimary" placeholder="Montserrat" value="Montserrat" />
+      </div>
+
+      <div class="control-cluster spread">
+        <span class="control-text">Secondary Font</span>
+        <input type="text" name="fontSecondary" placeholder="Open Sans" value="Open Sans" />
+      </div>
+
+      <div class="control-cluster right mt-sm">
+        <button type="button" id="btn-save-config" class="primary">Save Branding</button>
+      </div>
+    </div>
+
+  </form>
+
+  <script>
+    // Network Event Binds
+    document.getElementById('btn-save-config').addEventListener('click', () => {
+      omphalos.form.save('branding-form');
+      omphalos.toast('Global branding saved', 'success', 2);
+    });
+
+    // Hydrate the form when the connection is established
+    omphalos.event.ioConnect(() => {
+      omphalos.form.load('branding-form');
+    });
+  </script>
+</body>
+</html>
