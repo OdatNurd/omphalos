@@ -2,7 +2,6 @@ import { config } from '#core/config';
 import { logger } from '#core/logger';
 
 import * as sys_constants from '@odatnurd/omphalos-common/constants';
-import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
 
 import { assert } from '#api/assert';
 
@@ -76,9 +75,9 @@ function spaTemplate(dom, bundles, version) {
     "omphalos": {
       "name": sys_constants.SYSTEM_DASHBOARD,
       "compatibleRange": `~${version}`,
-      "panelPath": DEFAULT_PANEL_PATH,
-      "graphicPath": DEFAULT_GRAPHIC_PATH,
-      "soundPath": DEFAULT_SOUND_PATH,
+      "panelPath": sys_constants.DEFAULT_PANEL_PATH,
+      "graphicPath": sys_constants.DEFAULT_GRAPHIC_PATH,
+      "soundPath": sys_constants.DEFAULT_SOUND_PATH,
       "deps": bundles
     }
   };

@@ -3,7 +3,7 @@ import { log, logTree, logDetails } from '#logging';
 import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH,
          DEFAULT_PANEL_WORKSPACE,
          DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN
-       } from '@odatnurd/omphalos-common/schema';
+       } from '@odatnurd/omphalos-common/constants';
 
 import { coerceByPrefix, wrappedHandler } from '#helpers';
 

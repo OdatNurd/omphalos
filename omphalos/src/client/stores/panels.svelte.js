@@ -1,6 +1,6 @@
 import { connections } from '$stores/connections.svelte.js'
 
-import { DEFAULT_PANEL_LOCK } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_PANEL_LOCK } from '@odatnurd/omphalos-common/constants';
 
 // =============================================================================
 

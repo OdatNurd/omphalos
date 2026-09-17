@@ -1,6 +1,7 @@
 import semver from 'semver';
 
-import { isValidAssetId, DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+import { isValidAssetId } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/constants';
 
 import { join } from 'node:path';
 import { log } from '#logging';

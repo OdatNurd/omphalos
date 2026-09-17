@@ -1,7 +1,7 @@
 import { log, logDetails } from '#logging';
 import { wrappedHandler } from '#helpers';
 
-import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/constants';
 
 import fs from 'node:fs';
 import { resolve, join } from 'node:path';

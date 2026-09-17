@@ -6,7 +6,7 @@ import { join, extname } from 'node:path';
 import jetpack from 'fs-jetpack';
 import { parse } from 'acorn';
 
-import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/constants';
 
 import { getAudioTypeInfo } from '@odatnurd/omphalos-common/constants';
 

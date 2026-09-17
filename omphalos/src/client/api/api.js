@@ -1,5 +1,4 @@
 import * as constants from '@odatnurd/omphalos-common/constants';
-import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
 
 import { getClientSocket, join, part, message } from '#api/socket';
 
@@ -328,8 +327,8 @@ export async function _playAudioInternal(bundleName, soundFile, options = {}) {
     await audioContext.resume();
   }
 
-  const volume = options.volume !== undefined ? options.volume : DEFAULT_SOUND_VOLUME;
-  const pan = options.pan !== undefined ? options.pan : DEFAULT_SOUND_PAN;
+  const volume = options.volume !== undefined ? options.volume : constants.DEFAULT_SOUND_VOLUME;
+  const pan = options.pan !== undefined ? options.pan : constants.DEFAULT_SOUND_PAN;
   const deviceId = options.deviceId;
 
   const url = `/bundles/${bundleName}/sounds/${soundFile}`;
@@ -985,8 +984,8 @@ export const sound = {
 
     const overrides = storage.get(`__sys_audio:${target}:${soundName}`, {});
     return {
-      volume: overrides.volume ?? soundDef.volume ?? DEFAULT_SOUND_VOLUME,
-      pan: overrides.pan ?? soundDef.pan ?? DEFAULT_SOUND_PAN
+      volume: overrides.volume ?? soundDef.volume ?? constants.DEFAULT_SOUND_VOLUME,
+      pan: overrides.pan ?? soundDef.pan ?? constants.DEFAULT_SOUND_PAN
     };
   },
 

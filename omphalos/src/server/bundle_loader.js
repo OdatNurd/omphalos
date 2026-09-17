@@ -4,10 +4,9 @@ import { logger } from '#core/logger';
 import { SYSTEM_BUNDLE,
          MSG_STORAGE_UPDATE, MSG_GLOBAL_STORAGE_UPDATE,  MSG_TRIGGER_SOUND,
          EVENT_PEER_CONNECTED, EVENT_PEER_DISCONNECTED,
+         DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN,
          getAudioTypeInfo
        } from '@odatnurd/omphalos-common/constants';
-
-import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
 
 import { assert } from '#api/assert';
 

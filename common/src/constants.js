@@ -1,6 +1,30 @@
 // =============================================================================
 
 
+/* Default values for panel options in the schema; for optional keys, the values
+ * here are the presumed values at load time if the keys are missing or not
+ * otherwise set to a value. */
+export const DEFAULT_PANEL_PATH = 'panels';
+export const DEFAULT_PANEL_LOCK = false;
+export const DEFAULT_PANEL_FULLBLEED = false;
+export const DEFAULT_PANEL_WORKSPACE = 'Workspace';
+
+/* Default values for graphic options in the schema; for optional keys, the
+ * values here are the presumed values at load time if the keys are missing or
+ * not otherwise set to a value. */
+export const DEFAULT_GRAPHIC_PATH = 'graphics';
+
+/* Default values for sound options in the schema; for optional keys, the values
+ * here are the presumed values at load time if the keys are missing or not
+ * otherwise set to a value. */
+export const DEFAULT_SOUND_PATH = 'sounds';
+export const DEFAULT_SOUND_VOLUME = 1.0;
+export const DEFAULT_SOUND_PAN = 0.0;
+
+
+// =============================================================================
+
+
 /* The predefined name of the hard coded endpoint used for the system dashboard,
  * which is used to transmit messages directly to the dashboard through the same
  * communicatons lines as user defined messages to direct them specifically to

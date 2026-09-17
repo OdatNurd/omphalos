@@ -1,6 +1,6 @@
 import { log, logDetails } from '#logging';
 
-import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH } from '@odatnurd/omphalos-common/constants';
 import { coerceByPrefix, wrappedHandler } from '#helpers';
 
 

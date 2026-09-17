@@ -6,12 +6,12 @@ import semver from 'semver';
 
 import AdmZip from 'adm-zip';
 
-import { SYSTEM_BUNDLE } from '@odatnurd/omphalos-common/constants';
-import { isValidBundle,
+import { SYSTEM_BUNDLE,
          DEFAULT_PANEL_PATH, DEFAULT_GRAPHIC_PATH, DEFAULT_SOUND_PATH,
          DEFAULT_PANEL_WORKSPACE,
          DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN
-       } from '@odatnurd/omphalos-common/schema';
+       } from '@odatnurd/omphalos-common/constants';
+import { isValidBundle } from '@odatnurd/omphalos-common/schema';
 import { getBundlePaths, getPackedBundles } from '@odatnurd/omphalos-common/bundle';
 
 import { executeBundleOps, BUNDLE_OPS_FILE } from '#core/bundle_ops';

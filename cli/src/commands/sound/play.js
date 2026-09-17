@@ -2,7 +2,7 @@ import { log } from '#logging';
 
 import { enforce, getRequiredAsset, getRequiredAssetPath, validateAssetIdentifier, wrappedHandler } from '#helpers';
 
-import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/schema';
+import { DEFAULT_SOUND_VOLUME, DEFAULT_SOUND_PAN } from '@odatnurd/omphalos-common/constants';
 
 import playSound from 'play-sound';
 
