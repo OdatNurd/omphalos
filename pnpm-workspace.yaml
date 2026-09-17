@@ -17,4 +17,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - svelte@5.56.9
   - '@astrojs/starlight@0.41.9'
-  - astro@7.2.7
+  - astro@7.2.7 || 7.3.3
