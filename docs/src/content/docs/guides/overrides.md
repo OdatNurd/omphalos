@@ -12,6 +12,11 @@ previously extracted is deleted. `Overrides` allow you to specify content to be
 used to augment or edit the content of a bundle in a way that will persist if
 the bundle needs to be re-extracted.
 
+Bundles are extracted from `.omphalos-bundle` files that are found during
+bundle discovery. They extract out based on the name of the bundle, not the
+name of the file. Additionally, if there is more than one version of the bundle
+found, only the most recent one is used; this can cause updates to occur.
+
 ## Override Folder
 
 The [[configuration area|quick.configuration#configuration-area]] has an

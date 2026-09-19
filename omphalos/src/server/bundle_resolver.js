@@ -204,20 +204,23 @@ function getManifest() {
     // is introspected.
     //
     // This also handles the older type of cache file in which we just stored
-    // the extraction time; the newer type stores that and the list of
-    // overrides that were applied (if any) in an array.
+    // the extraction time; the newer type stores that and the list of overrides
+    // that were applied (if any) in an array, along with the specific filename
+    // of the zip that was extracted.
     manifestCache = {};
     for (const [bundle, data] of Object.entries(rawManifest)) {
       // Is the data just a string? If so, this is an older cache file.
       if (typeof data === 'string') {
         manifestCache[bundle] = {
           extractTime: new Date(data),
-          overrides: []
+          overrides: [],
+          extractedFile: null
         };
       } else {
         manifestCache[bundle] = {
           extractTime: new Date(data.extractTime),
-          overrides: data.overrides || []
+          overrides: data.overrides || [],
+          extractedFile: data.extractedFile || null
         };
       }
     }
@@ -236,11 +239,13 @@ function getManifest() {
  * When this returns an object, it is in the form:
  *  {
  *    "extractTime": Date,
- *    "overrides": []
+ *    "overrides": [],
+ *    "extractedFile": "string"
  *  }
  *
  * The time is the timestamp of the last omphalos-bundle to be extracted for
- * that bundle, and overrides is a list of all of the files that were copied
+ * that bundle, extractedFile tracks the exact filename to detect version
+ * changes, and overrides is a list of all of the files that were copied
  * into the bundle. */
 function getManifestEntry(bundleName) {
   return getManifest()[bundleName];
@@ -251,14 +256,16 @@ function getManifestEntry(bundleName) {
 
 
 /* Add an entry to the manifest cache for the given bundle, specifying the
- * timestamp of the file that was extracted, and the list of overrides. */
-function setManifestEntry(bundleName, extractTime, overrides) {
+ * timestamp of the file that was extracted, the list of overrides, and the
+ * exact filename of the zip that provided the files. */
+function setManifestEntry(bundleName, extractTime, overrides, extractedFile) {
   const manifest = getManifest();
 
   // Update the in-memory object directly.
   manifest[bundleName] = {
     extractTime: extractTime,
-    overrides: overrides || []
+    overrides: overrides || [],
+    extractedFile: extractedFile
   };
 
   // Write the manifest out, now.
@@ -360,52 +367,47 @@ function copyPackedBundleOverrides(bundleName, opsExecuted) {
 // =============================================================================
 
 
-/* Given the absolute path to something that appears to be an .omphalos-bundle
- * file, prepare it for loading.
+/* Given the absolute path to an .omphalos-bundle file and its canonical bundle
+ * name, prepare it for loading.
  *
  * To do that, we extract its contents out into the .cache folder in the config
  * area, and then copy over it the directory structure of a matching bundle in
  * the overrides folder.
  *
- * The extraction only occurs if we think we need to do it; if the packed bundle
- * is unchanged and the files have already been extracted, this step is skipped.
+ * The extraction only occurs if we think we need to do it; if the exact same
+ * packed bundle file has already been extracted and its modification time hasn't
+ * changed, this step is skipped.
  *
  * Similarly, when copying overrides, only files out of sync are copied; existing
- * synced files are left untouched.
- *
- * This works by assuming that a file named bob.omphalos-bundle should be
- * extracted to a folder named .cache/bob, and that overrides/bob is the name of
- * the folder that contains overrides.
- *
- * Note that this is NOT the actual name of the bundle, since that comes from
- * the package.json file. */
-function preparePackedBundle(bundleFile) {
-  // Get the name of the bundle dir, which is the basename of the file; then
-  // get the modification time of the file.
-  const { name: bundleName } = parse(bundleFile);
+ * synced files are left untouched. */
+function preparePackedBundle(bundleFile, canonicalBundleName) {
   const { modifyTime } = jetpack.inspect(bundleFile, { times: true });
+  const sourceFilename = basename(bundleFile);
 
-  log.debug(`preparing packed bundle ${bundleName} for loading`);
+  log.debug(`preparing packed bundle ${canonicalBundleName} for loading from ${sourceFilename}`);
 
   // Get the location that we want to extract to, and the location of the
   // overrides directory for this bundle.
-  const outputPath = resolve(config.get('bundleCacheDir'), bundleName);
-  const overridesDir = resolve(config.get('overrideDir'), bundleName);
+  const outputPath = resolve(config.get('bundleCacheDir'), canonicalBundleName);
+  const overridesDir = resolve(config.get('overrideDir'), canonicalBundleName);
 
   // Check the manifest in the cache to see if we have extracted this before. If
-  // we have, check to see if the file is newer than the cache entry.
+  // we have, check to see if the file is the exact same zip file name, and if
+  // it is newer than the cache entry.
   //
   // We must also verify that the cache folder actually exists physically on
   // disk. If it does not, then no matter what the cache says, we need to
   // extract.
-  const cacheEntry = getManifestEntry(bundleName);
-  if (cacheEntry !== undefined && cacheEntry.extractTime >= modifyTime && jetpack.exists(outputPath) === 'dir') {
-    log.debug(`packed bundle ${bundleName} is already unpacked; checking overrides`);
+  const cacheEntry = getManifestEntry(canonicalBundleName);
+  const isSameSourceFile = cacheEntry !== undefined && cacheEntry.extractedFile === sourceFilename;
+
+  if (isSameSourceFile && cacheEntry.extractTime >= modifyTime && jetpack.exists(outputPath) === 'dir') {
+    log.debug(`packed bundle ${canonicalBundleName} is already unpacked and up to date; checking overrides`);
 
     // Copy over the overrides, if any; this also fetches the names of them.
     // We can then refresh the manifest entry.
-    const overrideFiles = copyPackedBundleOverrides(bundleName, false);
-    setManifestEntry(bundleName, cacheEntry.extractTime, overrideFiles);
+    const overrideFiles = copyPackedBundleOverrides(canonicalBundleName, false);
+    setManifestEntry(canonicalBundleName, cacheEntry.extractTime, overrideFiles, sourceFilename);
     return;
   }
 
@@ -416,7 +418,7 @@ function preparePackedBundle(bundleFile) {
   // On error, remove the extracted folder since it could be in an unknown state
   // and could cause issues.
   try {
-    log.info(`extracting ${bundleName} to ${outputPath}`);
+    log.info(`extracting ${canonicalBundleName} to ${outputPath}`);
 
     // Get rid of the existing folder, if any.
     jetpack.remove(outputPath);
@@ -433,8 +435,8 @@ function preparePackedBundle(bundleFile) {
 
     // Copy the overrides and fetch the list of them; this could be empty. Once
     // we do that we can update the manifest.
-    const overrideFiles = copyPackedBundleOverrides(bundleName, true);
-    setManifestEntry(bundleName, modifyTime, overrideFiles);
+    const overrideFiles = copyPackedBundleOverrides(canonicalBundleName, true);
+    setManifestEntry(canonicalBundleName, modifyTime, overrideFiles, sourceFilename);
   }
   catch (error) {
     log.error(`error preparing packed bundle: ${error}`);
@@ -479,12 +481,46 @@ export function discoverBundles(appManifest) {
   // value.
   let bundles = {};
 
-  // Before we do anything else, we need to find the list of packed bundles and
-  // handle them; this will extract all such packages into folders that allow
-  // for the following bundle discovery to find them.
+  // Find all packed bundles and peek inside their zip files to determine their
+  // actual canonical bundle names and versions. If there are multiple versions
+  // of the same bundle, isolate only the one with the highest semantic version.
   const packedBundles = getPackedBundles(config);
-  for (const packedBundle of packedBundles) {
-    preparePackedBundle(packedBundle);
+  const bestPackedBundles = {};
+
+  for (const bundleFile of packedBundles) {
+    try {
+      const zip = new AdmZip(bundleFile);
+      const pkgEntry = zip.getEntry('package.json');
+
+      if (pkgEntry === null) {
+        log.warn(`packed bundle ${basename(bundleFile)} is missing package.json at root; skipping`);
+        continue;
+      }
+
+      // Load the manifest to get the package name and version.
+      const manifest = JSON.parse(zip.readAsText(pkgEntry));
+      const bName = manifest?.omphalos?.name;
+      const bVer = manifest?.version;
+
+      if (bName === undefined || bVer === undefined || semver.valid(bVer) === null) {
+        log.warn(`packed bundle ${basename(bundleFile)} has an invalid manifest name or version; skipping`);
+        continue;
+      }
+
+      // If we haven't seen this bundle yet, or this zip has a higher version,
+      // track it.
+      if (bestPackedBundles[bName] === undefined || semver.gt(bVer, bestPackedBundles[bName].version)) {
+        bestPackedBundles[bName] = { file: bundleFile, version: bVer, name: bName };
+      }
+    } catch (error) {
+      log.error(`error peeking inside packed bundle ${basename(bundleFile)}: ${error.message}`);
+    }
+  }
+
+  // Extract only the highest version packed bundles to the cache folder using
+  // their definitive canonical names.
+  for (const pack of Object.values(bestPackedBundles)) {
+    preparePackedBundle(pack.file, pack.name);
   }
 
   // Find all possible bundles, then load and validate their manifest files. We

@@ -64,7 +64,7 @@ async function handleBundle({ bundleName, bundlePath, manifest }) {
   // Check if we have production dependencies to install before we can pack
   // things up.
   const hasDependencies = manifest.dependencies !== undefined && Object.keys(manifest.dependencies).length > 0;
-  const outputFileName = `${bundleName}.omphalos-bundle`;
+  const outputFileName = `${bundleName}-${manifest.version}.omphalos-bundle`;
 
   // Display initial intent
   logDetails([
