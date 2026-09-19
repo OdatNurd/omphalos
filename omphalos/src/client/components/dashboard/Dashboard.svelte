@@ -36,6 +36,16 @@
   // Once the components are all laid out, trigger the gridstack code to turn
   // on the magic.
   onMount(() => {
+    // Event handler to allow the navigation bar to trigger a grid compaction.
+    // This packs all panels tightly towards the top-left to resolve layout gaps.
+    const handleAutoArrange = () => {
+      if (grid !== null) {
+        grid.compact();
+        saveLayout();
+      }
+    };
+    window.addEventListener('dashboard:autoarrange', handleAutoArrange);
+
     grid = GridStack.init({
       cellHeight: '32px',
       float: true,
@@ -50,7 +60,7 @@
 
     // For debugging purposes, add the grid to the window while in developer
     // mode so that we can poke it with a stick if needed.
-    if (window.omphalos.config.developerMode) {
+    if (window.omphalos.config.developerMode === true) {
       window.grid = grid;
     }
 
@@ -66,10 +76,15 @@
         saveLayout()
       }
     });
+
+    // Cleanup the event listener when this dashboard instance is destroyed.
+    return () => {
+      window.removeEventListener('dashboard:compact', handleAutoArrange);
+    };
   });
 </script>
 
-<div class="grid-holder">
+<div class="grid-holder h-full w-full overflow-y-auto overflow-x-hidden pb-12">
   <div class="grid-stack">
     {#each panels.list as panel (panel.name)}
       <DashboardPanel onupdate={saveLayout} {...panel} {blocked} {grid} />

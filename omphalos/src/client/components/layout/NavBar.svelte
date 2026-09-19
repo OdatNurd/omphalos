@@ -126,6 +126,10 @@
 
   <div class="navbar-end">
     <div role="tablist" class="tabs tabs-border ml-4">
+      <button role="tab" class="tab tab-lg hover:text-white" aria-label="Auto Arrange Panels" onclick={() => window.dispatchEvent(new CustomEvent('dashboard:autoarrange'))}>
+        <Icon name={'table-columns'} size="1.5rem" />
+      </button>
+
       <Tab href="/graphics" label="Open Graphics Page">
         <Icon name={'layer-group'} size="1.5rem" />
       </Tab>
