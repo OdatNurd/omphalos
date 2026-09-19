@@ -212,12 +212,14 @@ function getManifest() {
       // Is the data just a string? If so, this is an older cache file.
       if (typeof data === 'string') {
         manifestCache[bundle] = {
+          version: null,
           extractTime: new Date(data),
           overrides: [],
           extractedFile: null
         };
       } else {
         manifestCache[bundle] = {
+          version: data.version || null,
           extractTime: new Date(data.extractTime),
           overrides: data.overrides || [],
           extractedFile: data.extractedFile || null
@@ -233,11 +235,25 @@ function getManifest() {
 // =============================================================================
 
 
+/* Write the current state of the manifest out to disk atomically. */
+function saveManifest() {
+  const manifest = getManifest();
+
+  // Write the manifest out, now.
+  const manifestName = resolve(config.get('bundleCacheDir'), 'manifest.json');
+  jetpack.write(manifestName, manifest, { jsonIndent: 2, atomic: true });
+}
+
+
+// =============================================================================
+
+
 /* Fetch the manifest entry for the bundle of the the given name. This will be
  * undefined if the package is not a part of the cache.
  *
  * When this returns an object, it is in the form:
  *  {
+ *    "version": "string",
  *    "extractTime": Date,
  *    "overrides": [],
  *    "extractedFile": "string"
@@ -258,19 +274,35 @@ function getManifestEntry(bundleName) {
 /* Add an entry to the manifest cache for the given bundle, specifying the
  * timestamp of the file that was extracted, the list of overrides, and the
  * exact filename of the zip that provided the files. */
-function setManifestEntry(bundleName, extractTime, overrides, extractedFile) {
+function setManifestEntry(bundleName, bundleVersion, extractTime, overrides, extractedFile) {
   const manifest = getManifest();
 
   // Update the in-memory object directly.
   manifest[bundleName] = {
+    version: bundleVersion,
     extractTime: extractTime,
     overrides: overrides || [],
     extractedFile: extractedFile
   };
 
   // Write the manifest out, now.
-  const manifestName = resolve(config.get('bundleCacheDir'), 'manifest.json');
-  jetpack.write(manifestName, manifest, { jsonIndent: 2, atomic: true });
+  saveManifest();
+}
+
+
+// =============================================================================
+
+
+/* Remove an entry for a bundle from the manifest cache for the given bundle.
+ * If the bundle is not in the cache, this does nothing; otherwise it will
+ * remove the object and save the cache back to disk. */
+function removeManifestEntry(bundleName) {
+  const manifest = getManifest();
+
+  if (bundleName in manifest) {
+    delete manifest[bundleName];
+    saveManifest();
+  }
 }
 
 
@@ -380,11 +412,11 @@ function copyPackedBundleOverrides(bundleName, opsExecuted) {
  *
  * Similarly, when copying overrides, only files out of sync are copied; existing
  * synced files are left untouched. */
-function preparePackedBundle(bundleFile, canonicalBundleName) {
+function preparePackedBundle(bundleFile, canonicalBundleName, bundleVersion) {
   const { modifyTime } = jetpack.inspect(bundleFile, { times: true });
   const sourceFilename = basename(bundleFile);
 
-  log.debug(`preparing packed bundle ${canonicalBundleName} for loading from ${sourceFilename}`);
+  log.debug(`preparing packed bundle ${canonicalBundleName} v${bundleVersion} from ${sourceFilename}`);
 
   // Get the location that we want to extract to, and the location of the
   // overrides directory for this bundle.
@@ -407,7 +439,7 @@ function preparePackedBundle(bundleFile, canonicalBundleName) {
     // Copy over the overrides, if any; this also fetches the names of them.
     // We can then refresh the manifest entry.
     const overrideFiles = copyPackedBundleOverrides(canonicalBundleName, false);
-    setManifestEntry(canonicalBundleName, cacheEntry.extractTime, overrideFiles, sourceFilename);
+    setManifestEntry(canonicalBundleName, bundleVersion, cacheEntry.extractTime, overrideFiles, sourceFilename);
     return;
   }
 
@@ -436,7 +468,7 @@ function preparePackedBundle(bundleFile, canonicalBundleName) {
     // Copy the overrides and fetch the list of them; this could be empty. Once
     // we do that we can update the manifest.
     const overrideFiles = copyPackedBundleOverrides(canonicalBundleName, true);
-    setManifestEntry(canonicalBundleName, modifyTime, overrideFiles, sourceFilename);
+    setManifestEntry(canonicalBundleName, bundleVersion, modifyTime, overrideFiles, sourceFilename);
   }
   catch (error) {
     log.error(`error preparing packed bundle: ${error}`);
@@ -444,6 +476,79 @@ function preparePackedBundle(bundleFile, canonicalBundleName) {
     // If there is any error, remove any partially set up bundle path, since it
     // could be in an indeterminate state.
     jetpack.remove(outputPath);
+  }
+}
+
+
+// =============================================================================
+
+
+/* Given an object that contains the list of all of the packed bundles that may
+ * be about to be unpacked (if they are not already), examine the cache to see
+ * if it contains any bundles not mentioned in this list.
+ *
+ * We want to remove such bundles from the cache, and also remove their folders
+ * on disk, so that Omphalos does not try to load them. */
+function cleanupBundleCache(packedBundles) {
+  const cacheDir = config.get('bundleCacheDir');
+
+  // Get the current cache; then iterate over the keys, which are bundle names.
+  //
+  // For each such entry, if the name of that bundle is not in packed bundles
+  // object that we see here, we should remove its folder from disk and then
+  // remove it from the cache.
+  const cache = getManifest();
+  for (const bundleName of Object.keys(cache)) {
+    // If the name of this bundle is in the list of packed bundles, then there
+    // is nothing for us to do.
+    if (bundleName in packedBundles) {
+      continue;
+    }
+
+    // This entry needs to go away; get the information for it from the manifest
+    // and then say what we're doing
+    const bundleInfo = getManifestEntry(bundleName);
+    log.info(`packed bundle ${bundleName} v${bundleInfo.version} no longer installed; removing`);
+
+    try {
+      // If this bundle is extracted, then there's probably a folder for it in
+      // the cache folder.
+      const defunctPath = resolve(cacheDir, bundleName);
+
+      // Remove the entry, if it exists; we don't care what it is, the user
+      // should not be putting things into the .cache folder.
+      if (jetpack.exists(defunctPath) !== false) {
+        log.warn(`removed cache for packed bundle ${bundleName} from ${defunctPath}`);
+        jetpack.remove(defunctPath);
+      } else {
+        log.warn(`cache for packed bundle ${bundleName} is missing`);
+      }
+
+      // Whether we actually removed the path or not, remove it from the
+      // manifest now.
+      removeManifestEntry(bundleName);
+    }
+    catch (error) {
+      log.warn(`unable to remove cached bundle ${bundleName}`);
+    }
+  }
+
+  // Scan the cache folder now; any folders we find inside should not be there
+  // if they're not in the cache manifest; they are folders that could contain
+  // bundles that would get loaded.
+  //
+  // This is a safety for when someone makes ill advised manual changes in the
+  // cache folder, such as the developer. It also catches issues that can occur
+  // if the manifest file gets corrupted or deleted while packed bundles are
+  // installed.
+  const cacheDirContent = jetpack.list(cacheDir) || [];
+  for (const entry of cacheDirContent) {
+    const orphanDir = resolve(cacheDir, entry);
+
+    if (jetpack.exists(orphanDir) === 'dir' && getManifestEntry(entry) === undefined) {
+      log.warn(`cache contains orphaned folder; removing '${entry}'`);
+      jetpack.remove(orphanDir);
+    }
   }
 }
 
@@ -517,10 +622,15 @@ export function discoverBundles(appManifest) {
     }
   }
 
+  // Now that we know what bundles we are going to extract, and to what location
+  // we are going to extract them, remove any bundles that we previously
+  // unpacked but which are no longer present.
+  cleanupBundleCache(bestPackedBundles);
+
   // Extract only the highest version packed bundles to the cache folder using
   // their definitive canonical names.
   for (const pack of Object.values(bestPackedBundles)) {
-    preparePackedBundle(pack.file, pack.name);
+    preparePackedBundle(pack.file, pack.name, pack.version);
   }
 
   // Find all possible bundles, then load and validate their manifest files. We

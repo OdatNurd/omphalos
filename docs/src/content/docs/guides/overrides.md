@@ -17,6 +17,9 @@ bundle discovery. They extract out based on the name of the bundle, not the
 name of the file. Additionally, if there is more than one version of the bundle
 found, only the most recent one is used; this can cause updates to occur.
 
+If a file that was previously extracted is removed, at startup the extracted
+version of it will also be removed.
+
 ## Override Folder
 
 The [[configuration area|quick.configuration#configuration-area]] has an
